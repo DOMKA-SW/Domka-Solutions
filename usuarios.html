@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Usuarios</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/app-pages.css">
+  <style>
+    .hidden { display: none !important; }
+    .section-label {
+      font-size:.65rem; font-weight:700;
+      letter-spacing:.18em; text-transform:uppercase;
+      color:var(--green); margin-bottom:12px; display:block;
+    }
+    .modal-overlay {
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.45); z-index:500;
+      display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .modal-box {
+      background:#fff; border-radius:16px;
+      width:100%; max-width:460px;
+      padding:32px;
+    }
+  </style>
+</head>
+<body>
+
+<aside class="app-sidebar">
+  <div class="sidebar-brand-wrap">
+    <span class="sidebar-brand-name">DOMKA</span>
+    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+  </div>
+  <nav class="sidebar-links">
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="cotizaciones.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Cotizaciones</a>
+    <a href="cuentas.html" class="sidebar-link"><i class="fas fa-file-invoice-dollar"></i> Cuentas de cobro</a>
+    <a href="clientes.html" class="sidebar-link"><i class="fas fa-users"></i> Clientes</a>
+    <a href="proyectos.html" class="sidebar-link"><i class="fas fa-hard-hat"></i> Proyectos</a>
+    <a href="documentos.html" class="sidebar-link"><i class="fas fa-folder-open"></i> Documentos</a>
+    <a href="contabilidad.html" class="sidebar-link"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+    <a href="usuarios.html" class="sidebar-link active"><i class="fas fa-user-cog"></i> Usuarios</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-indicator">
+      <div class="user-dot"></div>
+      <div>
+        <span class="user-email-text" id="user-email">Cargando…</span>
+        <span style="display:block;font-size:.6rem;color:var(--gray-lt)" id="user-rol"></span>
+      </div>
+    </div>
+    <button onclick="logout()" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<div class="page-with-sidebar">
+
+  <div class="page-topbar">
+    <div>
+      <h1 class="page-heading">Usuarios</h1>
+      <p class="page-subheading">Gestión de accesos y roles · Solo Administrador</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Formulario nuevo usuario -->
+    <div>
+      <div class="form-container p-6">
+        <span class="section-label">Crear usuario</span>
+        <form id="form-nuevo-usuario">
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nombre</label>
+            <input id="nuevo-nombre" type="text" required placeholder="Nombre completo"
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Correo</label>
+            <input id="nuevo-email" type="email" required placeholder="correo@dominio.com"
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+              Contraseña <span class="font-normal text-gray-400">(mín. 8 caracteres)</span>
+            </label>
+            <input id="nuevo-password" type="password" required minlength="8" placeholder="••••••••"
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Rol</label>
+            <select id="nuevo-rol" required
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+              <option value="comercial">Comercial</option>
+              <option value="tecnico">Técnico</option>
+              <option value="cliente">Cliente</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+
+          <div class="mb-5">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+              ID cliente en Firestore <span class="font-normal text-gray-400">(solo si rol = cliente)</span>
+            </label>
+            <input id="nuevo-clienteId" type="text" placeholder="ID del documento en 'clientes'"
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+            <p class="text-xs text-gray-400 mt-1">Lo encuentras en Firebase → clientes → ID del documento.</p>
+          </div>
+
+          <button type="submit"
+            class="w-full py-2.5 bg-green-700 text-white text-sm font-semibold rounded-lg hover:bg-green-800 transition">
+            Crear usuario
+          </button>
+        </form>
+      </div>
+
+      <!-- Info de roles -->
+      <div class="form-container p-5 mt-4">
+        <span class="section-label">Permisos por rol</span>
+        <div class="space-y-3 text-xs text-gray-600">
+          <div><span class="font-semibold text-purple-700">ADMIN</span> — Acceso total + contabilidad + usuarios</div>
+          <div><span class="font-semibold text-blue-700">COMERCIAL</span> — Clientes, cotizaciones, cuentas, proyectos, documentos</div>
+          <div><span class="font-semibold text-yellow-700">TÉCNICO</span> — Solo proyectos asignados + subir evidencias</div>
+          <div><span class="font-semibold text-green-700">CLIENTE</span> — Portal cliente: cotizaciones, proyectos, documentos propios</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de usuarios -->
+    <div class="lg:col-span-2">
+      <div class="form-container overflow-x-auto" style="padding:0">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b bg-gray-50">
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Usuario</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Rol</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Estado</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Creado</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-usuarios">
+            <tr><td colspan="5" class="p-6 text-center text-gray-400">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal editar usuario -->
+<div id="modal-edit-usuario" class="modal-overlay hidden" onclick="if(event.target===this)cerrarModalEdit()">
+  <div class="modal-box">
+    <div class="flex justify-between items-center mb-5">
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.2rem">Editar usuario</h3>
+      <button onclick="cerrarModalEdit()" class="text-gray-400 hover:text-gray-700 text-xl">✕</button>
+    </div>
+    <form id="form-edit-usuario">
+      <input type="hidden" id="edit-uid">
+      <div class="mb-4">
+        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nombre</label>
+        <input id="edit-nombre" type="text" required
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+      </div>
+      <div class="mb-5">
+        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Rol</label>
+        <select id="edit-rol"
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+          <option value="admin">Administrador</option>
+          <option value="comercial">Comercial</option>
+          <option value="tecnico">Técnico</option>
+          <option value="cliente">Cliente</option>
+        </select>
+      </div>
+      <button type="submit"
+        class="w-full py-2.5 bg-green-700 text-white text-sm font-semibold rounded-lg hover:bg-green-800 transition">
+        Guardar cambios
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/security.js"></script>
+<script src="js/roles.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/usuarios.js"></script>
+</body>
+</html>

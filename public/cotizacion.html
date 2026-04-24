@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+  <title>DOMKA — Cotización</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+  <style>
+    :root {
+      --bg:       #f4efe7;
+      --bg-alt:   #ede7dc;
+      --green:    #1b7a51;
+      --green-dk: #155c3c;
+      --black:    #1a1a1a;
+      --gray:     #5a5a5a;
+      --gray-lt:  #9a9a9a;
+      --line:     #c8c0b4;
+      --white:    #ffffff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--black);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── TOPBAR ───────────────────────────────────────────── */
+    .topbar {
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-left { display: flex; flex-direction: column; gap: 2px; }
+    .topbar-brand {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+      color: var(--white);
+      letter-spacing: 0.03em;
+    }
+    .topbar-sub {
+      font-size: 0.7rem;
+      color: var(--gray-lt);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .topbar-logo { height: 34px; opacity: 0.85; }
+
+    /* ── HERO ─────────────────────────────────────────────── */
+    .hero {
+      background: var(--green);
+      padding: 32px 40px 28px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+    .hero-meta { text-align: right; }
+    .hero-meta-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 3px;
+    }
+    .hero-meta-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── WRAPPER ──────────────────────────────────────────── */
+    .wrapper {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 44px 32px 96px;
+    }
+
+    /* ── TOP BAR ACCIONES ─────────────────────────────────── */
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    /* ── BADGES ───────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-ok      { background: #d1fae5; color: #065f46; }
+    .badge-reject  { background: #fee2e2; color: #991b1b; }
+
+    /* ── BOTONES ──────────────────────────────────────────── */
+    .btn-pdf {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--white);
+      color: var(--black);
+      border: 1.5px solid var(--line);
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .btn-pdf:hover { border-color: var(--green); background: var(--bg-alt); }
+
+    .btn-confirmar {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--green);
+      color: var(--white);
+      border: none;
+      padding: 14px 38px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      box-shadow: 0 4px 22px rgba(27,122,81,.28);
+    }
+    .btn-confirmar:hover { background: var(--green-dk); transform: translateY(-2px); }
+    .btn-confirmar:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    /* ── SECTION LABEL ────────────────────────────────────── */
+    .slabel {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 14px;
+    }
+
+    /* ── DIVIDERS ─────────────────────────────────────────── */
+    .hr-green { border: none; border-top: 1.5px solid var(--green); margin: 36px 0; }
+    .hr-soft  { border: none; border-top: 1px solid var(--line);    margin: 28px 0; }
+
+    /* ── INFO GRID ────────────────────────────────────────── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+    }
+    .info-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .info-card-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gray-lt);
+      margin-bottom: 5px;
+    }
+    .info-card-value { font-size: 0.95rem; font-weight: 600; color: var(--black); }
+
+    /* ── TABLA ÍTEMS ──────────────────────────────────────── */
+    .items-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .items-table thead tr { background: var(--black); }
+    .items-table thead th {
+      padding: 11px 14px;
+      color: var(--white);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .items-table tbody tr:nth-child(even) { background: var(--bg-alt); }
+    .items-table tbody tr:nth-child(odd)  { background: var(--white); }
+    .items-table tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--black);
+    }
+    .items-table tbody tr:last-child td { border-bottom: none; }
+    .col-n     { width: 40px; text-align: center; color: var(--gray-lt); font-size: .82rem; }
+    .col-r     { text-align: right; white-space: nowrap; }
+    .col-green { text-align: right; font-weight: 700; color: var(--green); white-space: nowrap; }
+
+    /* ── TOTALES ──────────────────────────────────────────── */
+    .totales-wrap { display: flex; justify-content: flex-end; margin-top: 24px; }
+    .totales-box {
+      min-width: 270px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .t-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      font-size: .88rem;
+      color: var(--gray);
+    }
+    .t-row:last-child { border-bottom: none; }
+    .t-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px 18px;
+      background: var(--black);
+    }
+    .t-total-label { font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+    .t-total-value { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--white); }
+    .valor-letras { text-align: right; font-size: .78rem; color: var(--gray-lt); font-style: italic; margin-top: 8px; }
+
+    /* ── PLAN DE PAGOS ────────────────────────────────────── */
+    .pagos-wrap { overflow: hidden; border-radius: 10px; border: 1px solid var(--line); }
+    .pagos-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .pagos-table th {
+      background: var(--bg-alt); padding: 9px 14px; text-align: left;
+      font-size: .68rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--gray);
+    }
+    .pagos-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+    .pagos-table tr:last-child td { border-bottom: none; }
+
+    /* ── BANCOS ───────────────────────────────────────────── */
+    .bancos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .banco-card { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+    .banco-name { font-weight: 700; font-size: .95rem; color: var(--black); margin-bottom: 2px; }
+    .banco-tipo { font-size: .73rem; color: var(--gray-lt); margin-bottom: 10px; }
+    .banco-num  { font-family: 'DM Serif Display', serif; font-size: 1.15rem; color: var(--green); margin-bottom: 3px; }
+    .banco-tit  { font-size: .78rem; color: var(--gray); }
+
+    /* ── NOTAS ────────────────────────────────────────────── */
+    .notas-box {
+      background: var(--white);
+      border-left: 3px solid var(--green);
+      border-radius: 0 10px 10px 0;
+      padding: 18px 22px;
+    }
+    .notas-box ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .notas-box li {
+      display: flex; gap: 10px; align-items: flex-start;
+      font-size: .9rem; color: var(--gray); line-height: 1.55;
+    }
+    .notas-box li::before {
+      content: ""; width: 6px; height: 6px;
+      background: var(--green); border-radius: 50%;
+      flex-shrink: 0; margin-top: 8px;
+    }
+
+    /* ── ANEXOS ───────────────────────────────────────────── */
+    .anexos-btn {
+      width: 100%;
+      background: var(--white); border: 1px solid var(--line); border-radius: 10px;
+      padding: 14px 18px;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem; font-weight: 600; color: var(--black);
+      transition: background .2s;
+    }
+    .anexos-btn:hover { background: var(--bg-alt); }
+    .anexos-btn .chevron { transition: transform .25s; }
+    .anexos-btn.open .chevron { transform: rotate(180deg); }
+    .anexos-body {
+      display: none; padding: 16px;
+      border: 1px solid var(--line); border-top: none;
+      border-radius: 0 0 10px 10px;
+      background: var(--white);
+      flex-direction: column; gap: 16px;
+    }
+    .anexos-body.open { display: flex; }
+    .anexo-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .anexo-hd {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; background: var(--bg-alt);
+    }
+    .anexo-nm { font-weight: 600; font-size: .88rem; }
+    .btn-dl {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--green); color: var(--white);
+      border: none; padding: 6px 14px; border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .78rem; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-dl:hover { background: var(--green-dk); }
+
+    /* ── CONFIRMAR ────────────────────────────────────────── */
+    .confirm-section { text-align: center; padding: 36px 0 12px; }
+    .confirm-hint { font-size: .82rem; color: var(--gray-lt); margin-bottom: 18px; }
+
+    .confirmed-box {
+      display: none;
+      background: #d1fae5; border: 1px solid #6ee7b7;
+      border-radius: 12px; padding: 28px;
+      text-align: center; margin-top: 24px;
+    }
+    .confirmed-box.show { display: block; }
+    .confirmed-icon { font-size: 2.2rem; margin-bottom: 8px; }
+    .confirmed-title { font-family: 'DM Serif Display', serif; font-size: 1.35rem; color: #065f46; margin-bottom: 4px; }
+    .confirmed-sub { font-size: .85rem; color: #047857; }
+
+    /* ── TÉRMINOS ─────────────────────────────────────────── */
+    .terminos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .termino-item { font-size: .82rem; color: var(--gray); line-height: 1.7; }
+
+    /* ── FOOTER ───────────────────────────────────────────── */
+    .footer {
+      text-align: center; padding-top: 32px;
+      border-top: 1px solid var(--line);
+      font-size: .78rem; color: var(--gray-lt);
+      line-height: 2;
+    }
+    .footer a { color: var(--green); text-decoration: none; }
+
+    /* ── LOADER ───────────────────────────────────────────── */
+    .loader-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 80px 0; }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 3px solid var(--line);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .loader-wrap span { font-size: .88rem; color: var(--gray-lt); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .topbar, .hero { padding-left: 20px; padding-right: 20px; }
+      .wrapper { padding: 28px 18px 72px; }
+      .hero { flex-direction: column; align-items: flex-start; }
+      .hero-meta { text-align: left; }
+      .terminos-grid { grid-template-columns: 1fr; }
+      .totales-wrap { justify-content: stretch; }
+      .totales-box { min-width: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR 
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-brand">DOMKA</span>
+      <span class="topbar-sub">Construcción &amp; Diseño</span>
+    </div>
+    <img src="../img/logo.png" alt="DOMKA" class="topbar-logo" onerror="this.style.display='none'">
+  </div> -->
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Cotización</h1>
+    <div class="hero-meta">
+      <div class="hero-meta-label">Documento N°</div>
+      <div class="hero-meta-num" id="hero-num">—</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="wrapper">
+
+    <!-- Barra acciones -->
+    <div class="top-actions">
+      <div id="estado-badge"></div>
+      <button class="btn-pdf" id="btn-pdf">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar PDF
+      </button>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader-wrap" id="loader">
+      <div class="spinner"></div>
+      <span>Cargando cotización…</span>
+    </div>
+
+    <!-- Contenido -->
+    <div id="content" style="display:none">
+
+      <!-- Info general -->
+      <p class="slabel">Información general</p>
+      <div class="info-grid" id="info-grid"></div>
+
+      <hr class="hr-green">
+
+      <!-- Detalle -->
+      <p class="slabel">Detalle de la cotización</p>
+      <div style="overflow-x:auto; border-radius:10px; overflow:hidden; border:1px solid var(--line);">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th class="col-n">N°</th>
+              <th style="text-align:left">Descripción</th>
+              <th class="col-r" id="th-precio">Precio unit.</th>
+              <th class="col-r" id="th-cant">Cant.</th>
+              <th class="col-green" id="th-total">Total</th>
+            </tr>
+          </thead>
+          <tbody id="items-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Totales -->
+      <div class="totales-wrap">
+        <div class="totales-box">
+          <div class="t-row" id="r-sub" style="display:none"><span>Subtotal</span><span id="v-sub">—</span></div>
+          <div class="t-row" id="r-iva" style="display:none"><span>IVA</span><span id="v-iva">—</span></div>
+          <div class="t-total">
+            <span class="t-total-label">Total a pagar</span>
+            <span class="t-total-value" id="v-total">—</span>
+          </div>
+        </div>
+      </div>
+      <p class="valor-letras" id="v-letras"></p>
+
+      <!-- Anexos -->
+      <div id="anexos-wrap" style="display:none">
+        <hr class="hr-soft">
+        <p class="slabel">Anexos</p>
+        <button class="anexos-btn" id="anexos-btn">
+          <span id="anexos-label">📎 Ver anexos</span>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="anexos-body" id="anexos-body"></div>
+      </div>
+
+    </div>
+
+      <!-- Plan de pagos -->
+      <div id="plan-wrap" style="display:none">
+        <hr class="hr-green">
+        <p class="slabel">Plan de pagos</p>
+        <div class="pagos-wrap">
+          <table class="pagos-table">
+            <thead><tr>
+              <th>Descripción</th>
+              <th style="text-align:center">Porcentaje</th>
+              <th style="text-align:right">Valor</th>
+            </tr></thead>
+            <tbody id="plan-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div id="notas-wrap" style="display:none">
+        <hr class="hr-green">
+        <p class="slabel">Notas</p>
+        <div class="notas-box"><ul id="notas-list"></ul></div>
+      </div>
+    
+      <!-- Métodos de pago -->
+      <hr class="hr-green">
+      <p class="slabel">Métodos de pago</p>
+      <div class="bancos-grid">
+        <div class="banco-card">
+          <div class="banco-name">Bancolombia</div>
+          <div class="banco-tipo">Cuenta de Ahorros</div>
+          <div class="banco-num">912-941792-97</div>
+          <div class="banco-tit">Titular: Alexander Otalora</div>
+        </div>
+      </div>
+
+      <!-- Términos -->
+      <hr class="hr-soft">
+      <p class="slabel" style="color:var(--gray-lt)">Términos y condiciones</p>
+      <div class="terminos-grid">
+        <div class="termino-item">Esta cotización tiene validez de 30 días a partir de la fecha de emisión. El tiempo de entrega se confirmará al momento de la aprobación.</div>
+        <div class="termino-item" id="term-pago">Pago al contado al finalizar el servicio. Cualquier trabajo adicional no contemplado generará un cobro extra.</div>
+      </div>
+
+    <!-- /content -->
+
+    <!-- Acciones -->
+    <div id="acciones" style="display:none">
+      <hr class="hr-green">
+      <div class="confirm-section">
+        <p class="confirm-hint">¿Recibiste esta cotización? Confírmalo con un clic.</p>
+        <button class="btn-confirmar" id="btn-confirmar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirmar recibido
+        </button>
+      </div>
+    </div>
+
+    <!-- Confirmado -->
+    <div class="confirmed-box" id="confirmed-box">
+      <div class="confirmed-icon">✅</div>
+      <div class="confirmed-title">¡Recibido confirmado!</div>
+      <div class="confirmed-sub">Hemos registrado tu confirmación. Gracias.</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" style="margin-top:56px">
+      <p>DOMKA Construcción &amp; Diseño · <a href="mailto:piter030509@gmail.com">piter030509@gmail.com</a> · +57 305 811 4595</p>
+      <p>© 2026 DOMKA · Colombia</p>
+    </div>
+
+  </div><!-- /wrapper -->
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="../js/numero-letras.js"></script>
+  <script src="../js/pdf-cotizacion.js"></script>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    let cotRef, cotData;
+
+    // ── helpers ──
+    window.fmtM = window.fmtM || (n =>
+      `$${Number(n || 0).toLocaleString("es-CO")}`
+    );
+
+    // ── FIX: usar window.fmtDate para evitar conflicto con pdf-cotizacion.js ──
+    window.fmtDate = window.fmtDate || (f => {
+      if (!f) return "—";
+      return new Date(f.seconds ? f.seconds * 1000 : f)
+        .toLocaleDateString("es-CO", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric"
+        });
+    });
+
+    const tipoMap = {"mano-obra":"Mano de obra","materiales":"Materiales","ambos":"Mano de obra y materiales"};
+    const pagoMap = {"contado":"Pago al contado","60-40":"60% anticipo — 40% al finalizar","50-50":"50% anticipo — 50% al finalizar","tres-pagos":"Tres cuotas","personalizado":"Plan personalizado"};
+
+    function setBadge(estado) {
+      const el = document.getElementById("estado-badge");
+      const map = {
+        aprobada: `<span class="badge badge-ok">✓ Recibido confirmado</span>`,
+        rechazada:`<span class="badge badge-reject">✕ Rechazada</span>`
+      };
+      el.innerHTML = map[estado] || `<span class="badge badge-pending">⏳ Pendiente</span>`;
+    }
+
+    // ── toggle anexos ──
+    document.getElementById("anexos-btn")?.addEventListener("click", () => {
+      const btn  = document.getElementById("anexos-btn");
+      const body = document.getElementById("anexos-body");
+      btn.classList.toggle("open");
+      body.classList.toggle("open");
+    });
+
+    // ── cargar ──
+    async function cargar() {
+      if (!id) {
+        document.getElementById("loader").innerHTML = `<p style="color:#991b1b;padding:40px 0">Error: no se especificó ID.</p>`;
+        return;
+      }
+      cotRef = db.collection("cotizaciones").doc(id);
+      const snap = await cotRef.get().catch(()=>null);
+      if (!snap?.exists) {
+        document.getElementById("loader").innerHTML = `<p style="color:#991b1b;padding:40px 0">Cotización no encontrada.</p>`;
+        return;
+      }
+      cotData = snap.data();
+      const c = cotData;
+      const esVT = c.tipoCalculo === "valor-total";
+
+      // Número
+      const num = (id||"").substring(0,8).toUpperCase();
+      document.getElementById("hero-num").textContent = num;
+      document.title = `DOMKA — Cotización N° ${num}`;
+
+      // Info grid
+      const campos = [
+        {label:"Cliente",       value: c.nombreCliente||"—"},
+        {label:"Fecha",         value: fmtDate(c.fecha)},
+        ...(c.ubicacion?[{label:"Ubicación",value:c.ubicacion}]:[]),
+        {label:"Tipo",          value: tipoMap[c.tipo]||c.tipo||"—"},
+        {label:"Forma de pago", value: pagoMap[c.formaPago]||c.formaPago||"—"},
+        ...(c.mostrarDocumento!==false&&c.clienteNit?[{label:"NIT",value:c.clienteNit}]:[]),
+        ...(c.mostrarDocumento!==false&&c.clienteNumeroDocumento?[{label:"N° Documento",value:c.clienteNumeroDocumento}]:[]),
+      ];
+      document.getElementById("info-grid").innerHTML = campos.map(f=>`
+        <div class="info-card">
+          <div class="info-card-label">${f.label}</div>
+          <div class="info-card-value">${f.value}</div>
+        </div>`).join("");
+
+      // Tabla
+      if (esVT) {
+        ["th-precio","th-cant","th-total"].forEach(id=>document.getElementById(id).style.display="none");
+      }
+      document.getElementById("items-body").innerHTML = (c.items||[]).map((it,i)=>`
+        <tr>
+          <td class="col-n">${String(i+1).padStart(2,"0")}</td>
+          <td>${it.descripcion||"—"}</td>
+          ${esVT?"":` <td class="col-r">${fmtM(it.precio)}</td>
+                       <td class="col-r">${it.cantidad||1}</td>
+                       <td class="col-green">${fmtM(it.subtotal)}</td>`}
+        </tr>`).join("");
+
+      // Totales
+      const iva = (c.total||0)-(c.subtotal||0);
+      if (iva>1 && !esVT) {
+        document.getElementById("r-sub").style.display="flex";
+        document.getElementById("r-iva").style.display="flex";
+        document.getElementById("v-sub").textContent=fmtM(c.subtotal);
+        document.getElementById("v-iva").textContent=fmtM(iva);
+      }
+      document.getElementById("v-total").textContent = fmtM(c.total);
+      if (c.mostrarValorLetras && typeof numeroAPalabras==="function") {
+        document.getElementById("v-letras").textContent = `Son: ${numeroAPalabras(c.total||0)}`;
+      }
+
+      // Plan pagos
+      if ((c.planPagos||[]).length>1) {
+        document.getElementById("plan-wrap").style.display="block";
+        document.getElementById("plan-body").innerHTML = c.planPagos.map(p=>`
+          <tr>
+            <td>${p.descripcion||"—"}</td>
+            <td style="text-align:center;color:var(--gray)">${p.porcentaje}%</td>
+            <td style="text-align:right;font-weight:700;color:var(--green)">${fmtM(p.monto)}</td>
+          </tr>`).join("");
+      }
+
+      // Términos de pago
+      if (c.formaPago!=="contado") {
+        document.getElementById("term-pago").textContent = "Se requiere anticipo para iniciar según el plan de pagos acordado. Cualquier trabajo adicional no contemplado generará un cobro extra.";
+      }
+
+      // Notas
+      const notas = c.notasArray?.length>0 ? c.notasArray : (c.notas?c.notas.split("\n").filter(l=>l.trim()):[]);
+      if (notas.length>0) {
+        document.getElementById("notas-wrap").style.display="block";
+        document.getElementById("notas-list").innerHTML = notas.map(n=>`<li>${n}</li>`).join("");
+      }
+
+      // Anexos
+      if ((c.anexos||[]).length>0) {
+        document.getElementById("anexos-wrap").style.display="block";
+        document.getElementById("anexos-label").textContent = `📎 Ver anexos (${c.anexos.length})`;
+        document.getElementById("anexos-body").innerHTML = c.anexos.map(a=>{
+          const img = a.tipo?.startsWith("image/");
+          const pdf = a.tipo==="application/pdf";
+          return `<div class="anexo-card">
+            <div class="anexo-hd">
+              <span class="anexo-nm">${img?"🖼️":pdf?"📄":"📎"} ${a.nombre}</span>
+              <a href="${a.base64}" download="${a.nombre}" class="btn-dl">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Descargar
+              </a>
+            </div>
+            ${img?`<img src="${a.base64}" alt="${a.nombre}" style="max-width:100%;display:block;">`:""}
+            ${pdf?`<iframe src="${a.base64}" style="width:100%;height:480px;border:none;"></iframe>`:""}
+          </div>`;
+        }).join("");
+      }
+
+      // Estado + acciones
+      setBadge(c.estado);
+      if (!c.estado||c.estado==="pendiente") {
+        document.getElementById("acciones").style.display="block";
+      }
+
+      // Mostrar
+      document.getElementById("loader").style.display="none";
+      document.getElementById("content").style.display="block";
+
+      // PDF
+      document.getElementById("btn-pdf").onclick = () => generarPDFCotizacion({...c,id}, c.nombreCliente);
+    }
+
+    // ── confirmar ──
+    document.getElementById("btn-confirmar").addEventListener("click", async () => {
+      const btn = document.getElementById("btn-confirmar");
+      btn.disabled = true;
+      btn.innerHTML = `<div class="spinner" style="width:18px;height:18px;border-width:2px"></div> Guardando…`;
+      try {
+        await cotRef.update({estado:"aprobada", fechaRecibido:firebase.firestore.FieldValue.serverTimestamp()});
+        await db.collection("logs").add({
+          docId:id, tipo:"cotizacion", accion:"recibido_confirmado",
+          nombreCliente:cotData?.nombreCliente||"", total:cotData?.total||0,
+          userAgent:navigator.userAgent||null,
+          timestamp:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById("acciones").style.display="none";
+        document.getElementById("confirmed-box").classList.add("show");
+        setBadge("aprobada");
+      } catch(e) {
+        console.error(e);
+        btn.disabled=false;
+        btn.innerHTML=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Confirmar recibido`;
+        alert("Error al confirmar. Intenta de nuevo.");
+      }
+    });
+
+    // ── tracking ──
+    window.addEventListener("load", async () => {
+      try {
+        const ip = await fetch("https://ipapi.co/json/").then(r=>r.json()).catch(()=>({}));
+        await db.collection("logs").add({
+          docId:id, tipo:"cotizacion", accion:"vista",
+          userAgent:navigator.userAgent||null, referer:document.referrer||null,
+          ip:ip.ip||null, city:ip.city||null, country:ip.country_name||null,
+          timestamp:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch{}
+    });
+
+    document.addEventListener("DOMContentLoaded", cargar);
+  </script>
+</body>
+</html>

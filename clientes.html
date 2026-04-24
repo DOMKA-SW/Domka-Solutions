@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Clientes</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/app-pages.css">
+  <style>
+    .hidden { display: none !important; }
+    .scrollable-table::-webkit-scrollbar { height: 5px; }
+    .scrollable-table::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }
+
+    .action-btn-edit {
+      background: #dbeafe; color: #1e40af;
+      padding: 5px 12px; border-radius: 6px;
+      font-size: .8rem; font-weight: 600; transition: all .2s;
+    }
+    .action-btn-edit:hover { background: #bfdbfe; }
+
+    .action-btn-delete {
+      background: #fee2e2; color: #991b1b;
+      padding: 5px 12px; border-radius: 6px;
+      font-size: .8rem; font-weight: 600; transition: all .2s;
+    }
+    .action-btn-delete:hover { background: #fecaca; }
+
+    .empty-state { text-align: center; padding: 48px 20px; }
+    .empty-state i { font-size: 2.5rem; color: var(--line); margin-bottom: 14px; display: block; }
+    .empty-state p { color: var(--gray-lt); font-size: .9rem; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="sidebar-brand-wrap">
+    <span class="sidebar-brand-name">DOMKA</span>
+    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+  </div>
+  <nav class="sidebar-links">
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="cotizaciones.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Cotizaciones</a>
+    <a href="cuentas.html" class="sidebar-link"><i class="fas fa-file-invoice-dollar"></i> Cuentas de cobro</a>
+    <a href="clientes.html" class="sidebar-link active"><i class="fas fa-users"></i> Clientes</a>
+    <a href="contabilidad.html" class="sidebar-link"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-indicator">
+      <div class="user-dot"></div>
+      <span class="user-email-text" id="user-email">Cargando…</span>
+    </div>
+    <button onclick="logout()" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="page-with-sidebar">
+
+  <div class="page-topbar">
+    <div>
+      <h1 class="page-heading">Clientes</h1>
+      <p class="page-subheading">Administra la información de tus clientes</p>
+    </div>
+    <a href="dashboard.html" class="btn-secondary px-4 py-2 rounded-lg inline-flex items-center gap-2 text-sm">
+      <i class="fas fa-arrow-left"></i> Volver al Dashboard
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Formulario -->
+    <div>
+      <div class="form-container p-6">
+        <h2 class="text-xl mb-6 pb-3" style="border-bottom:1px solid var(--line)">
+          Agregar / Editar Cliente
+        </h2>
+
+        <form id="form-clientes" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Nombre</label>
+              <input type="text" name="nombre" placeholder="Nombre completo" required spellcheck="true" lang="es" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Email</label>
+              <input type="email" name="email" placeholder="correo@ejemplo.com" required class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Teléfono</label>
+              <input type="text" name="telefono" placeholder="+57 300 123 4567" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Empresa</label>
+              <input type="text" name="empresa" placeholder="Nombre de la empresa" spellcheck="true" lang="es" class="form-input">
+            </div>
+            <div style="grid-column:span 2">
+              <label class="form-label">Tipo y Número de Identificación</label>
+              <div style="display:flex;gap:10px">
+                <select name="tipoIdentificacion" class="form-input" style="max-width:140px;flex-shrink:0">
+                  <option value="CC">CC</option>
+                  <option value="NIT">NIT</option>
+                  <option value="CE">CE</option>
+                  <option value="Pasaporte">Pasaporte</option>
+                  <option value="TI">TI</option>
+                </select>
+                <input type="text" name="identificacion"
+                  placeholder="Número de identificación"
+                  spellcheck="false"
+                  class="form-input" style="flex:1">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary px-6 py-3 rounded-lg text-base w-full">
+            Guardar Cliente
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div>
+      <div class="form-container p-5">
+        <div class="flex justify-between items-center mb-5 pb-3" style="border-bottom:1px solid var(--line)">
+          <h2 class="text-xl">Lista de Clientes</h2>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:var(--green-lt);color:var(--green)" id="clientes-count">0 clientes</span>
+        </div>
+
+        <div class="scrollable-table">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr>
+                <th class="p-3 text-left">Nombre</th>
+                <th class="p-3 text-left">Email</th>
+                <th class="p-3 text-left">Teléfono</th>
+                <th class="p-3 text-left">Empresa</th>
+                <th class="p-3 text-left">Identificación</th>
+                <th class="p-3 text-left">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="clientes-list"></tbody>
+          </table>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+          <i class="fas fa-users"></i>
+          <p>No hay clientes registrados</p>
+          <p style="font-size:.8rem;margin-top:4px">Comienza agregando tu primer cliente</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/clientes.js"></script>
+<script>
+  if (typeof auth !== 'undefined' && auth.onAuthStateChanged) {
+    auth.onAuthStateChanged(u => {
+      const el = document.getElementById('user-email');
+      if (el) el.textContent = u?.email || 'Usuario';
+    });
+  }
+  function logout() {
+    if (typeof auth !== 'undefined') auth.signOut().then(() => window.location.href = 'index.html');
+  }
+</script>
+</body>
+</html>

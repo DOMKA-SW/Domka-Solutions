@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Contabilidad</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/app-pages.css">
+  <style>
+    .hidden { display: none !important; }
+
+    .tab-btn { padding: 9px 18px; border-radius: 8px; font-size: .84rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+    .tab-btn.active { background: var(--green) !important; color: #fff !important; box-shadow: 0 2px 10px rgba(27,122,81,.22); }
+    .tab-btn:not(.active) { background: var(--white) !important; color: var(--gray) !important; border: 1px solid var(--line); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .kpi {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--green);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .kpi-title {
+      font-size: .62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--gray-lt);
+      margin-bottom: 6px;
+    }
+
+    .kpi-val {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.45rem;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .inp {
+      border: 1.5px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 12px;
+      width: 100%;
+      font-size: .88rem;
+      background: #faf8f4;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      transition: all .2s;
+    }
+
+    .inp:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(27,122,81,.1);
+      background: var(--white);
+    }
+
+    .btn { padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: .84rem; cursor: pointer; border: none; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Sans', sans-serif; }
+    .btn-orange { background: var(--green) !important; color: #fff; }
+    .btn-orange:hover { background: var(--green-dk) !important; }
+    .btn-gray { background: var(--bg-alt); color: var(--gray); border: 1px solid var(--line); }
+    .btn-gray:hover { border-color: var(--green); color: var(--green); }
+    .btn-blue { background: #3b82f6; color: #fff; }
+    .btn-blue:hover { background: #2563eb; }
+    .btn-red { background: #fee2e2; color: #991b1b; }
+    .btn-red:hover { background: #fecaca; }
+    .btn-sm { padding: 5px 12px; font-size: .78rem; border-radius: 6px; }
+
+    .cuenta-card {
+      border-radius: 14px; padding: 20px; color: #fff;
+      position: relative; overflow: hidden;
+      cursor: pointer; transition: transform .15s, box-shadow .15s;
+    }
+    .cuenta-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+    .cuenta-card::before { content:''; position:absolute; right:-20px; top:-20px; width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,.12); }
+    .cuenta-card::after  { content:''; position:absolute; right:14px; bottom:-30px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.07); }
+
+    .mov-row { border-left: 4px solid var(--line); padding: 10px 14px; border-radius: 0 8px 8px 0; }
+    .mov-row.ingreso { border-left-color: #22c55e; background: #f0fdf4; }
+    .mov-row.gasto { border-left-color: #ef4444; background: #fef2f2; }
+    .mov-row.pendiente { opacity: .75; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .68rem; font-weight: 700; }
+    .badge-green  { background: #dcfce7; color: #166534; }
+    .badge-red    { background: #fee2e2; color: #991b1b; }
+    .badge-orange { background: var(--green-lt); color: var(--green-dk); }
+    .badge-blue   { background: #dbeafe; color: #1e40af; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-gray   { background: var(--bg-alt); color: var(--gray); }
+
+    th { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--gray-lt); padding: 10px 12px; text-align: left; }
+    td { padding: 10px 12px; font-size: .875rem; border-bottom: 1px solid var(--line-lt); color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-alt); }
+
+    .lbl { display: block; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--gray); margin-bottom: 5px; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--green); }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="sidebar-brand-wrap">
+    <span class="sidebar-brand-name">DOMKA</span>
+    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+  </div>
+  <nav class="sidebar-links">
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="cotizaciones.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Cotizaciones</a>
+    <a href="cuentas.html" class="sidebar-link"><i class="fas fa-file-invoice-dollar"></i> Cuentas de cobro</a>
+    <a href="clientes.html" class="sidebar-link"><i class="fas fa-users"></i> Clientes</a>
+    <a href="contabilidad.html" class="sidebar-link active"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-indicator">
+      <div class="user-dot"></div>
+      <span class="user-email-text" id="user-email">Cargando…</span>
+    </div>
+    <button onclick="logout()" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<div class="page-with-sidebar">
+<div class="max-w-7xl mx-auto">
+
+  <!-- HEADER -->
+  <div class="page-topbar">
+    <div>
+      <h1 class="page-heading">Finanzas &amp; Contabilidad</h1>
+      <p class="page-subheading">Control de cuentas, gastos, ingresos y proyectos</p>
+    </div>
+    <div class="flex gap-2">
+      <button id="btn-export" class="btn btn-gray btn-sm"><i class="fas fa-download"></i> Exportar CSV</button>
+      <a href="dashboard.html" class="btn btn-gray btn-sm"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
+  </div>
+
+  <!-- FILTRO FECHAS -->
+  <div class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
+    <div>
+      <label class="lbl">Desde</label>
+      <input id="desde" type="date" class="inp" style="width:155px">
+    </div>
+    <div>
+      <label class="lbl">Hasta</label>
+      <input id="hasta" type="date" class="inp" style="width:155px">
+    </div>
+    <button id="btn-filtrar" class="btn btn-orange btn-sm"><i class="fas fa-filter"></i> Filtrar</button>
+    <button id="btn-limpiar" class="btn btn-gray btn-sm">Limpiar</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+    <div class="kpi">
+      <div class="kpi-title">Total Ingresos</div>
+      <div class="kpi-val" style="color:var(--green)" id="kpi-ingresos">—</div>
+      <p class="text-xs mt-1" style="color:var(--gray-lt)">Pagos + ingresos manuales</p>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Total Gastos</div>
+      <div class="kpi-val" style="color:#ef4444" id="kpi-gastos">—</div>
+      <p class="text-xs mt-1" style="color:var(--gray-lt)">Gastos en el período</p>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Balance Neto</div>
+      <div class="kpi-val" id="kpi-balance">—</div>
+      <p class="text-xs mt-1" style="color:var(--gray-lt)">Ingresos − Gastos</p>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Patrimonio Total</div>
+      <div class="kpi-val" style="color:#3b82f6" id="kpi-patrimonio">—</div>
+      <p class="text-xs mt-1" style="color:var(--gray-lt)">Suma de todas las cuentas</p>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Cot. Pendientes</div>
+      <div class="kpi-val" style="color:#f59e0b" id="kpi-cot-pendientes">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Cot. Aprobadas</div>
+      <div class="kpi-val" style="color:var(--green)" id="kpi-cot-aprobadas">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Por Cobrar</div>
+      <div class="kpi-val" style="color:#f59e0b" id="kpi-por-cobrar">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Cuentas Pagadas</div>
+      <div class="kpi-val" style="color:var(--green)" id="kpi-cue-pagadas">—</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="flex gap-2 mb-5 flex-wrap">
+    <button class="tab-btn active" data-tab="cuentas">🏦 Mis Cuentas</button>
+    <button class="tab-btn" data-tab="movimientos">💸 Movimientos</button>
+    <button class="tab-btn" data-tab="graficos">📊 Gráficos</button>
+    <button class="tab-btn" data-tab="transacciones">📋 Transacciones</button>
+    <button class="tab-btn" data-tab="logs">👁 Logs</button>
+  </div>
+
+  <!-- TAB: MIS CUENTAS -->
+  <div class="tab-panel active" id="tab-cuentas">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="card p-5">
+        <h3 class="font-bold mb-4 pb-3" style="color:var(--text);border-bottom:1px solid var(--line)" id="titulo-form-banco">Agregar Cuenta</h3>
+        <input type="hidden" id="banco-id-editando">
+        <div class="space-y-3">
+          <div>
+            <label class="lbl">Nombre de la cuenta *</label>
+            <input id="banco-nombre" class="inp" placeholder="Ej: Bancolombia Ahorros, Nequi...">
+          </div>
+          <div>
+            <label class="lbl">Entidad bancaria</label>
+            <input id="banco-entidad" class="inp" placeholder="Ej: Bancolombia, Davivienda...">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="lbl">Tipo de cuenta</label>
+              <select id="banco-tipo" class="inp">
+                <option value="ahorros">Ahorros</option>
+                <option value="corriente">Corriente</option>
+                <option value="digital">Billetera Digital</option>
+                <option value="efectivo">Efectivo / Caja</option>
+                <option value="inversion">Inversión / CDT</option>
+                <option value="credito">Crédito / Deuda</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Número (opcional)</label>
+              <input id="banco-numero" class="inp" placeholder="****1234">
+            </div>
+          </div>
+          <div>
+            <label class="lbl">Saldo actual ($)</label>
+            <input id="banco-saldo" type="number" class="inp" value="0">
+            <p class="text-xs mt-1" style="color:var(--gray-lt)">Saldo real actual en esta cuenta</p>
+          </div>
+          <div>
+            <label class="lbl">Color</label>
+            <input id="banco-color" type="color" class="inp h-10 p-1 cursor-pointer" value="#1b7a51">
+          </div>
+          <button id="btn-guardar-banco" class="btn btn-orange w-full justify-center">
+            <i class="fas fa-save"></i> Guardar Cuenta
+          </button>
+          <button id="btn-cancelar-banco" class="btn btn-gray w-full justify-center hidden">
+            Cancelar edición
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="lista-cuentas-bancarias">
+          <div class="col-span-2 text-center py-10" style="color:var(--gray-lt)">
+            <i class="fas fa-university text-4xl mb-3 block" style="color:var(--line)"></i>
+            <p>Cargando cuentas...</p>
+          </div>
+        </div>
+        <div class="card p-4 flex justify-between items-center">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wide" style="color:var(--gray-lt)">Patrimonio total</p>
+            <p class="text-2xl mt-1" style="font-family:'DM Serif Display',serif;color:var(--text)" id="patrimonio-display">—</p>
+            <p class="text-xs mt-0.5" style="color:var(--gray-lt)">Suma de saldos en todas las cuentas</p>
+          </div>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:var(--green-lt)">
+            <i class="fas fa-wallet text-2xl" style="color:var(--green)"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="detalle-cuenta-wrap" class="card p-5 mt-5 hidden">
+      <div class="flex justify-between items-center mb-4 pb-3" style="border-bottom:1px solid var(--line)">
+        <h3 class="font-bold" style="color:var(--text)" id="detalle-cuenta-titulo">Movimientos de la cuenta</h3>
+        <button id="btn-cerrar-detalle" class="btn btn-gray btn-sm"><i class="fas fa-times"></i> Cerrar</button>
+      </div>
+      <div id="detalle-cuenta-contenido"></div>
+    </div>
+  </div>
+
+  <!-- TAB: MOVIMIENTOS -->
+  <div class="tab-panel" id="tab-movimientos">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div class="lg:col-span-2 card p-5">
+        <h3 class="font-bold mb-4 pb-3" style="color:var(--text);border-bottom:1px solid var(--line)">Registrar Movimiento</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="lbl">Tipo *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center gap-2 rounded-lg p-3 cursor-pointer" style="border:2px solid rgba(27,122,81,.3);background:var(--green-lt)" id="lbl-tipo-ingreso">
+                <input type="radio" name="tipo-mov" value="ingreso" checked style="accent-color:var(--green)">
+                <span style="color:var(--green);font-weight:700;font-size:.85rem">💰 Ingreso</span>
+              </label>
+              <label class="flex items-center gap-2 rounded-lg p-3 cursor-pointer" style="border:2px solid var(--line);background:var(--white)" id="lbl-tipo-gasto">
+                <input type="radio" name="tipo-mov" value="gasto" style="accent-color:#ef4444">
+                <span style="color:#ef4444;font-weight:700;font-size:.85rem">💸 Gasto</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="lbl">Descripción *</label>
+            <input id="mov-descripcion" class="inp" placeholder="Ej: Arriendo, Supermercado..." spellcheck="true" lang="es">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="lbl">Monto ($) *</label>
+              <input id="mov-monto" type="number" class="inp" placeholder="0" min="0">
+            </div>
+            <div>
+              <label class="lbl">Fecha *</label>
+              <input id="mov-fecha" type="date" class="inp">
+            </div>
+          </div>
+          <div>
+            <label class="lbl">Cuenta bancaria</label>
+            <select id="mov-cuenta-bancaria" class="inp">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Categoría</label>
+            <select id="mov-categoria" class="inp">
+              <option value="general">General</option>
+              <optgroup label="── Ingresos ──">
+                <option value="servicios-prestados">Servicios Prestados</option>
+                <option value="salario">Salario / Sueldo</option>
+                <option value="freelance">Freelance / Proyecto</option>
+                <option value="ventas">Ventas</option>
+                <option value="arriendo-recibido">Arriendo Recibido</option>
+                <option value="transferencia">Transferencia Recibida</option>
+                <option value="rendimiento">Rendimiento / Inversión</option>
+              </optgroup>
+              <optgroup label="── Gastos ──">
+                <option value="vivienda">Vivienda / Arriendo</option>
+                <option value="alimentacion">Alimentación / Mercado</option>
+                <option value="transporte">Transporte / Gasolina</option>
+                <option value="salud">Salud / Médico</option>
+                <option value="educacion">Educación</option>
+                <option value="entretenimiento">Entretenimiento</option>
+                <option value="ropa">Ropa / Calzado</option>
+                <option value="servicios-publicos">Servicios Públicos</option>
+                <option value="tecnologia">Tecnología / Suscripciones</option>
+                <option value="materiales">Materiales de Trabajo</option>
+                <option value="nomina">Nómina / Pagos a Terceros</option>
+                <option value="publicidad">Publicidad / Marketing</option>
+                <option value="impuestos">Impuestos</option>
+                <option value="deudas">Deudas / Cuotas</option>
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Estado</label>
+            <select id="mov-estado" class="inp">
+              <option value="realizado">✅ Realizado</option>
+              <option value="pendiente">⏳ Pendiente</option>
+              <option value="programado">📅 Programado</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Notas</label>
+            <input id="mov-notas" class="inp" placeholder="Observación opcional..." spellcheck="true" lang="es">
+          </div>
+          <button id="btn-guardar-mov" class="btn btn-orange w-full justify-center">
+            <i class="fas fa-plus"></i> Guardar Movimiento
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3 card p-5">
+        <div class="flex justify-between items-center mb-3 pb-3 flex-wrap gap-2" style="border-bottom:1px solid var(--line)">
+          <h3 class="font-bold" style="color:var(--text)">Historial</h3>
+          <div class="flex gap-2 flex-wrap">
+            <button data-filtro="todos"     class="filtro-mov-btn btn btn-gray btn-sm">Todos</button>
+            <button data-filtro="ingreso"   class="filtro-mov-btn btn btn-sm" style="background:#dcfce7;color:#15803d">Ingresos</button>
+            <button data-filtro="gasto"     class="filtro-mov-btn btn btn-sm" style="background:#fee2e2;color:#b91c1c">Gastos</button>
+            <button data-filtro="pendiente" class="filtro-mov-btn btn btn-sm" style="background:#fef3c7;color:#92400e">Pendientes</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <div class="rounded-xl p-3 text-center" style="background:#f0fdf4">
+            <p class="text-xs font-semibold" style="color:var(--green)">Ingresos</p>
+            <p class="font-bold text-lg" style="color:var(--green)" id="mov-sum-ing">$0</p>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background:#fef2f2">
+            <p class="text-xs font-semibold" style="color:#ef4444">Gastos</p>
+            <p class="font-bold text-lg" style="color:#ef4444" id="mov-sum-gas">$0</p>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background:#eff6ff">
+            <p class="text-xs font-semibold" style="color:#3b82f6">Balance</p>
+            <p class="font-bold text-lg" style="color:#3b82f6" id="mov-bal">$0</p>
+          </div>
+        </div>
+        <div id="lista-movimientos" class="space-y-2 max-h-[560px] overflow-y-auto pr-1">
+          <p class="text-center py-8" style="color:var(--gray-lt)">Cargando...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: GRÁFICOS -->
+  <div class="tab-panel" id="tab-graficos">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div class="card p-5">
+        <h3 class="font-bold mb-3" style="color:var(--text)">📊 Ingresos vs Gastos por Mes</h3>
+        <div style="height:270px"><canvas id="chart-ig"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <h3 class="font-bold mb-3" style="color:var(--text)">📈 Evolución del Balance</h3>
+        <div style="height:270px"><canvas id="chart-balance"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <h3 class="font-bold mb-3" style="color:var(--text)">🥧 Gastos por Categoría</h3>
+        <div style="height:270px"><canvas id="chart-cat"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <h3 class="font-bold mb-3" style="color:var(--text)">🏦 Saldo por Cuenta Bancaria</h3>
+        <div style="height:270px"><canvas id="chart-bancos"></canvas></div>
+      </div>
+      <div class="card p-5 md:col-span-2">
+        <h3 class="font-bold mb-3" style="color:var(--text)">📉 Gastos mensuales acumulados</h3>
+        <div style="height:240px"><canvas id="chart-gastos-linea"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: TRANSACCIONES -->
+  <div class="tab-panel" id="tab-transacciones">
+    <div class="card p-5">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold" style="color:var(--text)">Todas las Transacciones</h3>
+        <span class="text-sm" style="color:var(--gray-lt)" id="trans-count"></span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead style="border-bottom:1px solid var(--line)">
+            <tr>
+              <th>Tipo</th><th>Descripción / Cliente</th>
+              <th style="text-align:right">Monto</th><th>Categoría</th>
+              <th>Cuenta</th><th>Fecha</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-trans"></tbody>
+        </table>
+        <div id="empty-trans" class="text-center py-10 hidden" style="color:var(--gray-lt)">
+          <i class="fas fa-search text-3xl mb-2 block"></i> Sin registros en este período
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: LOGS -->
+  <div class="tab-panel" id="tab-logs">
+    <div class="card p-5">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold" style="color:var(--text)">Actividad Reciente</h3>
+        <span class="text-sm" style="color:var(--gray-lt)" id="logs-count"></span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead style="border-bottom:1px solid var(--line)">
+            <tr>
+              <th>Acción</th><th>Tipo</th><th>Cliente</th>
+              <th style="text-align:right">Valor</th><th>Ciudad</th><th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-logs"></tbody>
+        </table>
+        <div id="empty-logs" class="text-center py-10 hidden" style="color:var(--gray-lt)">
+          <i class="fas fa-eye-slash text-3xl mb-2 block"></i> Sin actividad registrada
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /max-w -->
+</div><!-- /page-with-sidebar -->
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/contabilidad.js"></script>
+<script>
+  if (typeof auth !== 'undefined' && auth.onAuthStateChanged) {
+    auth.onAuthStateChanged(u => {
+      const el = document.getElementById('user-email');
+      if (el) el.textContent = u?.email || 'Usuario';
+    });
+  }
+  function logout() {
+    if (typeof auth !== 'undefined') auth.signOut().then(() => window.location.href = 'index.html');
+  }
+</script>
+</body>
+</html>
