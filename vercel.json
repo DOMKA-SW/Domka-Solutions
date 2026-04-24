@@ -1,9 +1,7 @@
 {
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "^/$", "dest": "/index.html" },
-    { "src": "^/index/?$", "dest": "/index.html" },
-    { "src": "^/empresa/?$", "dest": "/empresa/index.html" },
-    { "src": "^/cliente/?$", "dest": "/cliente/index.html" }
+    { "src": "/empresa", "dest": "/empresa/index.html" },
+    { "src": "/cliente", "dest": "/cliente/index.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
