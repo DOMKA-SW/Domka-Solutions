@@ -1,0 +1,374 @@
+/* ═══════════════════════════════════════════════════
+   DOMKA — App Pages Override CSS
+   Sobreescribe Tailwind con la paleta DOMKA premium
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
+:root {
+  --bg:        #f4efe7;
+  --bg-alt:    #ede7dc;
+  --white:     #ffffff;
+  --green:     #1b7a51;
+  --green-dk:  #155c3c;
+  --green-lt:  #e8f5ee;
+  --text:      #2c2c2c;
+  --gray:      #5a5a5a;
+  --gray-lt:   #9a9a9a;
+  --line:      #d6cfc5;
+  --line-lt:   #e8e2d8;
+  --radius:    10px;
+  --radius-lg: 14px;
+}
+
+body {
+  background: var(--bg) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  color: var(--text) !important;
+}
+
+/* ── SIDEBAR LAYOUT ─────────────────────────────── */
+.app-sidebar {
+  width: 224px;
+  min-height: 100vh;
+  background: var(--white);
+  border-right: 1px solid var(--line);
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 200;
+}
+
+.sidebar-brand-wrap {
+  padding: 0 20px 24px;
+  border-bottom: 1px solid var(--line-lt);
+  margin-bottom: 16px;
+}
+
+.sidebar-brand-name {
+  font-family: 'DM Serif Display', serif !important;
+  font-size: 1.3rem;
+  color: var(--green) !important;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.sidebar-brand-sub {
+  font-size: .62rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--gray-lt);
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px;
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--gray);
+  transition: all .2s;
+  text-decoration: none;
+}
+
+.sidebar-link:hover { background: var(--bg); color: var(--green); }
+.sidebar-link.active { background: var(--green-lt); color: var(--green); font-weight: 600; }
+.sidebar-link i { width: 16px; font-size: .85rem; }
+
+.sidebar-bottom {
+  padding: 16px 20px 0;
+  border-top: 1px solid var(--line-lt);
+  margin-top: auto;
+}
+
+.user-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.user-dot {
+  width: 7px; height: 7px;
+  background: #22c55e;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.user-email-text {
+  font-size: .78rem;
+  color: var(--gray);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 9px 14px;
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--gray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all .2s;
+}
+
+.btn-logout:hover { border-color: var(--green); color: var(--green); }
+
+/* ── PAGE CONTAINER ─────────────────────────────── */
+.page-with-sidebar {
+  margin-left: 224px;
+  padding: 32px 32px 80px;
+  min-height: 100vh;
+}
+
+.page-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-heading {
+  font-family: 'DM Serif Display', serif !important;
+  font-size: 1.85rem !important;
+  color: var(--text) !important;
+  font-weight: 400 !important;
+  margin-bottom: 3px !important;
+}
+
+.page-subheading {
+  font-size: .82rem !important;
+  color: var(--gray-lt) !important;
+}
+
+/* ── CARDS / CONTAINERS ─────────────────────────── */
+.domka-card,
+.form-container,
+.container-box {
+  background: var(--white) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: none !important;
+}
+
+/* ── BUTTONS ────────────────────────────────────── */
+.btn-primary,
+.btn-orange {
+  background: var(--green) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-weight: 600 !important;
+  transition: all .2s !important;
+  box-shadow: 0 3px 12px rgba(27,122,81,.22) !important;
+  cursor: pointer !important;
+}
+
+.btn-primary:hover,
+.btn-orange:hover {
+  background: var(--green-dk) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(27,122,81,.28) !important;
+}
+
+.btn-secondary {
+  background: var(--white) !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--line) !important;
+  border-radius: 8px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-weight: 600 !important;
+  transition: all .2s !important;
+}
+
+.btn-secondary:hover {
+  border-color: var(--green) !important;
+  color: var(--green) !important;
+  background: var(--bg) !important;
+  transform: none !important;
+}
+
+.btn-gray {
+  background: var(--bg-alt) !important;
+  color: var(--gray) !important;
+  border: 1px solid var(--line) !important;
+}
+
+.btn-gray:hover {
+  background: var(--bg) !important;
+  border-color: var(--green) !important;
+}
+
+/* ── FORM INPUTS ────────────────────────────────── */
+.form-input,
+.inp {
+  border: 1.5px solid var(--line) !important;
+  border-radius: 8px !important;
+  background: #faf8f4 !important;
+  font-family: 'DM Sans', sans-serif !important;
+  color: var(--text) !important;
+  transition: all .2s !important;
+}
+
+.form-input:focus,
+.inp:focus {
+  border-color: var(--green) !important;
+  box-shadow: 0 0 0 3px rgba(27,122,81,.1) !important;
+  background: var(--white) !important;
+}
+
+.form-label,
+.lbl {
+  color: var(--gray) !important;
+  font-size: .7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+}
+
+/* ── TABLE ──────────────────────────────────────── */
+.table-header,
+thead tr {
+  background: var(--text) !important;
+}
+
+.table-header th,
+thead th {
+  color: #fff !important;
+  font-size: .65rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+}
+
+.table-row-striped:nth-child(even) { background: var(--bg-alt) !important; }
+.table-row-striped:nth-child(odd)  { background: var(--white) !important; }
+.table-row-striped:hover           { background: var(--bg-alt) !important; }
+
+tbody td { border-bottom: 1px solid var(--line-lt) !important; color: var(--text) !important; }
+tbody tr:last-child td { border-bottom: none !important; }
+tbody tr:hover td { background: var(--bg-alt) !important; }
+
+/* ── TOTALES ────────────────────────────────────── */
+.totales-container {
+  background: var(--white) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+/* ── TABS ───────────────────────────────────────── */
+.tab-btn {
+  border-radius: 8px !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+.tab-btn.active {
+  background: var(--green) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(27,122,81,.22) !important;
+}
+
+.tab-btn:not(.active) {
+  background: var(--white) !important;
+  color: var(--gray) !important;
+  border: 1px solid var(--line) !important;
+}
+
+/* ── KPI CARDS ──────────────────────────────────── */
+.kpi {
+  background: var(--white) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  position: relative !important;
+}
+
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--green);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.kpi-title { color: var(--gray-lt) !important; }
+.kpi-val { color: var(--text) !important; font-family: 'DM Serif Display', serif !important; }
+
+/* ── ACCOUNT CARDS ──────────────────────────────── */
+.cuenta-card::before,
+.cuenta-card::after { opacity: .5 !important; }
+
+/* ── MISC ───────────────────────────────────────── */
+.anexos-header,
+.toggle-btn {
+  background: var(--bg-alt) !important;
+  border-radius: 8px !important;
+  color: var(--text) !important;
+}
+
+.anexos-header:hover { background: var(--bg) !important; }
+
+.totales-container { padding: 20px 22px !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-alt); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--green); }
+
+/* Notas buttons */
+#btn-notas-libre, #btn-notas-vinetas {
+  border-radius: 7px !important;
+  font-size: .8rem !important;
+}
+
+#btn-notas-libre { background: var(--green) !important; color: #fff !important; }
+#btn-notas-vinetas { background: var(--bg-alt) !important; color: var(--gray) !important; }
+
+/* Radio options */
+.radio-option {
+  border: 1.5px solid var(--line) !important;
+  border-radius: 8px !important;
+  background: var(--white) !important;
+}
+
+.radio-option:hover {
+  border-color: var(--green) !important;
+  background: var(--green-lt) !important;
+}
+
+/* Section headings within cards */
+h2.text-xl, h2.text-2xl {
+  font-family: 'DM Serif Display', serif !important;
+  font-weight: 400 !important;
+  color: var(--text) !important;
+}
+
+@media (max-width: 768px) {
+  .app-sidebar { display: none; }
+  .page-with-sidebar { margin-left: 0; padding: 20px 16px 60px; }
+}

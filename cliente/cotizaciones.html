@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Mis Cotizaciones</title>
+  <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg:#f4efe7;--white:#ffffff;--green:#1b7a51;--green-dk:#155c3c;
+      --green-lt:#e8f5ee;--text:#2c2c2c;--gray:#5a5a5a;--gray-lt:#9a9a9a;
+      --line:#d6cfc5;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);min-height:100vh}
+    h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
+    a{text-decoration:none;color:inherit}
+    button{cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+
+    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .portal-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green)}
+    .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px}
+    .nav-back:hover{text-decoration:underline}
+
+    .main{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+    .page-title{margin-bottom:28px}
+    .page-title h1{font-size:1.8rem;color:var(--text);margin-bottom:4px}
+    .page-title p{color:var(--gray-lt);font-size:.88rem}
+
+    .cot-card{
+      background:var(--white);border:1px solid var(--line);
+      border-radius:14px;padding:24px;margin-bottom:16px;
+      transition:box-shadow .2s;
+    }
+    .cot-card:hover{box-shadow:0 4px 20px rgba(27,122,81,.08)}
+    .cot-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px}
+    .cot-num{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text)}
+    .cot-fecha{font-size:.78rem;color:var(--gray-lt);margin-top:3px}
+    .cot-total{text-align:right}
+    .cot-total-value{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--green)}
+    .cot-total-label{font-size:.72rem;color:var(--gray-lt);text-transform:uppercase;letter-spacing:.1em}
+
+    .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:999px}
+    .badge-pendiente{background:#fef9c3;color:#854d0e}
+    .badge-aprobada{background:#dcfce7;color:#166534}
+    .badge-rechazada{background:#fee2e2;color:#991b1b}
+
+    .cot-actions{display:flex;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+    .btn-aprobar{padding:9px 20px;background:var(--green);color:#fff;border-radius:9px;font-weight:600;font-size:.88rem;transition:all .2s}
+    .btn-aprobar:hover{background:var(--green-dk)}
+    .btn-rechazar{padding:9px 20px;background:#fee2e2;color:#991b1b;border-radius:9px;font-weight:600;font-size:.88rem;transition:all .2s}
+    .btn-rechazar:hover{background:#fecaca}
+    .btn-ver{padding:9px 20px;background:var(--bg);border:1px solid var(--line);color:var(--gray);border-radius:9px;font-weight:600;font-size:.88rem;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+    .btn-ver:hover{border-color:var(--green);color:var(--green)}
+
+    .empty{text-align:center;padding:80px 20px;color:var(--gray-lt)}
+    .empty i{font-size:2.5rem;color:var(--line);display:block;margin-bottom:16px}
+    .spinner{text-align:center;padding:60px;color:var(--gray-lt)}
+  </style>
+</head>
+<body>
+
+<header class="portal-header">
+  <span class="portal-logo">DOMKA</span>
+  <a href="index.html" class="nav-back"><i class="fas fa-arrow-left"></i> Portal</a>
+</header>
+
+<div class="main">
+  <div class="page-title">
+    <h1>Mis cotizaciones</h1>
+    <p>Revisa y decide sobre los presupuestos enviados por DOMKA</p>
+  </div>
+
+  <div id="lista-cotizaciones">
+    <div class="spinner"><i class="fas fa-circle-notch fa-spin"></i></div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="../js/firebase.js"></script>
+<script src="../js/security.js"></script>
+<script src="../js/roles.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  let _clienteId = null;
+  let _cotizaciones = [];
+
+  const unsub = window.auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    unsub();
+    const perfil = await cargarPerfil(user);
+    _clienteId = perfil?.clienteId;
+    if (!_clienteId) {
+      document.getElementById('lista-cotizaciones').innerHTML =
+        '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Tu cuenta no está vinculada a un cliente. Contacta a DOMKA.</p></div>';
+      return;
+    }
+    await cargarCotizaciones();
+  });
+
+  async function cargarCotizaciones() {
+    const container = document.getElementById('lista-cotizaciones');
+    try {
+      const snap = await db.collection('cotizaciones')
+        .where('clienteId', '==', _clienteId)
+        .orderBy('fecha', 'desc')
+        .get();
+
+      _cotizaciones = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCotizaciones();
+    } catch(e) {
+      container.innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando cotizaciones.</p></div>';
+    }
+  }
+
+  function renderCotizaciones() {
+    const container = document.getElementById('lista-cotizaciones');
+    if (!_cotizaciones.length) {
+      container.innerHTML = '<div class="empty"><i class="fas fa-file-alt"></i><p>Aún no tienes cotizaciones.</p></div>';
+      return;
+    }
+
+    container.innerHTML = _cotizaciones.map(c => {
+      const fecha = c.fecha?.toDate
+        ? c.fecha.toDate().toLocaleDateString('es-CO', {day:'2-digit',month:'long',year:'numeric'})
+        : '—';
+      const estado = c.estado || 'pendiente';
+      const badgeClass = { pendiente:'badge-pendiente', aprobada:'badge-aprobada', rechazada:'badge-rechazada' }[estado] || '';
+      const badgeLabel = { pendiente:'Pendiente', aprobada:'Aprobada ✓', rechazada:'Rechazada' }[estado] || estado;
+      const decidida = ['aprobada','rechazada'].includes(estado);
+
+      return `
+      <div class="cot-card">
+        <div class="cot-header">
+          <div>
+            <div class="cot-num">${esc(c.numero || 'Cotización')}</div>
+            <div class="cot-fecha">${fecha}</div>
+            <div style="margin-top:8px"><span class="badge ${badgeClass}">${badgeLabel}</span></div>
+          </div>
+          <div class="cot-total">
+            <div class="cot-total-value">$${Number(c.total||0).toLocaleString('es-CO')}</div>
+            <div class="cot-total-label">Total</div>
+          </div>
+        </div>
+
+        ${c.notas ? `<p style="font-size:.85rem;color:var(--gray);margin-bottom:8px">${esc(c.notas.substring(0,200))}${c.notas.length>200?'…':''}</p>` : ''}
+
+        <div class="cot-actions">
+          ${c.linkPublico ? `<a href="${c.linkPublico}" target="_blank" class="btn-ver"><i class="fas fa-eye"></i> Ver detalle</a>` : ''}
+          ${!decidida ? `
+            <button onclick="decidir('${c.id}','aprobada')" class="btn-aprobar">✅ Aprobar</button>
+            <button onclick="decidir('${c.id}','rechazada')" class="btn-rechazar">❌ Rechazar</button>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function decidir(id, nuevoEstado) {
+    const accion = nuevoEstado === 'aprobada' ? 'APROBAR' : 'RECHAZAR';
+    if (!confirm(`¿${accion} esta cotización? Esta acción no se puede deshacer.`)) return;
+    try {
+      const cot = _cotizaciones.find(c => c.id === id);
+      await db.collection('cotizaciones').doc(id).update({
+        estado: nuevoEstado,
+        fechaRespuesta: firebase.firestore.FieldValue.serverTimestamp(),
+        ...(cot?.tokenPublico ? { tokenPublico: cot.tokenPublico } : {})
+      });
+      const idx = _cotizaciones.findIndex(c => c.id === id);
+      if (idx >= 0) _cotizaciones[idx].estado = nuevoEstado;
+      renderCotizaciones();
+    } catch(e) {
+      alert('Error: ' + e.message);
+    }
+  }
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  window.decidir = decidir;
+</script>
+</body>
+</html>

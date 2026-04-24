@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal empresa — DOMKA</title>
+  <meta http-equiv="refresh" content="0; url=../home.html" />
+  <script>
+    (function () {
+      var base = window.location.pathname.replace(/\/empresa\/?.*$/, "/");
+      if (!base || base === "//") base = "/";
+      window.location.replace(base + "home.html");
+    })();
+  </script>
+</head>
+<body>
+  <p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center; color: #333;">
+    Redirigiendo al acceso del equipo…
+    <br /><br />
+    <a href="../home.html">Continuar al inicio de sesión</a>
+  </p>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOMKA SOLUTIONS S.A.S — Obra civil y vivienda</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/domka-design.css" />
+  <style>
+    .site-header {
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .site-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 4%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .site-brand h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+      color: var(--green);
+      letter-spacing: .02em;
+      margin: 0;
+      line-height: 1.2;
+    }
+    .site-brand span {
+      display: block;
+      font-size: .62rem;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gray-lt);
+      margin-top: 2px;
+    }
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px 18px;
+      flex-wrap: wrap;
+    }
+    .site-nav a:not(.btn) {
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--gray);
+    }
+    .site-nav a:not(.btn):hover { color: var(--green); }
+
+    .site-hero {
+      background: linear-gradient(135deg, var(--green-dk) 0%, var(--green) 48%, #1a5c40 100%);
+      color: #fff;
+      padding: 56px 4% 64px;
+      position: relative;
+      overflow: hidden;
+    }
+    .site-hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -60px;
+      width: 280px; height: 280px;
+      background: rgba(255,255,255,.06);
+      border-radius: 50%;
+    }
+    .site-hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .site-hero h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.75rem, 4vw, 2.35rem);
+      color: #fff;
+      margin: 0 0 12px;
+      max-width: 640px;
+      line-height: 1.2;
+    }
+    .site-hero p {
+      color: rgba(255,255,255,.88);
+      font-size: 1.02rem;
+      max-width: 560px;
+      margin: 0 0 24px;
+      line-height: 1.65;
+    }
+    .site-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .site-hero .btn-green { background: #fff; color: var(--green); box-shadow: 0 4px 24px rgba(0,0,0,.12); }
+    .site-hero .btn-green:hover { background: var(--bg-alt); color: var(--green-dk); }
+    .site-hero .btn-outline {
+      border-color: rgba(255,255,255,.45);
+      color: #fff;
+      background: rgba(255,255,255,.1);
+    }
+    .site-hero .btn-outline:hover {
+      background: rgba(255,255,255,.2);
+      border-color: rgba(255,255,255,.6);
+    }
+
+    .site-section {
+      padding: 56px 4%;
+    }
+    .site-section.alt { background: var(--bg-alt); }
+    .site-section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .site-section h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.65rem;
+      color: var(--text);
+      margin: 0 0 8px;
+    }
+    .site-section .lead {
+      color: var(--gray);
+      margin: 0 0 28px;
+      max-width: 620px;
+    }
+    .site-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .site-card {
+      background: var(--bg-white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 26px 22px;
+      transition: var(--t);
+    }
+    .site-card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--green);
+    }
+    .site-card h4 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem;
+      color: var(--text);
+      margin: 0 0 10px;
+    }
+    .site-card p { margin: 0; font-size: .92rem; }
+
+    .site-footer {
+      border-top: 1px solid var(--line);
+      background: var(--bg-white);
+      padding: 28px 4%;
+      text-align: center;
+      font-size: .82rem;
+      color: var(--gray-lt);
+    }
+    .site-footer a { color: var(--green); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-brand">
+        <h1>DOMKA</h1>
+        <span>Solutions S.A.S · Construcción &amp; diseño</span>
+      </div>
+      <nav class="site-nav" aria-label="Principal">
+        <a href="#servicios">Servicios</a>
+        <a href="#proyectos">Proyectos</a>
+        <a href="#contacto">Contacto</a>
+        <a class="btn btn-green" href="home.html"><i class="fas fa-lock" style="opacity:.85"></i> Acceso equipo</a>
+        <a class="btn btn-outline" href="cliente/index.html">Portal cliente</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="site-hero">
+      <div class="site-hero-inner">
+        <h2>Soluciones en obra civil y vivienda</h2>
+        <p>
+          Plataforma operativa con cotizaciones, clientes y seguimiento de proyectos.
+          Misma identidad visual que el panel interno: clara, profesional y cercana.
+        </p>
+        <div class="site-hero-actions">
+          <a class="btn btn-green" href="home.html">Ingresar al sistema interno</a>
+          <a class="btn btn-outline" href="cliente/index.html">Soy cliente</a>
+          <a class="btn btn-ghost" href="#servicios" style="color:rgba(255,255,255,.9)">Conocer servicios</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="servicios" class="site-section">
+      <div class="site-section-inner">
+        <h3>Servicios</h3>
+        <p class="lead">Acompañamiento técnico y administrativo para que cada obra avance con trazabilidad.</p>
+        <div class="site-grid">
+          <article class="site-card">
+            <h4>Obra civil</h4>
+            <p>Ejecución y gestión de infraestructura con control documental y evidencias.</p>
+          </article>
+          <article class="site-card">
+            <h4>Vivienda</h4>
+            <p>Planeación y construcción habitacional con comunicación ordenada con el cliente.</p>
+          </article>
+          <article class="site-card">
+            <h4>Gestión comercial</h4>
+            <p>Cotizaciones y documentos centralizados en el mismo ecosistema.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="proyectos" class="site-section alt">
+      <div class="site-section-inner">
+        <h3>Proyectos</h3>
+        <p class="lead">
+          El estado de cada proyecto y la documentación asociada están disponibles de forma segura en el portal cliente.
+        </p>
+      </div>
+    </section>
+
+    <section id="contacto" class="site-section">
+      <div class="site-section-inner">
+        <h3>Contacto</h3>
+        <p class="lead">
+          Email: contacto@domka.com · Teléfono: +57 000 000 0000
+        </p>
+        <p class="lead" style="margin-bottom:0">
+          <a class="btn btn-green" href="https://wa.link/54lg8f" target="_blank" rel="noopener">WhatsApp</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© DOMKA SOLUTIONS S.A.S · <a href="home.html">Acceso interno</a> · <a href="cliente/index.html">Portal cliente</a></p>
+  </footer>
+</body>
+</html>
