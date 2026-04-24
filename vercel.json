@@ -1,7 +1,0 @@
-{
-  "routes": [
-    { "src": "/empresa", "dest": "/empresa/index.html" },
-    { "src": "/cliente", "dest": "/cliente/index.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
-}
