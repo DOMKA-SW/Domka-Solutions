@@ -1,11 +1,11 @@
 // firebase.js
 const firebaseConfig = {
-  apiKey: "AIzaSyAzcLdb3lm0efSMuG3U3U8etdb9oJe9SdY",
-  authDomain: "domka-cotizador.firebaseapp.com",
-  projectId: "domka-cotizador",
-  storageBucket: "domka-cotizador.firebasestorage.app",
-  messagingSenderId: "11233894590",
-  appId: "1:11233894590:web:56fb76f5a1ca9af7453eef"
+  apiKey: "AIzaSyD8desCyfOvif4T3YciXj2RA6zozbfriF8",
+  authDomain: "[domka-solutions.firebaseapp.com](http://domka-solutions.firebaseapp.com/)",
+  projectId: "domka-solutions",
+  storageBucket: "domka-solutions.firebasestorage.app",
+  messagingSenderId: "698458465020",
+  appId: "1:698458465020:web:4b9e841472bc3db0ba2d79"
 };
 
 // Inicializa Firebase en modo compat (coincide con los <script> del HTML)
