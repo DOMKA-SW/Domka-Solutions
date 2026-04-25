@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOMKA — Plataforma de Cotización Profesional</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg:        #f4efe7;
+      --bg-alt:    #ede7dc;
+      --green:     #1b7a51;
+      --green-dk:  #155c3c;
+      --green-lt:  #e8f5ee;
+      --text:      #2c2c2c;
+      --gray:      #5a5a5a;
+      --gray-lt:   #9a9a9a;
+      --line:      #d6cfc5;
+      --white:     #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; font-weight: 400; line-height: 1.2; }
+    p { color: var(--gray); }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+
+    /* ── NAVBAR ────────────────────────────────────── */
+    .navbar {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+      background: rgba(244,239,231,.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 0;
+      transition: all .3s;
+    }
+
+    .nav-inner {
+      max-width: 1160px; margin: 0 auto; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem; color: var(--green); letter-spacing: .02em;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .nav-logo img { height: 32px; }
+
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a {
+      font-size: .88rem; font-weight: 500; color: var(--gray);
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+
+    .btn-nav {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 22px; border-radius: 8px;
+      font-size: .88rem; font-weight: 600; transition: all .2s;
+    }
+
+    .btn-nav-outline { border: 1.5px solid var(--line); background: transparent; color: var(--text); }
+    .btn-nav-outline:hover { border-color: var(--green); color: var(--green); }
+    .btn-nav-solid { background: var(--green); color: #fff; box-shadow: 0 3px 14px rgba(27,122,81,.22); }
+    .btn-nav-solid:hover { background: var(--green-dk); }
+
+    /* ── HERO ──────────────────────────────────────── */
+    .hero {
+      padding: 140px 32px 100px;
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 80px;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green-lt); color: var(--green);
+      border: 1px solid rgba(27,122,81,.2);
+      padding: 5px 14px; border-radius: 999px;
+      font-size: .75rem; font-weight: 600;
+      letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 4vw, 3.4rem);
+      color: var(--text);
+      margin-bottom: 20px;
+      letter-spacing: -.01em;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green);
+      text-decoration: underline;
+      text-decoration-color: rgba(27,122,81,.3);
+      text-decoration-thickness: 3px;
+      text-underline-offset: 6px;
+    }
+
+    .hero-desc { font-size: 1.05rem; color: var(--gray); margin-bottom: 36px; max-width: 480px; }
+
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 48px; }
+
+    .btn-hero-primary {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--green); color: #fff;
+      padding: 14px 32px; border-radius: 10px;
+      font-size: .95rem; font-weight: 600;
+      box-shadow: 0 6px 22px rgba(27,122,81,.28);
+      transition: all .2s;
+    }
+    .btn-hero-primary:hover { background: var(--green-dk); transform: translateY(-2px); }
+
+    .btn-hero-ghost {
+      display: inline-flex; align-items: center; gap: 9px;
+      border: 1.5px solid var(--line); color: var(--text);
+      padding: 13px 28px; border-radius: 10px;
+      font-size: .95rem; font-weight: 500;
+      background: transparent; transition: all .2s;
+    }
+    .btn-hero-ghost:hover { border-color: var(--green); color: var(--green); }
+
+    .hero-stats { display: flex; gap: 32px; }
+    .hero-stat-num {
+      font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--text); display: block;
+    }
+    .hero-stat-lbl { font-size: .75rem; color: var(--gray-lt); }
+
+    /* ── LOGIN CARD ────────────────────────────────── */
+    .login-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 40px;
+      box-shadow: 0 12px 48px rgba(27,122,81,.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: var(--green);
+    }
+
+    .login-card h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem; color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .login-card-sub { font-size: .85rem; color: var(--gray-lt); margin-bottom: 28px; }
+
+    .form-group { margin-bottom: 18px; }
+
+    .form-label {
+      display: block;
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--gray); margin-bottom: 7px;
+    }
+
+    .form-control {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .92rem; color: var(--text);
+      background: #faf8f4; transition: all .2s;
+    }
+
+    .form-control:focus {
+      outline: none; border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(27,122,81,.1);
+      background: #fff;
+    }
+
+    .btn-login {
+      width: 100%; padding: 13px;
+      background: var(--green); color: #fff;
+      border-radius: 9px; font-size: .95rem; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(27,122,81,.22);
+      transition: all .2s; margin-top: 6px;
+    }
+    .btn-login:hover { background: var(--green-dk); transform: translateY(-1px); }
+
+    .login-error {
+      display: none;
+      background: #fee2e2; color: #991b1b;
+      border: 1px solid #fca5a5;
+      border-radius: 7px; padding: 10px 14px;
+      font-size: .84rem; margin-top: 14px;
+    }
+
+    /* ── FEATURES ──────────────────────────────────── */
+    .section { padding: 90px 32px; max-width: 1160px; margin: 0 auto; }
+    .section-full { padding: 90px 32px; background: var(--bg-alt); }
+    .section-full-inner { max-width: 1160px; margin: 0 auto; }
+
+    .section-label {
+      font-size: .65rem; font-weight: 700;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--green); margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      color: var(--text); margin-bottom: 16px;
+    }
+
+    .section-sub { font-size: 1.05rem; color: var(--gray); max-width: 600px; }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px;
+    }
+
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 14px; padding: 32px 28px;
+      transition: all .25s; position: relative; overflow: hidden;
+    }
+
+    .feature-card::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 3px;
+      background: var(--green); transform: scaleX(0);
+      transform-origin: left; transition: transform .3s;
+    }
+
+    .feature-card:hover { box-shadow: 0 8px 32px rgba(27,122,81,.1); transform: translateY(-4px); }
+    .feature-card:hover::after { transform: scaleX(1); }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      background: var(--green-lt); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--green); font-size: 1.3rem; margin-bottom: 20px;
+    }
+
+    .feature-card h3 { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--text); margin-bottom: 10px; }
+
+    /* ── HOW IT WORKS ──────────────────────────────── */
+    .steps { display: flex; gap: 0; counter-reset: step; position: relative; margin-top: 56px; }
+    .steps::before {
+      content: ''; position: absolute;
+      top: 28px; left: 40px; right: 40px; height: 2px;
+      background: var(--line); z-index: 0;
+    }
+
+    .step { flex: 1; text-align: center; padding: 0 16px; position: relative; z-index: 1; }
+
+    .step-num {
+      width: 56px; height: 56px;
+      background: var(--green); color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Serif Display', serif; font-size: 1.3rem;
+      margin: 0 auto 20px;
+      box-shadow: 0 4px 16px rgba(27,122,81,.28);
+    }
+
+    .step h3 { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+
+    /* ── TESTIMONIALS ──────────────────────────────── */
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 56px; }
+
+    .testimonial-card {
+      background: var(--white); border: 1px solid var(--line);
+      border-radius: 14px; padding: 28px;
+    }
+
+    .testimonial-stars { color: var(--green); font-size: .9rem; margin-bottom: 14px; }
+
+    .testimonial-text { font-size: .92rem; color: var(--gray); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+
+    .author-avatar {
+      width: 42px; height: 42px;
+      background: var(--green-lt); color: var(--green);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .9rem;
+    }
+
+    .author-name { font-weight: 600; font-size: .9rem; color: var(--text); }
+    .author-role { font-size: .78rem; color: var(--gray-lt); }
+
+    /* ── CTA ───────────────────────────────────────── */
+    .cta-section {
+      background: var(--green); padding: 80px 32px; text-align: center;
+    }
+
+    .cta-section h2 {
+      font-family: 'DM Serif Display', serif; font-size: 2.4rem;
+      color: #fff; margin-bottom: 16px;
+    }
+
+    .cta-section p { color: rgba(255,255,255,.8); font-size: 1.05rem; margin-bottom: 32px; }
+
+    .btn-cta {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: #fff; color: var(--green);
+      padding: 14px 34px; border-radius: 10px;
+      font-size: .95rem; font-weight: 700;
+      box-shadow: 0 6px 24px rgba(0,0,0,.15); transition: all .2s;
+    }
+    .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,0,0,.2); }
+
+    /* ── FOOTER ────────────────────────────────────── */
+    footer {
+      background: var(--bg-alt);
+      border-top: 1px solid var(--line);
+      padding: 60px 32px 32px;
+    }
+
+    .footer-inner { max-width: 1160px; margin: 0 auto; }
+
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px; margin-bottom: 48px;
+    }
+
+    .footer-brand { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--green); margin-bottom: 12px; }
+    .footer-desc { font-size: .85rem; color: var(--gray-lt); line-height: 1.7; }
+
+    .footer-col-title { font-size: .65rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--gray); margin-bottom: 16px; }
+
+    .footer-links { display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { font-size: .85rem; color: var(--gray-lt); transition: color .2s; }
+    .footer-links a:hover { color: var(--green); }
+
+    .footer-bottom {
+      border-top: 1px solid var(--line); padding-top: 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: .78rem; color: var(--gray-lt); flex-wrap: wrap; gap: 12px;
+    }
+
+    /* ── RESPONSIVE ────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .hero { grid-template-columns: 1fr; gap: 48px; padding-top: 120px; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero { padding: 100px 20px 60px; }
+      .section { padding: 60px 20px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps { flex-direction: column; align-items: center; gap: 32px; }
+      .steps::before { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <img src="img/logo.png" alt="DOMKA" onerror="this.style.display='none'">
+        DOMKA
+      </div>
+      <div class="nav-links">
+        <a href="#features">Características</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#testimonios">Clientes</a>
+      </div>
+      <div style="display:flex;gap:10px">
+        <a href="#login" class="btn-nav btn-nav-outline">Ingresar</a>
+        <a href="https://wa.link/54lg8f" target="_blank" class="btn-nav btn-nav-solid">
+          <i class="fab fa-whatsapp"></i> Contactar
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section style="background:var(--bg)">
+    <div class="hero">
+      <!-- Left -->
+      <div>
+        <div class="hero-tag">
+          <i class="fas fa-leaf" style="font-size:.7rem"></i>
+          Plataforma para construcción &amp; diseño
+        </div>
+        <h1>
+          Cotizaciones <em>profesionales</em> en minutos
+        </h1>
+        <p class="hero-desc">
+          Crea, gestiona y comparte cotizaciones y cuentas de cobro con un diseño que refleja la calidad de tu trabajo.
+        </p>
+        <div class="hero-actions">
+          <a href="#login" class="btn-hero-primary">
+            <i class="fas fa-arrow-right"></i>
+            Acceder al sistema
+          </a>
+          <a href="https://wa.link/54lg8f" target="_blank" class="btn-hero-ghost">
+            <i class="fab fa-whatsapp" style="color:var(--green)"></i>
+            Hablar con asesor
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <span class="hero-stat-num">+500</span>
+            <span class="hero-stat-lbl">Empresas</span>
+          </div>
+          <div style="width:1px;background:var(--line)"></div>
+          <div>
+            <span class="hero-stat-num">+15K</span>
+            <span class="hero-stat-lbl">Cotizaciones</span>
+          </div>
+          <div style="width:1px;background:var(--line)"></div>
+          <div>
+            <span class="hero-stat-num">98%</span>
+            <span class="hero-stat-lbl">Satisfacción</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Login Card -->
+      <div class="login-card" id="login">
+        <h2>Bienvenido de vuelta</h2>
+        <p class="login-card-sub">Ingresa a tu cuenta para continuar</p>
+
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <input id="email" type="email" class="form-control" placeholder="tu@correo.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input id="password" type="password" class="form-control" placeholder="••••••••">
+        </div>
+
+        <button class="btn-login" onclick="login()">
+          Ingresar al sistema
+        </button>
+
+        <div class="login-error" id="error-msg"></div>
+
+        <p style="text-align:center;font-size:.82rem;color:var(--gray-lt);margin-top:18px">
+          ¿No tienes cuenta?
+          <a href="https://wa.link/54lg8f" target="_blank" style="color:var(--green);font-weight:600"> Contáctanos</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <div class="section-full" id="features">
+    <div class="section-full-inner">
+      <p class="section-label">Funcionalidades</p>
+      <h2 class="section-title">Todo lo que necesitas en un solo lugar</h2>
+      <p class="section-sub">DOMKA simplifica cada paso del proceso de cotización para que te enfoques en hacer crecer tu negocio.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+          <h3>Cotizador rápido</h3>
+          <p>Genera cotizaciones profesionales con ítems, precios y totales automáticos en segundos.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-folder-open"></i></div>
+          <h3>Gestión documental</h3>
+          <p>Centraliza documentos del proyecto con trazabilidad, revisión y acceso ordenado para cliente y equipo.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-paper-plane"></i></div>
+          <h3>Envío instantáneo</h3>
+          <p>Comparte por WhatsApp o correo con un solo clic. Tus clientes reciben un link profesional.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
+          <h3>PDF profesional</h3>
+          <p>Genera PDFs con tu marca, logo y diseño premium que impresionan a tus clientes.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-users"></i></div>
+          <h3>Gestión de clientes</h3>
+          <p>Mantén un directorio de clientes actualizado y accede a su historial de cotizaciones al instante.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+          <h3>Reportes y análisis</h3>
+          <p>Visualiza tus ingresos, cotizaciones aprobadas y el rendimiento de tu negocio en un dashboard claro.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section" id="como-funciona">
+    <p class="section-label">Proceso</p>
+    <h2 class="section-title">Cómo funciona DOMKA</h2>
+    <p class="section-sub">En cuatro pasos sencillos, desde crear hasta cobrar.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Ingresa</h3>
+        <p>Accede a tu cuenta y configura tu perfil con tu información y logo.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Crea</h3>
+        <p>Genera cotizaciones o cuentas de cobro con todos los detalles del servicio.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Envía</h3>
+        <p>Comparte el enlace por WhatsApp o correo directamente desde el sistema.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Cobra</h3>
+        <p>Recibe confirmación de recibido y haz seguimiento hasta el pago.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <div class="section-full" id="testimonios">
+    <div class="section-full-inner">
+      <p class="section-label">Clientes</p>
+      <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"DOMKA transformó nuestro proceso de cotización. Ahora enviamos propuestas profesionales en minutos en lugar de horas."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">MC</div>
+            <div>
+             <!-- <div class="author-name">María Camila Rodríguez</div>
+              <div class="author-role">Directora, Constructora Innovar</div> -->
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"El envío por WhatsApp aumentó nuestra tasa de respuesta en un 40%. Los clientes aman la presentación y la agilidad."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">JL</div>
+            <div>
+              <!-- <div class="author-name">Javier López</div>
+              <div class="author-role">Gerente, Suministros Industriales S.A.</div> -->
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"El dashboard nos da visibilidad total. Ver el estado de cada cotización en tiempo real mejoró nuestro seguimiento significativamente."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">AC</div>
+            <div>
+              <!-- <div class="author-name">Ana Cristina Vargas</div>
+              <div class="author-role">CEO, Soluciones Digitales LTDA</div> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>¿Listo para modernizar tu negocio?</h2>
+    <p>Únete a cientos de empresas colombianas que ya usan DOMKA para cerrar más negocios.</p>
+    <a href="https://wa.link/54lg8f" target="_blank" class="btn-cta">
+      <i class="fab fa-whatsapp"></i>
+      Comenzar ahora
+    </a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand">DOMKA</div>
+          <p class="footer-desc">Plataforma líder en Colombia para la creación y gestión de cotizaciones profesionales en construcción y diseño.</p>
+        </div>
+        <div>
+          <div class="footer-col-title">Plataforma</div>
+          <div class="footer-links">
+            <a href="#features">Características</a>
+            <a href="#como-funciona">Cómo funciona</a>
+            <a href="#testimonios">Clientes</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Legal</div>
+          <div class="footer-links">
+            <a href="#">Términos y condiciones</a>
+            <a href="#">Política de privacidad</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Contacto</div>
+          <div class="footer-links">
+            <a href="mailto:piter030509@gmail.com">piter030509@gmail.com</a>
+            <a href="tel:+573058114595">+57 305 811 4595</a>
+            <a href="https://wa.link/54lg8f" target="_blank">WhatsApp</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 DOMKA · Construcción &amp; Diseño · Colombia</span>
+        <span>Made with ♥ in Colombia</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/roles.js"></script>
+  <script src="js/security.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('.navbar');
+      nav.style.boxShadow = window.scrollY > 30 ? '0 4px 20px rgba(0,0,0,.1)' : 'none';
+    });
+  </script>
+</body>
+</html>

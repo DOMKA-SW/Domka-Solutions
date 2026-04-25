@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Mis Documentos</title>
+  <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{--bg:#f4efe7;--white:#ffffff;--green:#1b7a51;--green-dk:#155c3c;--green-lt:#e8f5ee;--text:#2c2c2c;--gray:#5a5a5a;--gray-lt:#9a9a9a;--line:#d6cfc5}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);min-height:100vh}
+    h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
+    a{text-decoration:none;color:inherit}
+    button{cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+
+    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .portal-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green)}
+    .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px}
+
+    .main{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+    .page-title{margin-bottom:28px}
+    .page-title h1{font-size:1.8rem;margin-bottom:4px}
+    .page-title p{color:var(--gray-lt);font-size:.88rem}
+
+    .doc-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:16px;transition:box-shadow .2s}
+    .doc-card:hover{box-shadow:0 4px 20px rgba(27,122,81,.08)}
+    .doc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px}
+    .doc-num{font-family:'DM Serif Display',serif;font-size:1.05rem}
+    .doc-tipo{font-size:.75rem;font-weight:600;color:var(--green);letter-spacing:.08em;text-transform:uppercase}
+    .doc-fecha{font-size:.75rem;color:var(--gray-lt);margin-top:3px}
+    .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:999px}
+    .badge-pendiente{background:#fef9c3;color:#854d0e}
+    .badge-aprobado{background:#dcfce7;color:#166534}
+    .badge-rechazado{background:#fee2e2;color:#991b1b}
+    .doc-desc{font-size:.88rem;color:var(--gray);margin-bottom:16px;line-height:1.6}
+    .doc-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn-aprobar{padding:9px 22px;background:var(--green);color:#fff;border-radius:9px;font-weight:600;font-size:.88rem;transition:all .2s}
+    .btn-aprobar:hover{background:var(--green-dk)}
+    .btn-rechazar{padding:9px 22px;background:#fee2e2;color:#991b1b;border-radius:9px;font-weight:600;font-size:.88rem;transition:all .2s}
+    .btn-rechazar:hover{background:#fecaca}
+    .btn-ver-pdf{padding:9px 22px;background:var(--bg);border:1px solid var(--line);color:var(--gray);border-radius:9px;font-weight:600;font-size:.88rem;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+    .btn-ver-pdf:hover{border-color:var(--green);color:var(--green)}
+    .empty{text-align:center;padding:80px 20px;color:var(--gray-lt)}
+    .empty i{font-size:2.5rem;color:var(--line);display:block;margin-bottom:16px}
+    .spinner{text-align:center;padding:60px;color:var(--gray-lt)}
+    .resp-badge{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:.8rem;color:var(--gray-lt)}
+  </style>
+</head>
+<body>
+
+<header class="portal-header">
+  <span class="portal-logo">DOMKA</span>
+  <a href="index.html" class="nav-back"><i class="fas fa-arrow-left"></i> Portal</a>
+</header>
+
+<div class="main">
+  <div class="page-title">
+    <h1>Mis documentos</h1>
+    <p>Revisa y firma los documentos enviados por DOMKA</p>
+  </div>
+
+  <div id="lista-documentos">
+    <div class="spinner"><i class="fas fa-circle-notch fa-spin"></i></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/firebase.js"></script>
+<script src="../js/security.js"></script>
+<script src="../js/roles.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  let _docs = [];
+
+  const unsub = window.auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    unsub();
+    const perfil = await cargarPerfil(user);
+    const clienteId = perfil?.clienteId;
+    if (!clienteId) {
+      document.getElementById('lista-documentos').innerHTML =
+        '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
+      return;
+    }
+    try {
+      const snap = await db.collection('documentos')
+        .where('clienteId','==',clienteId)
+        .orderBy('creadoEn','desc').get();
+      _docs = snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderDocs();
+    } catch(e) {
+      document.getElementById('lista-documentos').innerHTML =
+        '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando documentos.</p></div>';
+    }
+  });
+
+  function renderDocs() {
+    const c = document.getElementById('lista-documentos');
+    if (!_docs.length) {
+      c.innerHTML = '<div class="empty"><i class="fas fa-folder-open"></i><p>Aún no hay documentos para ti.</p></div>';
+      return;
+    }
+    c.innerHTML = _docs.map(d => {
+      const fecha = d.creadoEn?.toDate ? d.creadoEn.toDate().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}) : '—';
+      const estado = d.estado || 'pendiente';
+      const badgeCls = 'badge-'+(estado==='aprobado'?'aprobado':(estado==='rechazado'?'rechazado':'pendiente'));
+      const badgeLbl = {pendiente:'Pendiente revisión',aprobado:'Aprobado ✓',rechazado:'Rechazado'}[estado]||estado;
+      const decidido = ['aprobado','rechazado','anulado'].includes(estado);
+      const fechaResp = d.fechaRespuesta?.toDate ? d.fechaRespuesta.toDate().toLocaleDateString('es-CO') : null;
+
+      return `
+      <div class="doc-card">
+        <div class="doc-header">
+          <div>
+            <div class="doc-tipo">${esc(d.tipo||'Documento')}</div>
+            <div class="doc-num">${esc(d.numero||'—')}</div>
+            <div class="doc-fecha">${fecha}</div>
+          </div>
+          <span class="badge ${badgeCls}">${badgeLbl}</span>
+        </div>
+
+        ${d.descripcion ? `<p class="doc-desc">${esc(d.descripcion)}</p>` : ''}
+
+        ${fechaResp ? `<p class="resp-badge"><i class="fas fa-clock"></i> Respondido el ${fechaResp}</p>` : ''}
+
+        <div class="doc-actions">
+          ${d.pdfBase64 ? `<button class="btn-ver-pdf" onclick="verPDF('${d.id}')"><i class="fas fa-file-pdf"></i> Ver PDF</button>` : ''}
+          ${!decidido ? `
+            <button class="btn-aprobar" onclick="decidir('${d.id}','aprobado')">✅ Aprobar</button>
+            <button class="btn-rechazar" onclick="decidir('${d.id}','rechazado')">❌ Rechazar</button>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function decidir(id, estado) {
+    const accion = estado === 'aprobado' ? 'APROBAR' : 'RECHAZAR';
+    if (!confirm(`¿${accion} este documento? Esta acción no se puede deshacer.`)) return;
+    try {
+      const doc = _docs.find(d => d.id === id);
+      await db.collection('documentos').doc(id).update({
+        estado,
+        fechaRespuesta: firebase.firestore.FieldValue.serverTimestamp(),
+        ...(doc?.tokenPublico ? { tokenPublico: doc.tokenPublico } : {})
+      });
+      const idx = _docs.findIndex(d=>d.id===id);
+      if (idx>=0) {
+        _docs[idx].estado = estado;
+        _docs[idx].fechaRespuesta = { toDate: () => new Date() };
+      }
+      renderDocs();
+    } catch(e) {
+      alert('Error: '+e.message);
+    }
+  }
+
+  function verPDF(id) {
+    const d = _docs.find(x=>x.id===id);
+    const src = d?.pdfBase64;
+    if (!src) { alert('Sin PDF adjunto.'); return; }
+    const win = window.open();
+    win.document.write(`<iframe src="${src}" style="width:100%;height:100vh;border:none"></iframe>`);
+  }
+
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  window.decidir=decidir; window.verPDF=verPDF;
+</script>
+</body>
+</html>

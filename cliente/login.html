@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Acceso Portal Cliente</title>
+  <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f4efe7; --bg-alt:#ede7dc; --white:#ffffff;
+      --green:#1b7a51; --green-dk:#155c3c; --green-lt:#e8f5ee;
+      --text:#2c2c2c; --gray:#5a5a5a; --gray-lt:#9a9a9a; --line:#d6cfc5;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    h1,h2{font-family:'DM Serif Display',serif;font-weight:400}
+    .wrap{width:100%;max-width:460px}
+    .brand{text-align:center;margin-bottom:26px}
+    .brand h1{font-size:2.2rem;color:var(--green);letter-spacing:.02em}
+    .brand p{font-size:.72rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gray-lt);margin-top:4px}
+    .card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:34px;box-shadow:0 10px 40px rgba(27,122,81,.1);position:relative;overflow:hidden}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--green)}
+    .sub{font-size:.86rem;color:var(--gray-lt);margin:6px 0 22px}
+    .lbl{display:block;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:7px}
+    .in{width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:.92rem;background:#faf8f4}
+    .in:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(27,122,81,.1);background:#fff}
+    .row{margin-bottom:16px}
+    .btn{width:100%;padding:13px;border-radius:9px;font-size:.95rem;font-weight:700}
+    .btn-primary{background:var(--green);color:#fff;box-shadow:0 4px 16px rgba(27,122,81,.22)}
+    .btn-primary:hover{background:var(--green-dk)}
+    .btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--text);margin-top:10px}
+    .btn-ghost:hover{border-color:var(--green);color:var(--green)}
+    .hint{margin-top:14px;font-size:.8rem;color:var(--gray-lt);text-align:center}
+    .hint a{color:var(--green);font-weight:700;text-decoration:none}
+    .sep{display:flex;align-items:center;gap:12px;margin:18px 0}
+    .sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--line)}
+    .sep span{font-size:.72rem;color:var(--gray-lt);letter-spacing:.12em;text-transform:uppercase}
+    .msg{display:none;margin-top:14px;border-radius:10px;padding:10px 12px;font-size:.86rem}
+    .msg.ok{display:block;background:#dcfce7;border:1px solid #86efac;color:#166534}
+    .msg.err{display:block;background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <h1>DOMKA</h1>
+      <p>Portal Cliente</p>
+    </div>
+
+    <div class="card">
+      <h2>Accede a tu cuenta</h2>
+      <p class="sub">Si es tu primera vez, crea tu cuenta y pega el código que te entregó DOMKA.</p>
+
+      <div class="row">
+        <label class="lbl">Correo</label>
+        <input id="email" class="in" type="email" placeholder="tu@correo.com">
+      </div>
+      <div class="row">
+        <label class="lbl">Contraseña</label>
+        <input id="password" class="in" type="password" placeholder="••••••••">
+      </div>
+
+      <button class="btn btn-primary" id="btn-login">Ingresar</button>
+
+      <div class="sep"><span>o</span></div>
+
+      <div class="row">
+        <label class="lbl">Código de invitación</label>
+        <input id="inviteCode" class="in" type="text" placeholder="Ej: ABCD23KLMN">
+      </div>
+      <button class="btn btn-ghost" id="btn-register">Crear cuenta y vincular</button>
+
+      <div id="msg" class="msg"></div>
+      <div class="hint">
+        ¿No tienes código? <a href="https://wa.link/54lg8f" target="_blank">Solicítalo por WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="../js/roles.js"></script>
+  <script src="../js/security.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
+

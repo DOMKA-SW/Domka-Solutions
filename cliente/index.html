@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Portal Cliente</title>
+  <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg:#f4efe7; --bg-alt:#ede7dc; --white:#ffffff;
+      --green:#1b7a51; --green-dk:#155c3c; --green-lt:#e8f5ee;
+      --text:#2c2c2c; --gray:#5a5a5a; --gray-lt:#9a9a9a;
+      --line:#d6cfc5; --line-lt:#e8e2d8;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);min-height:100vh}
+    h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
+    a{text-decoration:none;color:inherit}
+    button{cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+
+    /* Layout */
+    .portal-header {
+      background:var(--white);
+      border-bottom:1px solid var(--line);
+      padding:16px 32px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100;
+    }
+    .portal-logo { font-family:'DM Serif Display',serif; font-size:1.3rem; color:var(--green); }
+    .portal-logo span { font-size:.7rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gray-lt); margin-left:10px; }
+    .portal-user { display:flex; align-items:center; gap:12px; }
+    .portal-user-name { font-size:.85rem; font-weight:600; color:var(--text); }
+    .portal-user-sub  { font-size:.72rem; color:var(--gray-lt); }
+    .btn-logout-portal {
+      padding:7px 16px; background:var(--bg-alt);
+      border-radius:8px; font-size:.82rem; font-weight:600;
+      color:var(--gray); transition:all .2s;
+    }
+    .btn-logout-portal:hover { background:var(--line); }
+
+    .portal-main { max-width:1060px; margin:0 auto; padding:40px 24px 80px; }
+
+    .welcome-band {
+      background:var(--green); border-radius:14px;
+      padding:28px 32px; margin-bottom:32px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:relative; overflow:hidden;
+    }
+    .welcome-band::before {
+      content:''; position:absolute; top:-40px; right:-40px;
+      width:180px; height:180px;
+      background:rgba(255,255,255,.07); border-radius:50%;
+    }
+    .welcome-band h2 { font-size:1.5rem; color:#fff; margin-bottom:4px; }
+    .welcome-band p  { color:rgba(255,255,255,.75); font-size:.88rem; }
+
+    /* Nav módulos */
+    .module-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+      gap:16px; margin-bottom:36px;
+    }
+    .module-card {
+      background:var(--white); border:1px solid var(--line);
+      border-radius:14px; padding:24px 20px;
+      text-align:center; transition:all .2s; display:block;
+    }
+    .module-card:hover {
+      border-color:var(--green);
+      box-shadow:0 6px 24px rgba(27,122,81,.12);
+      transform:translateY(-3px);
+    }
+    .module-icon {
+      width:50px; height:50px; background:var(--green-lt);
+      border-radius:12px; display:flex; align-items:center;
+      justify-content:center; color:var(--green); font-size:1.3rem;
+      margin:0 auto 14px;
+    }
+    .module-name { font-weight:600; font-size:.92rem; color:var(--text); margin-bottom:4px; }
+    .module-desc { font-size:.76rem; color:var(--gray-lt); }
+    .module-badge {
+      display:inline-block; background:var(--green); color:#fff;
+      font-size:.62rem; font-weight:700; border-radius:999px;
+      padding:2px 8px; margin-top:8px;
+    }
+
+    /* Stats */
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:36px; }
+    .stat-box {
+      background:var(--white); border:1px solid var(--line);
+      border-radius:12px; padding:20px;
+    }
+    .stat-box-label { font-size:.65rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gray-lt); }
+    .stat-box-value { font-family:'DM Serif Display',serif; font-size:2rem; color:var(--green); margin:6px 0 2px; }
+    .stat-box-sub { font-size:.75rem; color:var(--gray-lt); }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="portal-header">
+  <div>
+    <span class="portal-logo">DOMKA <span>Portal Cliente</span></span>
+  </div>
+  <div class="portal-user">
+    <div>
+      <div class="portal-user-name" id="user-nombre">—</div>
+      <div class="portal-user-sub">Cliente</div>
+    </div>
+    <button class="btn-logout-portal" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Salir
+    </button>
+  </div>
+</header>
+
+<!-- Main -->
+<div class="portal-main">
+
+  <!-- Bienvenida -->
+  <div class="welcome-band">
+    <div>
+      <h2>Bienvenido a tu portal</h2>
+      <p>Aquí puedes revisar tus cotizaciones, proyectos y documentos.</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-box-label">Cotizaciones</div>
+      <div class="stat-box-value" id="stat-cot">—</div>
+      <div class="stat-box-sub">Total recibidas</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-label">Proyectos</div>
+      <div class="stat-box-value" id="stat-proy">—</div>
+      <div class="stat-box-sub">Activos</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-label">Documentos</div>
+      <div class="stat-box-value" id="stat-doc">—</div>
+      <div class="stat-box-sub">Pendientes de revisión</div>
+    </div>
+  </div>
+
+  <!-- Módulos -->
+  <p style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:16px">Accesos rápidos</p>
+  <div class="module-grid">
+    <a href="cotizaciones.html" class="module-card">
+      <div class="module-icon"><i class="fas fa-file-alt"></i></div>
+      <div class="module-name">Cotizaciones</div>
+      <div class="module-desc">Ver y aprobar presupuestos</div>
+    </a>
+    <a href="proyectos.html" class="module-card">
+      <div class="module-icon"><i class="fas fa-hard-hat"></i></div>
+      <div class="module-name">Proyectos</div>
+      <div class="module-desc">Seguimiento y evidencias</div>
+    </a>
+    <a href="documentos.html" class="module-card">
+      <div class="module-icon"><i class="fas fa-folder-open"></i></div>
+      <div class="module-name">Documentos</div>
+      <div class="module-desc">Firmar y aprobar documentos</div>
+    </a>
+  </div>
+
+</div>
+
+<div style="max-width:1060px;margin:0 auto;padding:0 24px 24px">
+  <p style="font-size:.78rem;color:var(--gray-lt)">
+    Si aún no tienes acceso, entra en <a href="login.html" style="color:var(--green);font-weight:700">login del portal cliente</a> con tu código.
+  </p>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/firebase.js"></script>
+<script src="../js/security.js"></script>
+<script src="../js/roles.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Esperar a que auth cargue el perfil
+    const unsub = window.auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+      unsub();
+      const perfil = await cargarPerfil(user);
+      document.getElementById('user-nombre').textContent =
+        perfil?.nombre || user.email || '—';
+
+      const clienteId = perfil?.clienteId;
+      if (!clienteId) return;
+
+      // Estadísticas del cliente
+      try {
+        const [cotSnap, proySnap, docSnap] = await Promise.all([
+          db.collection('cotizaciones').where('clienteId','==',clienteId).get(),
+          db.collection('proyectos').where('clienteId','==',clienteId).get(),
+          db.collection('documentos').where('clienteId','==',clienteId)
+            .where('estado','==','pendiente').get()
+        ]);
+        document.getElementById('stat-cot').textContent  = cotSnap.size;
+        document.getElementById('stat-proy').textContent = proySnap.size;
+        document.getElementById('stat-doc').textContent  = docSnap.size;
+      } catch(e) {
+        console.error('Error cargando estadísticas:', e);
+      }
+    });
+  });
+</script>
+</body>
+</html>

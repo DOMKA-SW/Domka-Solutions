@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isStaff()  { return signedIn() && request.auth.token.staff == true; }
+    function staffRole(){ return signedIn() ? request.auth.token.role : null; }
+    function isAdmin()  { return isStaff() && staffRole() == 'admin'; }
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+    function profileRole() {
+      return signedIn() ? userDoc(request.auth.uid).role : null;
+    }
+    function isClient() { return signedIn() && profileRole() == 'client'; }
+    function clientId() { return signedIn() ? userDoc(request.auth.uid).clienteId : null; }
+
+    // ---- Public sanitized documents (shareable links) ----
+    // This is the ONLY collection intended for unauthenticated reads.
+    match /publicQuotes/{quoteId} {
+      allow read: if resource.data.enabled == true;
+      allow write: if isStaff(); // later tighten to role-based
+    }
+
+    // ---- Users ----
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    // ---- Invitaciones portal cliente ----
+    match /clientInvites/{code} {
+      allow read: if signedIn();
+      allow create, delete: if isStaff();
+      // Claim: 1 sola vez por un usuario autenticado
+      allow update: if signedIn()
+        && resource.data.claimedByUid == null
+        && request.resource.data.claimedByUid == request.auth.uid
+        && request.resource.data.claimedAt is timestamp;
+    }
+
+    // ---- Clientes ----
+    match /clientes/{clienteId} {
+      allow read: if isStaff() || (isClient() && clientId() == clienteId);
+      allow create, update, delete: if isStaff();
+    }
+
+    // ---- Cotizaciones (private/internal) ----
+    match /cotizaciones/{cotizacionId} {
+      // staff can read everything
+      allow read: if isStaff()
+        || (isClient() && resource.data.clienteId == clientId());
+
+      // write: staff only (client decisions should go through publicQuotes or a future function)
+      allow create, update, delete: if isStaff();
+    }
+
+    // ---- Proyectos ----
+    match /proyectos/{proyectoId} {
+      allow read: if isStaff()
+        || (isClient() && resource.data.clienteId == clientId());
+      allow create, update, delete: if isStaff();
+
+      match /documentos/{docId} {
+        allow read: if isStaff()
+          || (isClient()
+              && get(/databases/$(database)/documents/proyectos/$(proyectoId)).data.clienteId == clientId()
+              && resource.data.visibility in ['cliente','empresa']);
+        allow create, update, delete: if isStaff();
+      }
+    }
+
+    // ---- Logs (optional) ----
+    match /logs/{logId} {
+      allow read: if isStaff();
+      allow create: if true; // public tracking writes; tighten later
+      allow update, delete: if false;
+    }
+  }
+}
+

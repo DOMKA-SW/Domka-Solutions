@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Documentos</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/app-pages.css">
+  <style>
+    .hidden { display: none !important; }
+    .section-label {
+      font-size:.65rem; font-weight:700;
+      letter-spacing:.18em; text-transform:uppercase;
+      color:var(--green); margin-bottom:12px; display:block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="sidebar-brand-wrap">
+    <span class="sidebar-brand-name">DOMKA</span>
+    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+  </div>
+  <nav class="sidebar-links">
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="cotizaciones.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-file-alt"></i> Cotizaciones</a>
+    <a href="clientes.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-users"></i> Clientes</a>
+    <a href="proyectos.html" class="sidebar-link"><i class="fas fa-hard-hat"></i> Proyectos</a>
+    <a href="documentos.html" class="sidebar-link active"><i class="fas fa-folder-open"></i> Documentos</a>
+    <a href="contabilidad.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+    <a href="usuarios.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-user-cog"></i> Usuarios</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-indicator">
+      <div class="user-dot"></div>
+      <div>
+        <span class="user-email-text" id="user-email">Cargando…</span>
+        <span style="display:block;font-size:.6rem;color:var(--gray-lt)" id="user-rol"></span>
+      </div>
+    </div>
+    <button onclick="logout()" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="page-with-sidebar">
+
+  <div class="page-topbar">
+    <div>
+      <h1 class="page-heading">Documentos</h1>
+      <p class="page-subheading">Gestión y aprobación de documentos de cliente</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Formulario nuevo documento (solo comercial/admin) -->
+    <div data-rol-min="comercial">
+      <div class="form-container p-6">
+        <span class="section-label">Nuevo documento</span>
+        <form id="form-documento">
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Cliente</label>
+            <select id="doc-cliente" required
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+              <option value="">— Selecciona —</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Tipo de documento</label>
+            <select id="doc-tipo"
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+              <option value="Contrato">Contrato</option>
+              <option value="Acta de inicio">Acta de inicio</option>
+              <option value="Acta de entrega">Acta de entrega</option>
+              <option value="Factura">Factura</option>
+              <option value="Propuesta">Propuesta</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Descripción</label>
+            <textarea id="doc-descripcion" rows="3" required placeholder="Describe brevemente el documento…"
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"></textarea>
+          </div>
+
+          <div class="mb-5">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+              Adjuntar PDF <span class="font-normal text-gray-400">(opcional, máx. 1 MB)</span>
+            </label>
+            <input id="doc-pdf" type="file" accept=".pdf"
+              class="block w-full text-sm text-gray-500
+                file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0
+                file:text-sm file:font-medium file:bg-green-50 file:text-green-700
+                hover:file:bg-green-100">
+          </div>
+
+          <button type="submit"
+            class="w-full py-2.5 bg-green-700 text-white text-sm font-semibold rounded-lg hover:bg-green-800 transition">
+            Guardar documento
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lista de documentos -->
+    <div class="lg:col-span-2">
+      <div class="form-container overflow-x-auto" style="padding:0">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b bg-gray-50">
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">N°</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Cliente</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Descripción</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Estado</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Fecha</th>
+              <th class="p-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-documentos">
+            <tr><td colspan="6" class="p-6 text-center text-gray-400">Cargando documentos…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="empty-documentos" style="display:none;text-align:center;padding:60px 20px">
+        <i class="fas fa-folder-open" style="font-size:2.5rem;color:var(--line);display:block;margin-bottom:14px"></i>
+        <p style="color:var(--gray-lt)">Sin documentos registrados.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/security.js"></script>
+<script src="js/roles.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/documentos.js"></script>
+</body>
+</html>

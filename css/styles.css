@@ -1,0 +1,83 @@
+/* === Tipo de Cotización y Tipo de cálculo === */
+.mb-4 .flex.gap-4 label,
+.mb-4 .flex.flex-col.gap-2 label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;   /* 🔽 reducido */
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.5rem;    /* 🔽 menos redondeo */
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease-in-out;
+  font-size: 0.9rem;        /* 🔽 texto más pequeño */
+  font-weight: 500;
+}
+
+/* Hover */
+.mb-4 .flex.gap-4 label:hover,
+.mb-4 .flex.flex-col.gap-2 label:hover {
+  border-color: #fb923c;
+  background: #fff7ed;
+}
+
+/* Ocultar radios originales */
+input[type="radio"].form-radio {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 0;
+  height: 0;
+  margin: 0;
+  position: absolute;
+  opacity: 0;
+}
+
+/* Estado seleccionado */
+input[type="radio"].form-radio:checked + span {
+  color: #fff;
+  background: #f97316;
+  padding: 0.2rem 0.5rem;   /* 🔽 menos padding */
+  border-radius: 0.3rem;
+  font-weight: 600;
+  font-size: 0.85rem;       /* 🔽 más pequeño */
+}
+
+/* === Checkbox "Mostrar valor total en letras" === */
+#mostrar-valor-letras {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 0;
+  height: 0;
+  margin: 0;
+  position: absolute;
+  opacity: 0;
+}
+
+/* Label compacto */
+#mostrar-valor-letras + span {
+  display: inline-block;
+  padding: 0.4rem 0.7rem;   /* 🔽 reducido */
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease-in-out;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Hover */
+#mostrar-valor-letras + span:hover {
+  border-color: #fb923c;
+  background: #fff7ed;
+}
+
+/* Estado activado */
+#mostrar-valor-letras:checked + span {
+  color: #fff;
+  background: #f97316;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
