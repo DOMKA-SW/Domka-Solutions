@@ -280,15 +280,67 @@
 <script src="js/roles.js"></script>
 <script src="js/auth.js"></script>
 
+<style>
+  /* Estilos para badges de roles */
+  .role-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-left: 8px;
+  }
+  
+  .role-admin {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  
+  .role-comercial {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+  
+  .role-tecnico {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+  
+  .role-cliente {
+    background: #f3e8ff;
+    color: #9333ea;
+  }
+  
+  .nav-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+</style>
+
 <script>
-  auth.onAuthStateChanged(user => {
-    document.getElementById("user-email").textContent = user?.email || "Usuario";
+  // Inicializar sistema de roles
+  window.roleSystem.init().then(userProfile => {
+    if (userProfile) {
+      document.getElementById("user-email").textContent = userProfile.email || "Usuario";
+      
+      // Mostrar badge de rol
+      const rolBadge = document.getElementById("user-rol");
+      if (rolBadge) {
+        rolBadge.textContent = window.roleSystem.getRoleName(userProfile.role);
+        rolBadge.className = `role-badge role-${userProfile.role}`;
+      }
+    }
+  }).catch(error => {
+    console.error('Error al inicializar sistema de roles:', error);
   });
 
   function logout() {
     auth.signOut().then(() => { window.location.href = "home.html"; });
   }
 
+  // Cargar estadísticas del dashboard
   (async function () {
     try {
       const cotSnap = await db.collection("cotizaciones").get();
@@ -306,7 +358,7 @@
       });
 
       document.getElementById("count-aprobadas").textContent = aprobadas.toLocaleString("es-CO");
-      document.getElementById("sum-aprobadas").textContent = `$${sumaAprobadas.toLocaleString("es-CO")}`;
+      document.getElementById("sum-aprobadas").textContent = window.security.formatCurrency(sumaAprobadas);
 
       if (pendientes > 0) {
         const badge = document.getElementById("badge-pendientes");
@@ -314,7 +366,7 @@
         badge.textContent = `${pendientes} pend.`;
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error al cargar estadísticas:', e);
     }
   })();
 </script>
