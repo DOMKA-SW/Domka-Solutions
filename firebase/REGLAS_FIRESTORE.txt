@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function usuarioExiste() {
+      return exists(/databases/$(database)/documents/usuarios/$(request.auth.uid));
+    }
+
+    function getUser() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function isEmpresa() {
+      return isAuth() && usuarioExiste() && getUser().activo == true;
+    }
+
+    function hasRol(roles) {
+      return isEmpresa() && getUser().rol in roles;
+    }
+
+    // ── Usuarios ──────────────────────────────────────────
+    // FIX BOOTSTRAP: un usuario autenticado puede leer
+    // su propio documento (necesario para que auth.js funcione
+    // incluso antes de que el admin le asigne rol)
+    match /usuarios/{uid} {
+      allow read: if isAuth() && (request.auth.uid == uid || isEmpresa());
+      allow create: if hasRol(['admin']);
+      allow update: if hasRol(['admin'])
+                    || (isAuth() && request.auth.uid == uid
+                        && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['ultimoAcceso']));
+      allow delete: if hasRol(['admin']);
+    }
+
+    // ── Clientes ──────────────────────────────────────────
+    match /clientes/{id} {
+      allow read: if isEmpresa()
+        || (isAuth()
+            && resource.data.email == request.auth.token.email
+            && resource.data.portalActivo == true);
+      allow create, update: if hasRol(['admin', 'comercial']);
+      allow delete: if hasRol(['admin']);
+    }
+
+    // ── Cotizaciones ──────────────────────────────────────
+    match /cotizaciones/{id} {
+      allow read: if isEmpresa()
+        || (isAuth() && resource.data.clienteEmail == request.auth.token.email)
+        || resource.data.linkPublico != null;
+      allow create, update: if hasRol(['admin', 'comercial']);
+      allow delete: if hasRol(['admin']);
+    }
+
+    // ── Proyectos ─────────────────────────────────────────
+    match /proyectos/{id} {
+      allow read: if isEmpresa() || isAuth();
+      allow create, update: if hasRol(['admin', 'comercial', 'operador']);
+      allow delete: if hasRol(['admin']);
+    }
+
+    // ── Documentos ────────────────────────────────────────
+    match /documentos/{id} {
+      allow read: if isEmpresa()
+        || (isAuth() && resource.data.visibleCliente == true);
+      allow create, update: if hasRol(['admin', 'comercial', 'operador']);
+      allow delete: if hasRol(['admin', 'comercial']);
+    }
+
+    // ── Contabilidad ──────────────────────────────────────
+    match /contabilidad/{id} {
+      allow read, write: if hasRol(['admin', 'contador']);
+    }
+
+    // ── Financiero ────────────────────────────────────────
+    match /financiero/{id} {
+      allow read, write: if hasRol(['admin', 'contador']);
+    }
+
+    // ── Empleados ─────────────────────────────────────────
+    match /empleados/{id} {
+      allow read, write: if hasRol(['admin', 'rrhh']);
+    }
+
+    // ── Nómina ───────────────────────────────────────────
+    match /nomina/{id} {
+      allow read, write: if hasRol(['admin', 'rrhh']);
+    }
+
+    // ── Cuentas de cobro ──────────────────────────────────
+    match /cuentas/{id} {
+      allow read: if isEmpresa() || isAuth();
+      allow write: if hasRol(['admin', 'comercial', 'contador']);
+    }
+
+    // ── Actividad ─────────────────────────────────────────
+    match /actividad/{id} {
+      allow read: if isEmpresa();
+      allow create: if isEmpresa();
+    }
+  }
+}
