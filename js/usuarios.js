@@ -29,7 +29,7 @@
   }
 
   async function requireAdmin() {
-    const user = window.auth.currentUser;
+    const user = window.auth?.currentUser;
     if (!user) throw new Error("Sin sesion.");
     const snap = await window.db.collection("users").doc(user.uid).get();
     const me = snap.exists ? snap.data() : null;
@@ -160,6 +160,8 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
+      await Promise.resolve(window.__domkaFirebaseReady);
+      if (!window.auth || !window.db) throw new Error("Firebase no inicializado.");
       await requireAdmin();
       formNuevo?.addEventListener("submit", crearUsuario);
       formEdit?.addEventListener("submit", guardarEdicion);

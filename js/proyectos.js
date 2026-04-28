@@ -197,11 +197,14 @@
   window.cerrarLightbox = cerrarLightbox;
 
   document.addEventListener("DOMContentLoaded", () => {
-    auth.onAuthStateChanged(u => {
-      const el = document.getElementById("user-email");
-      if (el) el.textContent = u?.email || "Usuario";
-    });
-    cargar();
+    Promise.resolve(window.__domkaFirebaseReady).then(() => {
+      if (!window.auth) return;
+      auth.onAuthStateChanged(u => {
+        const el = document.getElementById("user-email");
+        if (el) el.textContent = u?.email || "Usuario";
+      });
+      cargar();
+    }).catch(console.error);
   });
 })();
 

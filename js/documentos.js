@@ -130,12 +130,18 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    auth.onAuthStateChanged(u => {
-      const el = document.getElementById("user-email");
-      if (el) el.textContent = u?.email || "Usuario";
-    });
-    await cargarClientes();
-    await cargarDocs();
+    try {
+      await Promise.resolve(window.__domkaFirebaseReady);
+      if (!window.auth) return;
+      auth.onAuthStateChanged(u => {
+        const el = document.getElementById("user-email");
+        if (el) el.textContent = u?.email || "Usuario";
+      });
+      await cargarClientes();
+      await cargarDocs();
+    } catch (e) {
+      console.error(e);
+    }
   });
 })();
 

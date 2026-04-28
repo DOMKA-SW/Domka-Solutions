@@ -42,14 +42,20 @@
   </div>
   <nav class="sidebar-links">
     <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="cotizaciones.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Cotizaciones</a>
-    <a href="clientes.html" class="sidebar-link active"><i class="fas fa-users"></i> Clientes</a>
-    <a href="contabilidad.html" class="sidebar-link"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+    <a href="cotizaciones.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-file-alt"></i> Cotizaciones</a>
+    <a href="clientes.html" class="sidebar-link active" data-rol-min="comercial"><i class="fas fa-users"></i> Clientes</a>
+    <a href="proyectos.html" class="sidebar-link"><i class="fas fa-hard-hat"></i> Proyectos</a>
+    <a href="documentos.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-folder-open"></i> Documentos</a>
+    <a href="contabilidad.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+    <a href="usuarios.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-user-cog"></i> Usuarios</a>
   </nav>
   <div class="sidebar-bottom">
     <div class="user-indicator">
       <div class="user-dot"></div>
-      <span class="user-email-text" id="user-email">Cargandoâ€¦</span>
+      <div>
+        <span class="user-email-text" id="user-email">Cargandoâ€¦</span>
+        <span style="display:block;font-size:.6rem;color:var(--gray-lt)" id="user-rol"></span>
+      </div>
     </div>
     <button onclick="logout()" class="btn-logout">
       <i class="fas fa-sign-out-alt"></i> Cerrar sesiÃ³n
@@ -189,17 +195,6 @@
 <script src="js/security.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/clientes.js"></script>
-<script>
-  if (typeof auth !== 'undefined' && auth.onAuthStateChanged) {
-    auth.onAuthStateChanged(u => {
-      const el = document.getElementById('user-email');
-      if (el) el.textContent = u?.email || 'Usuario';
-    });
-  }
-  function logout() {
-    if (typeof auth !== 'undefined') auth.signOut().then(() => window.location.href = 'index.html');
-  }
-</script>
 </body>
 </html>
 
