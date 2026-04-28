@@ -9,10 +9,19 @@
     appId: "1:698458465020:web:4b9e841472bc3db0ba2d79"
   };
 
+  const FALLBACKS = [
+    "https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js",
+    "https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js",
+    "https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js",
+    "https://cdn.jsdelivr.net/npm/firebase@8.10.0/firebase-app.js",
+    "https://cdn.jsdelivr.net/npm/firebase@8.10.0/firebase-auth.js",
+    "https://cdn.jsdelivr.net/npm/firebase@8.10.0/firebase-firestore.js"
+  ];
+
   function loadScript(src) {
     return new Promise((resolve, reject) => {
-      const existing = Array.from(document.scripts).find((s) => s.src === src);
-      if (existing) return resolve();
+      const found = Array.from(document.scripts).some((s) => (s.src || "").includes(src));
+      if (found) return resolve();
       const s = document.createElement("script");
       s.src = src;
       s.async = false;
@@ -22,30 +31,40 @@
     });
   }
 
-  function setFirebaseGlobals(firebase) {
+  function setGlobals(firebase) {
     const app = firebase.apps?.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-    const db = app.firestore();
-    const auth = typeof app.auth === "function" ? app.auth() : null;
-    window.db = db;
-    window.auth = auth;
+    window.db = app.firestore();
+    window.auth = typeof app.auth === "function" ? app.auth() : null;
   }
 
-  window.__domkaFirebaseReady = (async () => {
+  async function ensureFirebase() {
     if (window.firebase) {
-      setFirebaseGlobals(window.firebase);
-      return;
+      setGlobals(window.firebase);
+      return true;
     }
 
-    await loadScript("https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js");
-    await loadScript("https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js");
-    await loadScript("https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js");
-
-    if (!window.firebase) {
-      throw new Error("Firebase SDK no disponible en esta pagina.");
+    for (const src of FALLBACKS) {
+      try {
+        await loadScript(src);
+        if (window.firebase) {
+          setGlobals(window.firebase);
+          return true;
+        }
+      } catch (_) {}
     }
-    setFirebaseGlobals(window.firebase);
-  })().catch((err) => {
-    console.error("[DOMKA Firebase]", err);
-    window.__domkaFirebaseError = err;
-  });
+
+    // Retry corto para casos de carga tardía de script externo
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => setTimeout(r, 150));
+      if (window.firebase) {
+        setGlobals(window.firebase);
+        return true;
+      }
+    }
+
+    console.error("[DOMKA Firebase] SDK no disponible tras reintentos.");
+    return false;
+  }
+
+  window.__domkaFirebaseReady = ensureFirebase();
 })();
