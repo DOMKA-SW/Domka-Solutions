@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA - Login Empresa</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#f4efe7; --white:#fff; --green:#1b7a51; --green-dk:#155c3c; --line:#d6cfc5; --text:#2c2c2c; --muted:#8a8a8a; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); padding:20px; }
+    .card { width:100%; max-width:430px; background:var(--white); border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:0 10px 40px rgba(27,122,81,.1); }
+    h1 { margin:0 0 6px; font-family:'DM Serif Display',serif; font-weight:400; font-size:1.8rem; color:var(--green); }
+    .sub { margin:0 0 18px; color:var(--muted); font-size:.9rem; }
+    label { display:block; font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin:12px 0 6px; color:#555; }
+    input { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:8px; font-size:.95rem; }
+    button { width:100%; margin-top:14px; padding:12px; border:none; border-radius:9px; background:var(--green); color:#fff; font-weight:700; cursor:pointer; }
+    button:hover { background:var(--green-dk); }
+    .login-error { display:none; margin-top:12px; background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; border-radius:8px; padding:10px; font-size:.85rem; }
+    .back { display:inline-block; margin-top:14px; color:var(--green); font-size:.88rem; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Portal Empresa</h1>
+    <p class="sub">Ingresa con tu usuario de personal interno.</p>
+
+    <label for="email">Correo</label>
+    <input id="email" type="email" placeholder="tu@empresa.com">
+
+    <label for="password">Contrasena</label>
+    <input id="password" type="password" placeholder="********">
+
+    <button onclick="login().catch(()=>{})">Iniciar sesion</button>
+    <div id="error-msg" class="login-error"></div>
+    <a class="back" href="/index.html">Volver al inicio</a>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/roles.js"></script>
+  <script src="js/security.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

@@ -6,11 +6,11 @@
   const isClienteArea = path.includes("/cliente/");
   const isPublicPage =
     path.includes("/public/") ||
-    ["", "index.html", "home.html", "login.html"].includes(page) ||
+    ["", "index.html", "home.html", "login.html", "login-empresa.html"].includes(page) ||
     path.endsWith("/cliente/login.html");
 
   function empresaLoginUrl() {
-    return "/index.html";
+    return "/login-empresa.html";
   }
 
   function clienteLoginUrl() {

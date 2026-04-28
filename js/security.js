@@ -13,7 +13,7 @@
     const page = pageName();
     if (isInFolder("public")) return true;
     if (isInFolder("cliente") && page === "login.html") return true;
-    return ["", "index.html", "home.html"].includes(page);
+    return ["", "index.html", "home.html", "login-empresa.html"].includes(page);
   }
 
   function requireRole(perfil, allowed) {
