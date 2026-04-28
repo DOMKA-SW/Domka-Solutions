@@ -24,6 +24,30 @@
     return input || "client";
   }
 
+  function setLoginError(message) {
+    try {
+      sessionStorage.setItem("domka_login_error", message || "");
+    } catch (_) {}
+  }
+
+  function paintLoginErrorIfAny() {
+    try {
+      const text = sessionStorage.getItem("domka_login_error");
+      if (!text) return;
+      sessionStorage.removeItem("domka_login_error");
+      const errorEl = document.getElementById("error-msg");
+      const msgEl = document.getElementById("msg");
+      if (errorEl) {
+        errorEl.style.display = "block";
+        errorEl.textContent = text;
+      }
+      if (msgEl) {
+        msgEl.className = "msg err";
+        msgEl.textContent = text;
+      }
+    } catch (_) {}
+  }
+
   async function getPerfil(user) {
     if (!user || !window.db) return null;
 
@@ -63,6 +87,9 @@
       (await getPerfil(user));
 
     if (!perfil || perfil.activo === false) {
+      setLoginError(!perfil
+        ? "Tu usuario existe en Authentication pero no tiene perfil en Firestore (users/{uid})."
+        : "Tu usuario esta inactivo. Contacta al administrador.");
       await window.auth.signOut().catch(() => {});
       window.location.href = empresaLoginUrl();
       return;
@@ -135,6 +162,8 @@
     });
   };
 
+  if (isPublicPage) paintLoginErrorIfAny();
+
   if (!isPublicPage && window.auth?.onAuthStateChanged) {
     window.auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -147,6 +176,9 @@
         (await getPerfil(user));
 
       if (!perfil || perfil.activo === false) {
+        setLoginError(!perfil
+          ? "Tu usuario existe en Authentication pero no tiene perfil en Firestore (users/{uid})."
+          : "Tu usuario esta inactivo. Contacta al administrador.");
         await window.auth.signOut().catch(() => {});
         window.location.href = isClienteArea ? clienteLoginUrl() : empresaLoginUrl();
         return;
