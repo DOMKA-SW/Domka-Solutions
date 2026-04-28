@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DOMKA — Contabilidad</title>
+  <title>DOMKA â€” Contabilidad</title>
   <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -129,7 +129,7 @@
 <aside class="app-sidebar">
   <div class="sidebar-brand-wrap">
     <span class="sidebar-brand-name">DOMKA</span>
-    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+    <span class="sidebar-brand-sub">ConstrucciÃ³n &amp; DiseÃ±o</span>
   </div>
   <nav class="sidebar-links">
     <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
@@ -140,10 +140,10 @@
   <div class="sidebar-bottom">
     <div class="user-indicator">
       <div class="user-dot"></div>
-      <span class="user-email-text" id="user-email">Cargando…</span>
+      <span class="user-email-text" id="user-email">Cargandoâ€¦</span>
     </div>
     <button onclick="logout()" class="btn-logout">
-      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesiÃ³n
     </button>
   </div>
 </aside>
@@ -181,49 +181,49 @@
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
     <div class="kpi">
       <div class="kpi-title">Total Ingresos</div>
-      <div class="kpi-val" style="color:var(--green)" id="kpi-ingresos">—</div>
+      <div class="kpi-val" style="color:var(--green)" id="kpi-ingresos">â€”</div>
       <p class="text-xs mt-1" style="color:var(--gray-lt)">Pagos + ingresos manuales</p>
     </div>
     <div class="kpi">
       <div class="kpi-title">Total Gastos</div>
-      <div class="kpi-val" style="color:#ef4444" id="kpi-gastos">—</div>
-      <p class="text-xs mt-1" style="color:var(--gray-lt)">Gastos en el período</p>
+      <div class="kpi-val" style="color:#ef4444" id="kpi-gastos">â€”</div>
+      <p class="text-xs mt-1" style="color:var(--gray-lt)">Gastos en el perÃ­odo</p>
     </div>
     <div class="kpi">
       <div class="kpi-title">Balance Neto</div>
-      <div class="kpi-val" id="kpi-balance">—</div>
-      <p class="text-xs mt-1" style="color:var(--gray-lt)">Ingresos − Gastos</p>
+      <div class="kpi-val" id="kpi-balance">â€”</div>
+      <p class="text-xs mt-1" style="color:var(--gray-lt)">Ingresos âˆ’ Gastos</p>
     </div>
     <div class="kpi">
       <div class="kpi-title">Patrimonio Total</div>
-      <div class="kpi-val" style="color:#3b82f6" id="kpi-patrimonio">—</div>
+      <div class="kpi-val" style="color:#3b82f6" id="kpi-patrimonio">â€”</div>
       <p class="text-xs mt-1" style="color:var(--gray-lt)">Suma de todas las cuentas</p>
     </div>
     <div class="kpi">
       <div class="kpi-title">Cot. Pendientes</div>
-      <div class="kpi-val" style="color:#f59e0b" id="kpi-cot-pendientes">—</div>
+      <div class="kpi-val" style="color:#f59e0b" id="kpi-cot-pendientes">â€”</div>
     </div>
     <div class="kpi">
       <div class="kpi-title">Cot. Aprobadas</div>
-      <div class="kpi-val" style="color:var(--green)" id="kpi-cot-aprobadas">—</div>
+      <div class="kpi-val" style="color:var(--green)" id="kpi-cot-aprobadas">â€”</div>
     </div>
     <div class="kpi">
       <div class="kpi-title">Por Cobrar</div>
-      <div class="kpi-val" style="color:#f59e0b" id="kpi-por-cobrar">—</div>
+      <div class="kpi-val" style="color:#f59e0b" id="kpi-por-cobrar">â€”</div>
     </div>
     <div class="kpi">
       <div class="kpi-title">Cuentas Pagadas</div>
-      <div class="kpi-val" style="color:var(--green)" id="kpi-cue-pagadas">—</div>
+      <div class="kpi-val" style="color:var(--green)" id="kpi-cue-pagadas">â€”</div>
     </div>
   </div>
 
   <!-- TABS -->
   <div class="flex gap-2 mb-5 flex-wrap">
-    <button class="tab-btn active" data-tab="cuentas">🏦 Mis Cuentas</button>
-    <button class="tab-btn" data-tab="movimientos">💸 Movimientos</button>
-    <button class="tab-btn" data-tab="graficos">📊 Gráficos</button>
-    <button class="tab-btn" data-tab="transacciones">📋 Transacciones</button>
-    <button class="tab-btn" data-tab="logs">👁 Logs</button>
+    <button class="tab-btn active" data-tab="cuentas">ðŸ¦ Mis Cuentas</button>
+    <button class="tab-btn" data-tab="movimientos">ðŸ’¸ Movimientos</button>
+    <button class="tab-btn" data-tab="graficos">ðŸ“Š GrÃ¡ficos</button>
+    <button class="tab-btn" data-tab="transacciones">ðŸ“‹ Transacciones</button>
+    <button class="tab-btn" data-tab="logs">ðŸ‘ Logs</button>
   </div>
 
   <!-- TAB: MIS CUENTAS -->
@@ -249,13 +249,13 @@
                 <option value="corriente">Corriente</option>
                 <option value="digital">Billetera Digital</option>
                 <option value="efectivo">Efectivo / Caja</option>
-                <option value="inversion">Inversión / CDT</option>
-                <option value="credito">Crédito / Deuda</option>
+                <option value="inversion">InversiÃ³n / CDT</option>
+                <option value="credito">CrÃ©dito / Deuda</option>
                 <option value="otro">Otro</option>
               </select>
             </div>
             <div>
-              <label class="lbl">Número (opcional)</label>
+              <label class="lbl">NÃºmero (opcional)</label>
               <input id="banco-numero" class="inp" placeholder="****1234">
             </div>
           </div>
@@ -272,7 +272,7 @@
             <i class="fas fa-save"></i> Guardar Cuenta
           </button>
           <button id="btn-cancelar-banco" class="btn btn-gray w-full justify-center hidden">
-            Cancelar edición
+            Cancelar ediciÃ³n
           </button>
         </div>
       </div>
@@ -287,7 +287,7 @@
         <div class="card p-4 flex justify-between items-center">
           <div>
             <p class="text-xs font-bold uppercase tracking-wide" style="color:var(--gray-lt)">Patrimonio total</p>
-            <p class="text-2xl mt-1" style="font-family:'DM Serif Display',serif;color:var(--text)" id="patrimonio-display">—</p>
+            <p class="text-2xl mt-1" style="font-family:'DM Serif Display',serif;color:var(--text)" id="patrimonio-display">â€”</p>
             <p class="text-xs mt-0.5" style="color:var(--gray-lt)">Suma de saldos en todas las cuentas</p>
           </div>
           <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:var(--green-lt)">
@@ -317,16 +317,16 @@
             <div class="grid grid-cols-2 gap-2">
               <label class="flex items-center gap-2 rounded-lg p-3 cursor-pointer" style="border:2px solid rgba(27,122,81,.3);background:var(--green-lt)" id="lbl-tipo-ingreso">
                 <input type="radio" name="tipo-mov" value="ingreso" checked style="accent-color:var(--green)">
-                <span style="color:var(--green);font-weight:700;font-size:.85rem">💰 Ingreso</span>
+                <span style="color:var(--green);font-weight:700;font-size:.85rem">ðŸ’° Ingreso</span>
               </label>
               <label class="flex items-center gap-2 rounded-lg p-3 cursor-pointer" style="border:2px solid var(--line);background:var(--white)" id="lbl-tipo-gasto">
                 <input type="radio" name="tipo-mov" value="gasto" style="accent-color:#ef4444">
-                <span style="color:#ef4444;font-weight:700;font-size:.85rem">💸 Gasto</span>
+                <span style="color:#ef4444;font-weight:700;font-size:.85rem">ðŸ’¸ Gasto</span>
               </label>
             </div>
           </div>
           <div>
-            <label class="lbl">Descripción *</label>
+            <label class="lbl">DescripciÃ³n *</label>
             <input id="mov-descripcion" class="inp" placeholder="Ej: Arriendo, Supermercado..." spellcheck="true" lang="es">
           </div>
           <div class="grid grid-cols-2 gap-3">
@@ -346,30 +346,30 @@
             </select>
           </div>
           <div>
-            <label class="lbl">Categoría</label>
+            <label class="lbl">CategorÃ­a</label>
             <select id="mov-categoria" class="inp">
               <option value="general">General</option>
-              <optgroup label="── Ingresos ──">
+              <optgroup label="â”€â”€ Ingresos â”€â”€">
                 <option value="servicios-prestados">Servicios Prestados</option>
                 <option value="salario">Salario / Sueldo</option>
                 <option value="freelance">Freelance / Proyecto</option>
                 <option value="ventas">Ventas</option>
                 <option value="arriendo-recibido">Arriendo Recibido</option>
                 <option value="transferencia">Transferencia Recibida</option>
-                <option value="rendimiento">Rendimiento / Inversión</option>
+                <option value="rendimiento">Rendimiento / InversiÃ³n</option>
               </optgroup>
-              <optgroup label="── Gastos ──">
+              <optgroup label="â”€â”€ Gastos â”€â”€">
                 <option value="vivienda">Vivienda / Arriendo</option>
-                <option value="alimentacion">Alimentación / Mercado</option>
+                <option value="alimentacion">AlimentaciÃ³n / Mercado</option>
                 <option value="transporte">Transporte / Gasolina</option>
-                <option value="salud">Salud / Médico</option>
-                <option value="educacion">Educación</option>
+                <option value="salud">Salud / MÃ©dico</option>
+                <option value="educacion">EducaciÃ³n</option>
                 <option value="entretenimiento">Entretenimiento</option>
                 <option value="ropa">Ropa / Calzado</option>
-                <option value="servicios-publicos">Servicios Públicos</option>
-                <option value="tecnologia">Tecnología / Suscripciones</option>
+                <option value="servicios-publicos">Servicios PÃºblicos</option>
+                <option value="tecnologia">TecnologÃ­a / Suscripciones</option>
                 <option value="materiales">Materiales de Trabajo</option>
-                <option value="nomina">Nómina / Pagos a Terceros</option>
+                <option value="nomina">NÃ³mina / Pagos a Terceros</option>
                 <option value="publicidad">Publicidad / Marketing</option>
                 <option value="impuestos">Impuestos</option>
                 <option value="deudas">Deudas / Cuotas</option>
@@ -379,14 +379,14 @@
           <div>
             <label class="lbl">Estado</label>
             <select id="mov-estado" class="inp">
-              <option value="realizado">✅ Realizado</option>
-              <option value="pendiente">⏳ Pendiente</option>
-              <option value="programado">📅 Programado</option>
+              <option value="realizado">âœ… Realizado</option>
+              <option value="pendiente">â³ Pendiente</option>
+              <option value="programado">ðŸ“… Programado</option>
             </select>
           </div>
           <div>
             <label class="lbl">Notas</label>
-            <input id="mov-notas" class="inp" placeholder="Observación opcional..." spellcheck="true" lang="es">
+            <input id="mov-notas" class="inp" placeholder="ObservaciÃ³n opcional..." spellcheck="true" lang="es">
           </div>
           <button id="btn-guardar-mov" class="btn btn-orange w-full justify-center">
             <i class="fas fa-plus"></i> Guardar Movimiento
@@ -425,27 +425,27 @@
     </div>
   </div>
 
-  <!-- TAB: GRÁFICOS -->
+  <!-- TAB: GRÃFICOS -->
   <div class="tab-panel" id="tab-graficos">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div class="card p-5">
-        <h3 class="font-bold mb-3" style="color:var(--text)">📊 Ingresos vs Gastos por Mes</h3>
+        <h3 class="font-bold mb-3" style="color:var(--text)">ðŸ“Š Ingresos vs Gastos por Mes</h3>
         <div style="height:270px"><canvas id="chart-ig"></canvas></div>
       </div>
       <div class="card p-5">
-        <h3 class="font-bold mb-3" style="color:var(--text)">📈 Evolución del Balance</h3>
+        <h3 class="font-bold mb-3" style="color:var(--text)">ðŸ“ˆ EvoluciÃ³n del Balance</h3>
         <div style="height:270px"><canvas id="chart-balance"></canvas></div>
       </div>
       <div class="card p-5">
-        <h3 class="font-bold mb-3" style="color:var(--text)">🥧 Gastos por Categoría</h3>
+        <h3 class="font-bold mb-3" style="color:var(--text)">ðŸ¥§ Gastos por CategorÃ­a</h3>
         <div style="height:270px"><canvas id="chart-cat"></canvas></div>
       </div>
       <div class="card p-5">
-        <h3 class="font-bold mb-3" style="color:var(--text)">🏦 Saldo por Cuenta Bancaria</h3>
+        <h3 class="font-bold mb-3" style="color:var(--text)">ðŸ¦ Saldo por Cuenta Bancaria</h3>
         <div style="height:270px"><canvas id="chart-bancos"></canvas></div>
       </div>
       <div class="card p-5 md:col-span-2">
-        <h3 class="font-bold mb-3" style="color:var(--text)">📉 Gastos mensuales acumulados</h3>
+        <h3 class="font-bold mb-3" style="color:var(--text)">ðŸ“‰ Gastos mensuales acumulados</h3>
         <div style="height:240px"><canvas id="chart-gastos-linea"></canvas></div>
       </div>
     </div>
@@ -462,15 +462,15 @@
         <table class="w-full">
           <thead style="border-bottom:1px solid var(--line)">
             <tr>
-              <th>Tipo</th><th>Descripción / Cliente</th>
-              <th style="text-align:right">Monto</th><th>Categoría</th>
+              <th>Tipo</th><th>DescripciÃ³n / Cliente</th>
+              <th style="text-align:right">Monto</th><th>CategorÃ­a</th>
               <th>Cuenta</th><th>Fecha</th><th>Estado</th>
             </tr>
           </thead>
           <tbody id="tbody-trans"></tbody>
         </table>
         <div id="empty-trans" class="text-center py-10 hidden" style="color:var(--gray-lt)">
-          <i class="fas fa-search text-3xl mb-2 block"></i> Sin registros en este período
+          <i class="fas fa-search text-3xl mb-2 block"></i> Sin registros en este perÃ­odo
         </div>
       </div>
     </div>
@@ -487,7 +487,7 @@
         <table class="w-full">
           <thead style="border-bottom:1px solid var(--line)">
             <tr>
-              <th>Acción</th><th>Tipo</th><th>Cliente</th>
+              <th>AcciÃ³n</th><th>Tipo</th><th>Cliente</th>
               <th style="text-align:right">Valor</th><th>Ciudad</th><th>Fecha</th>
             </tr>
           </thead>
@@ -505,7 +505,7 @@
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase.js"></script>
 <script src="js/auth.js"></script>
@@ -523,3 +523,4 @@
 </script>
 </body>
 </html>
+

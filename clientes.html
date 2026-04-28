@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DOMKA — Clientes</title>
+  <title>DOMKA â€” Clientes</title>
   <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,7 +38,7 @@
 <aside class="app-sidebar">
   <div class="sidebar-brand-wrap">
     <span class="sidebar-brand-name">DOMKA</span>
-    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+    <span class="sidebar-brand-sub">ConstrucciÃ³n &amp; DiseÃ±o</span>
   </div>
   <nav class="sidebar-links">
     <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
@@ -49,10 +49,10 @@
   <div class="sidebar-bottom">
     <div class="user-indicator">
       <div class="user-dot"></div>
-      <span class="user-email-text" id="user-email">Cargando…</span>
+      <span class="user-email-text" id="user-email">Cargandoâ€¦</span>
     </div>
     <button onclick="logout()" class="btn-logout">
-      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesiÃ³n
     </button>
   </div>
 </aside>
@@ -63,7 +63,7 @@
   <div class="page-topbar">
     <div>
       <h1 class="page-heading">Clientes</h1>
-      <p class="page-subheading">Administra la información de tus clientes</p>
+      <p class="page-subheading">Administra la informaciÃ³n de tus clientes</p>
     </div>
     <a href="dashboard.html" class="btn-secondary px-4 py-2 rounded-lg inline-flex items-center gap-2 text-sm">
       <i class="fas fa-arrow-left"></i> Volver al Dashboard
@@ -90,7 +90,7 @@
               <input type="email" name="email" placeholder="correo@ejemplo.com" required class="form-input">
             </div>
             <div>
-              <label class="form-label">Teléfono</label>
+              <label class="form-label">TelÃ©fono</label>
               <input type="text" name="telefono" placeholder="+57 300 123 4567" class="form-input">
             </div>
             <div>
@@ -98,7 +98,7 @@
               <input type="text" name="empresa" placeholder="Nombre de la empresa" spellcheck="true" lang="es" class="form-input">
             </div>
             <div style="grid-column:span 2">
-              <label class="form-label">Tipo y Número de Identificación</label>
+              <label class="form-label">Tipo y NÃºmero de IdentificaciÃ³n</label>
               <div style="display:flex;gap:10px">
                 <select name="tipoIdentificacion" class="form-input" style="max-width:140px;flex-shrink:0">
                   <option value="CC">CC</option>
@@ -108,7 +108,7 @@
                   <option value="TI">TI</option>
                 </select>
                 <input type="text" name="identificacion"
-                  placeholder="Número de identificación"
+                  placeholder="NÃºmero de identificaciÃ³n"
                   spellcheck="false"
                   class="form-input" style="flex:1">
               </div>
@@ -124,20 +124,20 @@
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div class="text-sm font-semibold" style="color:var(--text)">Acceso Portal Cliente</div>
-              <div class="text-xs" style="color:var(--gray-lt)">Genera un código y compártelo al cliente para que cree su acceso.</div>
+              <div class="text-xs" style="color:var(--gray-lt)">Genera un cÃ³digo y compÃ¡rtelo al cliente para que cree su acceso.</div>
             </div>
             <button type="button" id="btn-generar-invite" class="btn-secondary px-4 py-2 rounded-lg inline-flex items-center gap-2 text-sm">
-              <i class="fas fa-key"></i> Generar código
+              <i class="fas fa-key"></i> Generar cÃ³digo
             </button>
           </div>
           <div id="invite-box" class="hidden mt-3 p-3 rounded-lg" style="background:var(--white);border:1px solid var(--line)">
-            <div class="text-xs" style="color:var(--gray-lt);letter-spacing:.12em;text-transform:uppercase;font-weight:700">Código</div>
+            <div class="text-xs" style="color:var(--gray-lt);letter-spacing:.12em;text-transform:uppercase;font-weight:700">CÃ³digo</div>
             <div class="flex items-center justify-between gap-3 mt-1">
-              <div class="text-lg font-bold" id="invite-code" style="color:var(--green);letter-spacing:.12em">—</div>
+              <div class="text-lg font-bold" id="invite-code" style="color:var(--green);letter-spacing:.12em">â€”</div>
               <button type="button" id="btn-copiar-invite" class="action-btn action-btn-edit">Copiar</button>
             </div>
             <div class="text-xs mt-2" style="color:var(--gray)">
-              El cliente debe ingresar en <b>/cliente/login.html</b> y pegar este código.
+              El cliente debe ingresar en <b>/cliente/login.html</b> y pegar este cÃ³digo.
             </div>
           </div>
         </div>
@@ -158,9 +158,9 @@
               <tr>
                 <th class="p-3 text-left">Nombre</th>
                 <th class="p-3 text-left">Email</th>
-                <th class="p-3 text-left">Teléfono</th>
+                <th class="p-3 text-left">TelÃ©fono</th>
                 <th class="p-3 text-left">Empresa</th>
-                <th class="p-3 text-left">Identificación</th>
+                <th class="p-3 text-left">IdentificaciÃ³n</th>
                 <th class="p-3 text-left">Acciones</th>
               </tr>
             </thead>
@@ -180,9 +180,9 @@
 </div>
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
 <script src="js/config.js"></script>
 <script src="js/firebase.js"></script>
 <script src="js/roles.js"></script>
@@ -202,3 +202,4 @@
 </script>
 </body>
 </html>
+

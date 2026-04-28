@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>DOMKA — Cotizaciones</title>
+  <title>DOMKA â€” Cotizaciones</title>
   <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +11,7 @@
   <style>
     .hidden { display: none !important; }
 
-    /* Totales con diseño DOMKA */
+    /* Totales con diseÃ±o DOMKA */
     .totales-container {
       background: var(--white);
       border: 1px solid var(--line);
@@ -51,7 +51,7 @@
 <aside class="app-sidebar">
   <div class="sidebar-brand-wrap">
     <span class="sidebar-brand-name">DOMKA</span>
-    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+    <span class="sidebar-brand-sub">ConstrucciÃ³n &amp; DiseÃ±o</span>
   </div>
   <nav class="sidebar-links">
     <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
@@ -62,10 +62,10 @@
   <div class="sidebar-bottom">
     <div class="user-indicator">
       <div class="user-dot"></div>
-      <span class="user-email-text" id="user-email">Cargando…</span>
+      <span class="user-email-text" id="user-email">Cargandoâ€¦</span>
     </div>
     <button onclick="logout()" class="btn-logout">
-      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesiÃ³n
     </button>
   </div>
 </aside>
@@ -85,11 +85,11 @@
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Formulario Cotización -->
+    <!-- Formulario CotizaciÃ³n -->
     <div class="lg:col-span-2">
       <div class="form-container p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200">
-          Nueva Cotización
+          Nueva CotizaciÃ³n
         </h2>
 
         <form id="form-cotizacion" class="space-y-6">
@@ -97,12 +97,12 @@
             <div>
               <label class="form-label">Cliente</label>
               <select id="cliente" class="form-input" required>
-                <option value="">— Selecciona un cliente —</option>
+                <option value="">â€” Selecciona un cliente â€”</option>
               </select>
             </div>
             <div>
-              <label class="form-label">Ubicación</label>
-              <input type="text" id="ubicacion" class="form-input" placeholder="Ej: Bogotá, Calle 123 #45-67">
+              <label class="form-label">UbicaciÃ³n</label>
+              <input type="text" id="ubicacion" class="form-input" placeholder="Ej: BogotÃ¡, Calle 123 #45-67">
             </div>
           </div>
 
@@ -110,15 +110,15 @@
           <div>
             <label class="form-label">Notas</label>
             <div class="flex gap-2 mb-3">
-              <button type="button" id="btn-notas-libre" class="px-3 py-1.5 rounded text-sm">📝 Texto libre</button>
-              <button type="button" id="btn-notas-vinetas" class="px-3 py-1.5 rounded text-sm">• Viñetas</button>
+              <button type="button" id="btn-notas-libre" class="px-3 py-1.5 rounded text-sm">ðŸ“ Texto libre</button>
+              <button type="button" id="btn-notas-vinetas" class="px-3 py-1.5 rounded text-sm">â€¢ ViÃ±etas</button>
             </div>
             <div id="notas-modo-libre">
-              <textarea id="notas" rows="3" spellcheck="true" lang="es" class="form-input" placeholder="Notas adicionales... (cada línea será una viñeta en el PDF)"></textarea>
+              <textarea id="notas" rows="3" spellcheck="true" lang="es" class="form-input" placeholder="Notas adicionales... (cada lÃ­nea serÃ¡ una viÃ±eta en el PDF)"></textarea>
             </div>
             <div id="notas-modo-vinetas" class="hidden">
               <div id="notas-vinetas-container"></div>
-              <button type="button" id="agregar-vineta" class="mt-2 text-sm" style="color:var(--green)">+ Agregar viñeta</button>
+              <button type="button" id="agregar-vineta" class="mt-2 text-sm" style="color:var(--green)">+ Agregar viÃ±eta</button>
             </div>
           </div>
 
@@ -126,7 +126,7 @@
           <div class="p-3 rounded-lg" style="background:var(--bg-alt);border:1px solid var(--line)">
             <label class="flex items-center gap-2" style="font-size:.88rem">
               <input type="checkbox" id="mostrar-documento" checked style="accent-color:var(--green)">
-              Mostrar número de documento en el PDF
+              Mostrar nÃºmero de documento en el PDF
             </label>
           </div>
 
@@ -140,14 +140,14 @@
             </div>
             <div id="seccion-anexos" class="hidden mt-2 p-4 rounded-lg" style="background:var(--bg-alt);border:1px solid var(--line)">
               <input type="file" id="anexos-input" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,image/*" class="w-full border rounded p-2 mb-2" style="border-color:var(--line)">
-              <p class="text-xs" style="color:var(--gray-lt)">Máx. 500 KB por archivo · PDF, Word, PPT o imágenes</p>
+              <p class="text-xs" style="color:var(--gray-lt)">MÃ¡x. 500 KB por archivo Â· PDF, Word, PPT o imÃ¡genes</p>
               <ul id="lista-anexos" class="mt-3 space-y-2"></ul>
             </div>
           </div>
 
-          <!-- Tipo de cotización -->
+          <!-- Tipo de cotizaciÃ³n -->
           <div>
-            <label class="form-label mb-2">Tipo de Cotización</label>
+            <label class="form-label mb-2">Tipo de CotizaciÃ³n</label>
             <div class="radio-group flex gap-3 flex-wrap">
               <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
                 <input type="radio" name="tipo" value="mano-obra" checked style="accent-color:var(--green)"> Mano de obra
@@ -181,12 +181,12 @@
             </div>
           </div>
 
-          <!-- Tipo de cálculo -->
+          <!-- Tipo de cÃ¡lculo -->
           <div>
-            <label class="form-label mb-2">Tipo de cálculo</label>
+            <label class="form-label mb-2">Tipo de cÃ¡lculo</label>
             <div class="flex gap-3 flex-wrap">
               <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
-                <input type="radio" name="tipo-calculo" value="por-items" checked style="accent-color:var(--green)"> Calcular por ítems
+                <input type="radio" name="tipo-calculo" value="por-items" checked style="accent-color:var(--green)"> Calcular por Ã­tems
               </label>
               <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
                 <input type="radio" name="tipo-calculo" value="valor-total" style="accent-color:var(--green)"> Ingresar valor total
@@ -207,19 +207,19 @@
             </label>
           </div>
 
-          <!-- Tabla ítems -->
+          <!-- Tabla Ã­tems -->
           <div>
             <div class="flex justify-between items-center mb-4">
-              <h3 class="font-semibold" style="color:var(--text)">Ítems</h3>
+              <h3 class="font-semibold" style="color:var(--text)">Ãtems</h3>
               <button type="button" id="agregar-item" class="btn-primary px-3 py-2 rounded-lg text-sm">
-                + Agregar Ítem
+                + Agregar Ãtem
               </button>
             </div>
             <div class="scrollable-table" style="border-radius:10px;overflow:hidden;border:1px solid var(--line)">
               <table class="w-full border-collapse" id="tabla-items">
                 <thead>
                   <tr>
-                    <th class="p-3 text-left">Descripción</th>
+                    <th class="p-3 text-left">DescripciÃ³n</th>
                     <th class="p-3 text-center col-cantidad">Cantidad</th>
                     <th class="p-3 text-right col-precio">Precio</th>
                     <th class="p-3 text-right col-subtotal">Subtotal</th>
@@ -245,7 +245,7 @@
           </div>
 
           <button type="submit" class="btn-primary px-6 py-3 rounded-lg text-base w-full mt-2">
-            Guardar Cotización
+            Guardar CotizaciÃ³n
           </button>
         </form>
       </div>
@@ -278,7 +278,7 @@
 
 <!-- Scripts -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
@@ -304,3 +304,4 @@
 </script>
 </body>
 </html>
+
