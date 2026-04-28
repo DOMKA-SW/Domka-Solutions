@@ -108,7 +108,15 @@ async function editarCliente(id) {
   formClientes.scrollIntoView({ behavior: "smooth" });
 }
 
-cargarClientes();
+async function initClientes() {
+  await Promise.resolve(window.__domkaFirebaseReady);
+  if (!window.db) throw new Error("Firestore no inicializado.");
+  await cargarClientes();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initClientes().catch((e) => console.error(e));
+});
 
 window.eliminarCliente = eliminarCliente;
 window.editarCliente   = editarCliente;

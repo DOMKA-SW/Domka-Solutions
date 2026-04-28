@@ -281,16 +281,10 @@
 <script src="js/auth.js"></script>
 
 <script>
-  auth.onAuthStateChanged(user => {
-    document.getElementById("user-email").textContent = user?.email || "Usuario";
-  });
-
-  function logout() {
-    auth.signOut().then(() => { window.location.href = "index.html"; });
-  }
-
   (async function () {
     try {
+      await Promise.resolve(window.__domkaFirebaseReady);
+      if (!window.db) return;
       const cotSnap = await db.collection("cotizaciones").get();
       const clientesSnap = await db.collection("clientes").get();
       const proyectosSnap = await db.collection("proyectos").get();

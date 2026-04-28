@@ -29,7 +29,13 @@
   }
 
   async function requireAdmin() {
-    const user = window.auth?.currentUser;
+    const user = window.auth?.currentUser || await new Promise((resolve) => {
+      if (!window.auth?.onAuthStateChanged) return resolve(null);
+      const unsub = window.auth.onAuthStateChanged((u) => {
+        unsub();
+        resolve(u || null);
+      });
+    });
     if (!user) throw new Error("Sin sesion.");
     const snap = await window.db.collection("users").doc(user.uid).get();
     const me = snap.exists ? snap.data() : null;

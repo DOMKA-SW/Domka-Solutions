@@ -524,10 +524,16 @@ async function cargarCotizaciones() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-  cargarClientes();
-  cargarCotizaciones();
-  toggleColumnasItems();
+document.addEventListener("DOMContentLoaded", async function() {
+  try {
+    await Promise.resolve(window.__domkaFirebaseReady);
+    if (!window.db) throw new Error("Firestore no inicializado.");
+    await cargarClientes();
+    await cargarCotizaciones();
+    toggleColumnasItems();
+  } catch (e) {
+    console.error(e);
+  }
 
   // ── Corrector ortografía en tiempo real ──
   if (typeof ltActivar === "function") ltActivar();

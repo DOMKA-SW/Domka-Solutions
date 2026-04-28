@@ -161,7 +161,7 @@
         msgEl.className = "msg err";
         msgEl.textContent = text;
       }
-      throw err;
+      throw new Error(text);
     }
 
     const user = window.auth.currentUser;
