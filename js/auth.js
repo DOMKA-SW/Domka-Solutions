@@ -82,9 +82,23 @@
   }
 
   async function routeUser(user) {
-    const perfil =
-      (typeof window.cargarPerfil === "function" && (await window.cargarPerfil(user).catch(() => null))) ||
-      (await getPerfil(user));
+    let perfil = null;
+    try {
+      perfil =
+        (typeof window.cargarPerfil === "function" && (await window.cargarPerfil(user).catch(() => null))) ||
+        (await getPerfil(user));
+    } catch (err) {
+      const msg = String(err?.message || "");
+      const code = String(err?.code || "");
+      if (code.includes("permission-denied") || msg.toLowerCase().includes("permission")) {
+        setLoginError("Firestore denego lectura del perfil. Publica las reglas nuevas y verifica coleccion users.");
+      } else {
+        setLoginError("No se pudo leer tu perfil en Firestore. Revisa configuracion del proyecto.");
+      }
+      await window.auth.signOut().catch(() => {});
+      window.location.href = empresaLoginUrl();
+      return;
+    }
 
     if (!perfil || perfil.activo === false) {
       setLoginError(!perfil
@@ -171,9 +185,23 @@
         return;
       }
 
-      const perfil =
-        (typeof window.cargarPerfil === "function" && (await window.cargarPerfil(user).catch(() => null))) ||
-        (await getPerfil(user));
+      let perfil = null;
+      try {
+        perfil =
+          (typeof window.cargarPerfil === "function" && (await window.cargarPerfil(user).catch(() => null))) ||
+          (await getPerfil(user));
+      } catch (err) {
+        const msg = String(err?.message || "");
+        const code = String(err?.code || "");
+        if (code.includes("permission-denied") || msg.toLowerCase().includes("permission")) {
+          setLoginError("Firestore denego lectura del perfil. Publica las reglas nuevas y verifica coleccion users.");
+        } else {
+          setLoginError("No se pudo leer tu perfil en Firestore. Revisa configuracion del proyecto.");
+        }
+        await window.auth.signOut().catch(() => {});
+        window.location.href = isClienteArea ? clienteLoginUrl() : empresaLoginUrl();
+        return;
+      }
 
       if (!perfil || perfil.activo === false) {
         setLoginError(!perfil
