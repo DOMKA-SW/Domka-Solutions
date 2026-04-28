@@ -1,131 +1,151 @@
-// ═══════════════════════════════════════════════════════
-//  DOMKA — Auth & Roles v5
-//  Fix: bootstrap sin documento en usuarios
-// ═══════════════════════════════════════════════════════
+// js/auth.js
+// Auth central para portal empresa y portal cliente.
+(() => {
+  const path = window.location.pathname || "/";
+  const page = path.split("/").pop() || "index.html";
+  const isClienteArea = path.includes("/cliente/");
+  const isPublicPage =
+    path.includes("/public/") ||
+    ["", "index.html", "home.html", "login.html"].includes(page) ||
+    path.endsWith("/cliente/login.html");
 
-(function () {
-  const path      = window.location.pathname;
-  const page      = path.split('/').pop() || 'index.html';
-  const isPublic  = ['', 'index.html', 'login-empresa.html', 'login-cliente.html', 'home.html'].includes(page)
-                    || path.includes('/public/');
-  const isCliente = path.includes('/cliente/');
-
-  window.DOMKA_ROL  = null;
-  window.DOMKA_USER = null;
-
-  // ── Banner de error visible ────────────────────────
-  function mostrarError(msg, linkTexto, linkHref) {
-    if (document.getElementById('domka-err-banner')) return;
-    const b = document.createElement('div');
-    b.id = 'domka-err-banner';
-    b.style.cssText = [
-      'position:fixed;top:0;left:0;right:0;z-index:9999',
-      'background:#7f1d1d;color:#fff',
-      'padding:11px 20px;font-size:.84rem;font-family:sans-serif',
-      'display:flex;align-items:center;justify-content:space-between;gap:12px'
-    ].join(';');
-    b.innerHTML = `<span>${msg}</span>` +
-      (linkTexto ? `<a href="${linkHref}" style="background:#fff;color:#7f1d1d;padding:5px 12px;border-radius:5px;font-weight:700;text-decoration:none;white-space:nowrap">${linkTexto}</a>` : '');
-    document.body.prepend(b);
+  function empresaLoginUrl() {
+    return "/index.html";
   }
 
-  // ── Dispatch evento rol listo ──────────────────────
-  function ready(ok) {
-    window.dispatchEvent(new CustomEvent('domkaReady', { detail: { ok } }));
+  function clienteLoginUrl() {
+    return "/cliente/login.html";
   }
 
-  // ── Actualizar sidebar ─────────────────────────────
-  function setSidebarUser(data) {
-    const el1 = document.getElementById('user-email');
-    const el2 = document.getElementById('user-rol');
-    const LABELS = { admin:'Administrador', comercial:'Comercial', contador:'Contador', rrhh:'RRHH', operador:'Operador' };
-    if (el1) el1.textContent = data.nombre || data.email || '—';
-    if (el2) el2.textContent = LABELS[data.rol] || data.rol || '—';
+  function normalizeRole(role) {
+    const input = String(role || "").toLowerCase().trim();
+    if (input === "cliente") return "client";
+    if (input === "operador") return "tecnico";
+    return input || "client";
   }
 
-  // ── Permisos sidebar ──────────────────────────────
-  const ROL_PERMISOS = {
-    admin:     ['dashboard','cotizaciones','cuentas','clientes','proyectos','documentos','contabilidad','financiero','nomina','empleados','roles'],
-    comercial: ['dashboard','cotizaciones','clientes','proyectos','documentos','cuentas'],
-    contador:  ['dashboard','contabilidad','financiero','cuentas'],
-    rrhh:      ['dashboard','nomina','empleados'],
-    operador:  ['dashboard','proyectos','documentos']
-  };
+  async function getPerfil(user) {
+    if (!user || !window.db) return null;
 
-  function aplicarPermisos(rol) {
-    const ok = ROL_PERMISOS[rol] || ['dashboard'];
-    document.querySelectorAll('[data-modulo]').forEach(el => {
-      if (!ok.includes(el.dataset.modulo)) el.style.display = 'none';
-    });
+    const usersSnap = await window.db.collection("users").doc(user.uid).get();
+    if (usersSnap.exists) {
+      const data = usersSnap.data() || {};
+      return {
+        uid: user.uid,
+        email: data.email || user.email || "",
+        nombre: data.nombre || "",
+        role: normalizeRole(data.role || "comercial"),
+        activo: data.activo !== false,
+        clienteId: data.clienteId || null
+      };
+    }
+
+    // Compatibilidad con esquema antiguo
+    const legacySnap = await window.db.collection("usuarios").doc(user.uid).get();
+    if (legacySnap.exists) {
+      const data = legacySnap.data() || {};
+      return {
+        uid: user.uid,
+        email: data.email || user.email || "",
+        nombre: data.nombre || "",
+        role: normalizeRole(data.rol || "comercial"),
+        activo: data.activo !== false,
+        clienteId: data.clienteId || null
+      };
+    }
+
+    return null;
   }
 
-  // ── AUTH PRINCIPAL ─────────────────────────────────
-  auth.onAuthStateChanged(async function (user) {
-    if (isPublic) return;
+  async function routeUser(user) {
+    const perfil =
+      (typeof window.cargarPerfil === "function" && (await window.cargarPerfil(user).catch(() => null))) ||
+      (await getPerfil(user));
 
-    if (!user) {
-      window.location.href = isCliente ? '../login-cliente.html' : 'login-empresa.html';
+    if (!perfil || perfil.activo === false) {
+      await window.auth.signOut().catch(() => {});
+      window.location.href = empresaLoginUrl();
       return;
     }
 
-    if (isCliente) { ready(true); return; }
-
-    // ── Portal Empresa: leer rol del usuario ──────────
-    try {
-      const snap = await db.collection('usuarios').doc(user.uid).get();
-
-      if (!snap.exists) {
-        // Usuario en Auth pero sin documento en Firestore
-        mostrarError(
-          '⚠️ Tu usuario no está registrado en el sistema. Pide al administrador que te agregue en Usuarios & Roles.',
-          'Cerrar sesión',
-          'javascript:auth.signOut().then(()=>location.href="login-empresa.html")'
-        );
-        ready(false);
-        return;
-      }
-
-      const data = snap.data();
-
-      if (!data.activo) {
-        await auth.signOut();
-        window.location.href = 'login-empresa.html';
-        return;
-      }
-
-      window.DOMKA_ROL  = data.rol;
-      window.DOMKA_USER = { ...data, uid: user.uid };
-
-      setSidebarUser(data);
-      aplicarPermisos(data.rol);
-      ready(true);
-
-    } catch (err) {
-      console.error('[DOMKA Auth]', err.code, err.message);
-
-      if (err.code === 'permission-denied') {
-        mostrarError(
-          '🔒 Error de permisos en Firestore. Verifica que las reglas estén publicadas y que exista el documento en la colección "usuarios".',
-          'Ver guía',
-          'PASO_A_PASO.html'
-        );
-      } else {
-        mostrarError('⚠️ Error de conexión con Firebase. Verifica tus credenciales en js/firebase.js — projectId debe ser: <strong id="pid-hint"></strong>');
-        // Mostrar projectId real del error para diagnóstico
-        const hint = document.getElementById('pid-hint');
-        if (hint) hint.textContent = err.message.includes('projects/') 
-          ? err.message.match(/projects\/([^/]+)/)?.[1] || 'desconocido'
-          : 'revisa firebase.js';
-      }
-      ready(false);
+    if (perfil && perfil.role === "client") {
+      window.location.href = window.DOMKA_CONFIG?.ROUTES?.clienteHome || "/cliente/index.html";
+      return;
     }
-  });
 
-  // ── LOGOUT ────────────────────────────────────────
-  window.logout = function () {
-    auth.signOut().then(() => {
-      window.location.href = isCliente ? '../login-cliente.html' : 'login-empresa.html';
+    window.location.href = window.DOMKA_CONFIG?.ROUTES?.empresaHome || "/dashboard.html";
+  }
+
+  async function login() {
+    const emailEl = document.getElementById("email");
+    const passEl = document.getElementById("password");
+    const errorEl = document.getElementById("error-msg");
+    const msgEl = document.getElementById("msg");
+    const email = (emailEl?.value || "").trim();
+    const password = passEl?.value || "";
+
+    if (!email || !password) {
+      const text = "Completa correo y contraseña.";
+      if (errorEl) {
+        errorEl.style.display = "block";
+        errorEl.textContent = text;
+      }
+      if (msgEl) {
+        msgEl.className = "msg err";
+        msgEl.textContent = text;
+      }
+      throw new Error(text);
+    }
+
+    if (errorEl) errorEl.style.display = "none";
+    if (msgEl) msgEl.className = "msg";
+
+    await window.auth.signInWithEmailAndPassword(email, password);
+    const user = window.auth.currentUser;
+    if (!user) throw new Error("No se pudo iniciar sesión.");
+    await routeUser(user);
+  }
+
+  window.login = login;
+  window.logout = function logout() {
+    window.auth.signOut().then(() => {
+      window.location.href = isClienteArea ? clienteLoginUrl() : empresaLoginUrl();
     });
   };
 
+  if (!isPublicPage && window.auth?.onAuthStateChanged) {
+    window.auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = isClienteArea ? clienteLoginUrl() : empresaLoginUrl();
+        return;
+      }
+
+      const perfil =
+        (typeof window.cargarPerfil === "function" && (await window.cargarPerfil(user).catch(() => null))) ||
+        (await getPerfil(user));
+
+      if (!perfil || perfil.activo === false) {
+        await window.auth.signOut().catch(() => {});
+        window.location.href = isClienteArea ? clienteLoginUrl() : empresaLoginUrl();
+        return;
+      }
+
+      // Portal cliente: exigir rol client y clienteId
+      if (isClienteArea) {
+        if (!perfil || perfil.role !== "client" || !perfil.clienteId) {
+          window.location.href = clienteLoginUrl();
+          return;
+        }
+      } else if (perfil && perfil.role === "client") {
+        // Portal empresa: si entra un cliente, devolverlo a su portal
+        window.location.href = window.DOMKA_CONFIG?.ROUTES?.clienteHome || "/cliente/index.html";
+        return;
+      }
+
+      const sidebarName = document.getElementById("user-email");
+      const sidebarRole = document.getElementById("user-rol");
+      if (sidebarName) sidebarName.textContent = perfil?.nombre || perfil?.email || user.email || "Usuario";
+      if (sidebarRole) sidebarRole.textContent = (perfil?.role || "").toUpperCase();
+    });
+  }
 })();

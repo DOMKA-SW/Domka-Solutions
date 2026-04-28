@@ -91,3 +91,14 @@ Los links públicos se generan automáticamente con el dominio de Vercel usando 
   - Si no tiene cuenta: se registra y pega el **código**
   - Queda vinculado a su `clienteId`
 - Navega `cliente/index.html` y módulos
+
+## 7) Estado actual (estabilizado)
+- Separación de acceso:
+  - Portal empresa: `index.html` -> `dashboard.html` por roles.
+  - Portal cliente: `cliente/login.html` -> `cliente/index.html`.
+- Modelo de usuarios unificado en Firestore:
+  - `users/{uid}` con campos `role`, `activo`, `clienteId`, `nombre`, `email`.
+- Módulo de administración:
+  - `usuarios.html` + `js/usuarios.js` para crear/editar usuarios y activar/desactivar acceso.
+- Reglas:
+  - Publica las reglas de `firebase/REGLAS_FIRESTORE.txt` en Firestore Rules.

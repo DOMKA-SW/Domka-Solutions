@@ -1,5 +1,5 @@
 // js/security.js
-// Protección de páginas basada en sesión + perfil (roles.js).
+// Proteccion de paginas basada en sesion + perfil (roles.js).
 (() => {
   function pageName() {
     return window.location.pathname.split("/").pop() || "index.html";
@@ -12,7 +12,7 @@
   function isPublicPage() {
     const page = pageName();
     if (isInFolder("public")) return true;
-    // Páginas públicas raíz
+    if (isInFolder("cliente") && page === "login.html") return true;
     return ["", "index.html", "home.html"].includes(page);
   }
 
@@ -22,15 +22,14 @@
   }
 
   async function routeAfterLogin(user) {
-    const perfil = (typeof window.cargarPerfil === "function")
-      ? await window.cargarPerfil(user).catch(() => null)
-      : null;
+    const perfil =
+      typeof window.cargarPerfil === "function"
+        ? await window.cargarPerfil(user).catch(() => null)
+        : null;
 
-    // Si no hay perfil aún, mandar al dashboard empresa (admin luego lo configura)
-    if (!perfil) return (window.DOMKA_CONFIG?.ROUTES?.empresaHome || "/dashboard.html");
-
-    if (perfil.role === "client") return (window.DOMKA_CONFIG?.ROUTES?.clienteHome || "/cliente/index.html");
-    return (window.DOMKA_CONFIG?.ROUTES?.empresaHome || "/dashboard.html");
+    if (!perfil) return window.DOMKA_CONFIG?.ROUTES?.empresaHome || "/dashboard.html";
+    if (perfil.role === "client") return window.DOMKA_CONFIG?.ROUTES?.clienteHome || "/cliente/index.html";
+    return window.DOMKA_CONFIG?.ROUTES?.empresaHome || "/dashboard.html";
   }
 
   async function protect() {
@@ -43,27 +42,25 @@
         return;
       }
 
-      const perfil = (typeof window.cargarPerfil === "function")
-        ? await window.cargarPerfil(user).catch(() => null)
-        : null;
+      const perfil =
+        typeof window.cargarPerfil === "function"
+          ? await window.cargarPerfil(user).catch(() => null)
+          : null;
 
-      // En cliente/*, exigir role client y clienteId
       if (isInFolder("cliente")) {
         if (!perfil || !requireRole(perfil, ["client"]) || !perfil.clienteId) {
-          window.location.href = "/index.html";
+          window.location.href = "/cliente/login.html";
           return;
         }
       }
 
-      // En raíz “empresa”, exigir no-client
       if (!isInFolder("cliente") && !isInFolder("public")) {
         if (perfil && perfil.role === "client") {
-          window.location.href = (window.DOMKA_CONFIG?.ROUTES?.clienteHome || "/cliente/index.html");
+          window.location.href = window.DOMKA_CONFIG?.ROUTES?.clienteHome || "/cliente/index.html";
           return;
         }
       }
 
-      // UI role restrictions (si existe dashboard/sidebar)
       if (typeof window.aplicarRestriccionesUI === "function") {
         window.aplicarRestriccionesUI(perfil);
       }
@@ -72,4 +69,3 @@
 
   window.DOMKA_SECURITY = { protect, routeAfterLogin };
 })();
-
