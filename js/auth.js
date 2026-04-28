@@ -100,7 +100,29 @@
     if (errorEl) errorEl.style.display = "none";
     if (msgEl) msgEl.className = "msg";
 
-    await window.auth.signInWithEmailAndPassword(email, password);
+    try {
+      await window.auth.signInWithEmailAndPassword(email, password);
+    } catch (err) {
+      let text = "No se pudo iniciar sesion.";
+      if (err?.code === "auth/wrong-password" || err?.code === "auth/user-not-found" || err?.message?.includes("INVALID_LOGIN_CREDENTIALS")) {
+        text = "Credenciales invalidas. Verifica correo y contrasena.";
+      } else if (err?.code === "auth/invalid-email") {
+        text = "Correo invalido.";
+      } else if (err?.code === "auth/too-many-requests") {
+        text = "Demasiados intentos. Espera unos minutos y vuelve a intentar.";
+      }
+
+      if (errorEl) {
+        errorEl.style.display = "block";
+        errorEl.textContent = text;
+      }
+      if (msgEl) {
+        msgEl.className = "msg err";
+        msgEl.textContent = text;
+      }
+      throw err;
+    }
+
     const user = window.auth.currentUser;
     if (!user) throw new Error("No se pudo iniciar sesión.");
     await routeUser(user);
