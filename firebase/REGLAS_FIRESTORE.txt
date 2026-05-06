@@ -58,7 +58,9 @@ service cloud.firestore {
 
     match /cotizaciones/{id} {
       allow read: if isActive()
-        || (isClient() && resource.data.clienteId == myClientId());
+        || (isClient()
+            && ((myEmpresaId() != null && resource.data.empresaId == myEmpresaId())
+                || resource.data.clienteId == myClientId()));
       allow create, update: if roleIs(["admin", "comercial"]);
       allow delete: if roleIs(["admin"]);
     }

@@ -89,6 +89,7 @@
 <script src="../js/auth.js"></script>
 <script>
   let _clienteId = null;
+  let _empresaId = null;
   let _cotizaciones = [];
 
   const unsub = window.auth.onAuthStateChanged(async (user) => {
@@ -96,7 +97,8 @@
     unsub();
     const perfil = await cargarPerfil(user);
     _clienteId = perfil?.clienteId;
-    if (!_clienteId) {
+    _empresaId = perfil?.empresaId;
+    if (!_clienteId && !_empresaId) {
       document.getElementById('lista-cotizaciones').innerHTML =
         '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Tu cuenta no está vinculada a un cliente. Contacta a DOMKA.</p></div>';
       return;
@@ -107,12 +109,24 @@
   async function cargarCotizaciones() {
     const container = document.getElementById('lista-cotizaciones');
     try {
-      const snap = await db.collection('cotizaciones')
-        .where('clienteId', '==', _clienteId)
-        .orderBy('fecha', 'desc')
-        .get();
+      let docs = [];
+      if (_empresaId) {
+        const byEmpresa = await db.collection('cotizaciones')
+          .where('empresaId', '==', _empresaId)
+          .orderBy('fecha', 'desc')
+          .get()
+          .catch(() => null);
+        if (byEmpresa && !byEmpresa.empty) docs = byEmpresa.docs;
+      }
+      if (!docs.length && _clienteId) {
+        const byCliente = await db.collection('cotizaciones')
+          .where('clienteId', '==', _clienteId)
+          .orderBy('fecha', 'desc')
+          .get();
+        docs = byCliente.docs;
+      }
 
-      _cotizaciones = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      _cotizaciones = docs.map(d => ({ id: d.id, ...d.data() }));
       renderCotizaciones();
     } catch(e) {
       container.innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando cotizaciones.</p></div>';

@@ -399,6 +399,7 @@ form.addEventListener("submit", async (e) => {
 
   const cotizacion = {
     clienteId,
+    empresaId: clienteData.empresaId || clienteData.empresa || null,
     nombreCliente: clienteData.nombre || clienteData.nombreEmpresa || "Sin nombre",
     telefono: clienteData.telefono || "",
     clienteTipoIdentificacion,
@@ -436,6 +437,7 @@ form.addEventListener("submit", async (e) => {
     enabled: true,
     cotizacionId: docRef.id,
     clienteId,
+    empresaId: clienteData.empresaId || clienteData.empresa || null,
     nombreCliente: clienteData.nombre || clienteData.nombreEmpresa || "Sin nombre",
     telefono: clienteData.telefono || "",
     clienteTipoIdentificacion,

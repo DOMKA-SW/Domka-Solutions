@@ -50,19 +50,37 @@
 
   async function getPerfil(user) {
     if (!user || !window.db) return null;
+    async function completarEmpresaId(perfil) {
+      if (!perfil || perfil.role !== "client" || perfil.empresaId || !perfil.clienteId) return perfil;
+      try {
+        const cSnap = await window.db.collection("clientes").doc(perfil.clienteId).get();
+        if (!cSnap.exists) return perfil;
+        const c = cSnap.data() || {};
+        const empresaId = c.empresaId || c.empresa || null;
+        if (!empresaId) return perfil;
+        const out = { ...perfil, empresaId };
+        await window.db.collection("users").doc(user.uid).set({ empresaId }, { merge: true }).catch(() => {});
+        await window.db.collection("usuarios").doc(user.uid).set({ empresaId }, { merge: true }).catch(() => {});
+        return out;
+      } catch (_) {
+        return perfil;
+      }
+    }
 
     try {
       const usersSnap = await window.db.collection("users").doc(user.uid).get();
       if (usersSnap.exists) {
         const data = usersSnap.data() || {};
-        return {
+        const perfil = {
           uid: user.uid,
           email: data.email || user.email || "",
           nombre: data.nombre || "",
           role: normalizeRole(data.role || "comercial"),
           activo: data.activo !== false,
-          clienteId: data.clienteId || null
+          clienteId: data.clienteId || null,
+          empresaId: data.empresaId || null
         };
+        return await completarEmpresaId(perfil);
       }
     } catch (_) {}
 
@@ -71,14 +89,16 @@
       const legacySnap = await window.db.collection("usuarios").doc(user.uid).get();
       if (legacySnap.exists) {
         const data = legacySnap.data() || {};
-        return {
+        const perfil = {
           uid: user.uid,
           email: data.email || user.email || "",
           nombre: data.nombre || "",
           role: normalizeRole(data.rol || "comercial"),
           activo: data.activo !== false,
-          clienteId: data.clienteId || null
+          clienteId: data.clienteId || null,
+          empresaId: data.empresaId || null
         };
+        return await completarEmpresaId(perfil);
       }
     } catch (_) {}
 

@@ -32,29 +32,44 @@
     try {
       snap = await window.db.collection("users").doc(user.uid).get();
     } catch (_) {}
+    async function completarEmpresaId(perfil) {
+      if (!perfil || perfil.role !== "client" || perfil.empresaId || !perfil.clienteId) return perfil;
+      try {
+        const cSnap = await window.db.collection("clientes").doc(perfil.clienteId).get();
+        if (!cSnap.exists) return perfil;
+        const c = cSnap.data() || {};
+        const empresaId = c.empresaId || c.empresa || null;
+        return empresaId ? { ...perfil, empresaId } : perfil;
+      } catch (_) {
+        return perfil;
+      }
+    }
+
     if (!snap || !snap.exists) {
       try {
         const legacy = await window.db.collection("usuarios").doc(user.uid).get();
         if (legacy.exists) {
           const data = legacy.data() || {};
-          return {
+          return await completarEmpresaId({
             uid: user.uid,
             ...data,
             role: normalizeRole(data.rol || data.role),
-            clienteId: data.clienteId || null
-          };
+            clienteId: data.clienteId || null,
+            empresaId: data.empresaId || null
+          });
         }
       } catch (_) {}
       return null;
     }
 
     const data = snap.data() || {};
-    return {
+    return await completarEmpresaId({
       uid: user.uid,
       ...data,
       role: normalizeRole(data.role),
-      clienteId: data.clienteId || null
-    };
+      clienteId: data.clienteId || null,
+      empresaId: data.empresaId || null
+    });
   }
 
   function aplicarRestriccionesUI(perfil) {
