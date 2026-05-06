@@ -50,21 +50,43 @@
 
   async function getPerfil(user) {
     if (!user || !window.db) return null;
-    async function completarEmpresaId(perfil) {
-      if (!perfil || perfil.role !== "client" || perfil.empresaId || !perfil.clienteId) return perfil;
-      try {
-        const cSnap = await window.db.collection("clientes").doc(perfil.clienteId).get();
-        if (!cSnap.exists) return perfil;
-        const c = cSnap.data() || {};
-        const empresaId = c.empresaId || c.empresa || null;
-        if (!empresaId) return perfil;
-        const out = { ...perfil, empresaId };
-        await window.db.collection("users").doc(user.uid).set({ empresaId }, { merge: true }).catch(() => {});
-        await window.db.collection("usuarios").doc(user.uid).set({ empresaId }, { merge: true }).catch(() => {});
-        return out;
-      } catch (_) {
-        return perfil;
+    async function completarVinculos(perfil) {
+      if (!perfil || perfil.role !== "client") return perfil;
+      let out = { ...perfil };
+      if (!out.clienteId && out.email) {
+        try {
+          const email = String(out.email).trim().toLowerCase();
+          const q = await window.db.collection("clientes").where("email", "==", email).limit(1).get();
+          if (!q.empty) {
+            const cDoc = q.docs[0];
+            const c = cDoc.data() || {};
+            out.clienteId = cDoc.id;
+            out.empresaId = out.empresaId || c.empresaId || c.empresa || null;
+          }
+        } catch (_) {}
       }
+
+      if (!out.empresaId && out.clienteId) {
+        try {
+          const cSnap = await window.db.collection("clientes").doc(out.clienteId).get();
+          if (cSnap.exists) {
+            const c = cSnap.data() || {};
+            out.empresaId = c.empresaId || c.empresa || null;
+          }
+        } catch (_) {}
+      }
+
+      if (out.clienteId !== perfil.clienteId || out.empresaId !== perfil.empresaId) {
+        await window.db.collection("users").doc(user.uid).set({
+          clienteId: out.clienteId || null,
+          empresaId: out.empresaId || null
+        }, { merge: true }).catch(() => {});
+        await window.db.collection("usuarios").doc(user.uid).set({
+          clienteId: out.clienteId || null,
+          empresaId: out.empresaId || null
+        }, { merge: true }).catch(() => {});
+      }
+      return out;
     }
 
     try {
@@ -80,7 +102,7 @@
           clienteId: data.clienteId || null,
           empresaId: data.empresaId || null
         };
-        return await completarEmpresaId(perfil);
+        return await completarVinculos(perfil);
       }
     } catch (_) {}
 
@@ -98,7 +120,7 @@
           clienteId: data.clienteId || null,
           empresaId: data.empresaId || null
         };
-        return await completarEmpresaId(perfil);
+        return await completarVinculos(perfil);
       }
     } catch (_) {}
 
