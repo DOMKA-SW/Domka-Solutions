@@ -77,29 +77,38 @@
 <script>
   let _docs = [];
 
-  const unsub = window.auth.onAuthStateChanged(async (user) => {
-    if (!user) return;
-    unsub();
-    const perfil = await cargarPerfil(user);
-    const clienteId = perfil?.clienteId;
-    const empresaId = perfil?.empresaId;
-    if (!clienteId && !empresaId) {
-      document.getElementById('lista-documentos').innerHTML =
-        '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
-      return;
-    }
-    try {
-      const query = empresaId
-        ? db.collection('documentos').where('empresaId','==',empresaId)
-        : db.collection('documentos').where('clienteId','==',clienteId);
-      const snap = await query
-        .orderBy('creadoEn','desc').get();
-      _docs = snap.docs.map(d=>({id:d.id,...d.data()}));
-      renderDocs();
-    } catch(e) {
-      document.getElementById('lista-documentos').innerHTML =
-        '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando documentos.</p></div>';
-    }
+  document.addEventListener("DOMContentLoaded", async () => {
+    await Promise.resolve(window.__domkaFirebaseReady);
+    if (!window.auth || !window.db) return;
+    const unsub = window.auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+      unsub();
+      const perfil = await cargarPerfil(user);
+      const clienteId = perfil?.clienteId;
+      const empresaId = perfil?.empresaId;
+      if (!clienteId && !empresaId) {
+        document.getElementById('lista-documentos').innerHTML =
+          '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
+        return;
+      }
+      try {
+        const query = empresaId
+          ? db.collection('documentos').where('empresaId','==',empresaId)
+          : db.collection('documentos').where('clienteId','==',clienteId);
+        const snap = await query.get();
+        _docs = snap.docs
+          .map(d=>({id:d.id,...d.data()}))
+          .sort((a,b) => {
+            const ad = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : new Date(a.creadoEn || 0).getTime();
+            const bd = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : new Date(b.creadoEn || 0).getTime();
+            return bd - ad;
+          });
+        renderDocs();
+      } catch(e) {
+        document.getElementById('lista-documentos').innerHTML =
+          '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando documentos.</p></div>';
+      }
+    });
   });
 
   function renderDocs() {

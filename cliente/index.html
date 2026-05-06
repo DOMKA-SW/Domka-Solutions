@@ -186,7 +186,8 @@
 <script src="../js/auth.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
-    // Esperar a que auth cargue el perfil
+    await Promise.resolve(window.__domkaFirebaseReady);
+    if (!window.auth || !window.db) return;
     const unsub = window.auth.onAuthStateChanged(async (user) => {
       if (!user) return;
       unsub();

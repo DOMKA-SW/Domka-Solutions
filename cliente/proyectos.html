@@ -79,29 +79,38 @@
 <script>
   const badgeLabel = {pendiente:'Pendiente',en_ejecucion:'En ejecución',finalizado:'Finalizado',suspendido:'Suspendido'};
 
-  const unsub = window.auth.onAuthStateChanged(async (user) => {
-    if (!user) return;
-    unsub();
-    const perfil = await cargarPerfil(user);
-    const clienteId = perfil?.clienteId;
-    const empresaId = perfil?.empresaId;
-    if (!clienteId && !empresaId) {
-      document.getElementById('lista-proyectos').innerHTML =
-        '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
-      return;
-    }
-    try {
-      const query = empresaId
-        ? db.collection('proyectos').where('empresaId','==',empresaId)
-        : db.collection('proyectos').where('clienteId','==',clienteId);
-      const snap = await query
-        .orderBy('creadoEn','desc').get();
-      const proyectos = snap.docs.map(d=>({id:d.id,...d.data()}));
-      renderProyectos(proyectos);
-    } catch(e) {
-      document.getElementById('lista-proyectos').innerHTML =
-        '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando proyectos.</p></div>';
-    }
+  document.addEventListener("DOMContentLoaded", async () => {
+    await Promise.resolve(window.__domkaFirebaseReady);
+    if (!window.auth || !window.db) return;
+    const unsub = window.auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+      unsub();
+      const perfil = await cargarPerfil(user);
+      const clienteId = perfil?.clienteId;
+      const empresaId = perfil?.empresaId;
+      if (!clienteId && !empresaId) {
+        document.getElementById('lista-proyectos').innerHTML =
+          '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
+        return;
+      }
+      try {
+        const query = empresaId
+          ? db.collection('proyectos').where('empresaId','==',empresaId)
+          : db.collection('proyectos').where('clienteId','==',clienteId);
+        const snap = await query.get();
+        const proyectos = snap.docs
+          .map(d=>({id:d.id,...d.data()}))
+          .sort((a,b) => {
+            const ad = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : new Date(a.creadoEn || 0).getTime();
+            const bd = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : new Date(b.creadoEn || 0).getTime();
+            return bd - ad;
+          });
+        renderProyectos(proyectos);
+      } catch(e) {
+        document.getElementById('lista-proyectos').innerHTML =
+          '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando proyectos.</p></div>';
+      }
+    });
   });
 
   function renderProyectos(list) {
