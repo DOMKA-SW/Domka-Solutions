@@ -51,32 +51,36 @@
   async function getPerfil(user) {
     if (!user || !window.db) return null;
 
-    const usersSnap = await window.db.collection("users").doc(user.uid).get();
-    if (usersSnap.exists) {
-      const data = usersSnap.data() || {};
-      return {
-        uid: user.uid,
-        email: data.email || user.email || "",
-        nombre: data.nombre || "",
-        role: normalizeRole(data.role || "comercial"),
-        activo: data.activo !== false,
-        clienteId: data.clienteId || null
-      };
-    }
+    try {
+      const usersSnap = await window.db.collection("users").doc(user.uid).get();
+      if (usersSnap.exists) {
+        const data = usersSnap.data() || {};
+        return {
+          uid: user.uid,
+          email: data.email || user.email || "",
+          nombre: data.nombre || "",
+          role: normalizeRole(data.role || "comercial"),
+          activo: data.activo !== false,
+          clienteId: data.clienteId || null
+        };
+      }
+    } catch (_) {}
 
     // Compatibilidad con esquema antiguo
-    const legacySnap = await window.db.collection("usuarios").doc(user.uid).get();
-    if (legacySnap.exists) {
-      const data = legacySnap.data() || {};
-      return {
-        uid: user.uid,
-        email: data.email || user.email || "",
-        nombre: data.nombre || "",
-        role: normalizeRole(data.rol || "comercial"),
-        activo: data.activo !== false,
-        clienteId: data.clienteId || null
-      };
-    }
+    try {
+      const legacySnap = await window.db.collection("usuarios").doc(user.uid).get();
+      if (legacySnap.exists) {
+        const data = legacySnap.data() || {};
+        return {
+          uid: user.uid,
+          email: data.email || user.email || "",
+          nombre: data.nombre || "",
+          role: normalizeRole(data.rol || "comercial"),
+          activo: data.activo !== false,
+          clienteId: data.clienteId || null
+        };
+      }
+    } catch (_) {}
 
     return null;
   }
@@ -96,7 +100,7 @@
         setLoginError("No se pudo leer tu perfil en Firestore. Revisa configuracion del proyecto.");
       }
       await window.auth.signOut().catch(() => {});
-      window.location.href = empresaLoginUrl();
+      window.location.href = isClienteArea ? clienteLoginUrl() : empresaLoginUrl();
       return;
     }
 
@@ -105,7 +109,7 @@
         ? "Tu usuario existe en Authentication pero no tiene perfil en Firestore (users/{uid})."
         : "Tu usuario esta inactivo. Contacta al administrador.");
       await window.auth.signOut().catch(() => {});
-      window.location.href = empresaLoginUrl();
+      window.location.href = isClienteArea ? clienteLoginUrl() : empresaLoginUrl();
       return;
     }
 

@@ -123,6 +123,14 @@
         activo: true,
         createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
+      await window.db.collection("usuarios").doc(uid).set({
+        nombre,
+        email,
+        rol: role === "client" ? "cliente" : role,
+        clienteId,
+        activo: true,
+        createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
       formNuevo.reset();
       await cargarUsuarios();
       alert("Usuario creado correctamente.");
@@ -151,12 +159,17 @@
     const nombre = document.getElementById("edit-nombre").value.trim();
     const role = normalizeRole(document.getElementById("edit-rol").value);
     await window.db.collection("users").doc(uid).set({ nombre, role }, { merge: true });
+    await window.db.collection("usuarios").doc(uid).set({
+      nombre,
+      rol: role === "client" ? "cliente" : role
+    }, { merge: true });
     cerrarModalEdit();
     await cargarUsuarios();
   }
 
   async function toggleUsuarioActivo(uid, nextActivo) {
     await window.db.collection("users").doc(uid).set({ activo: !!nextActivo }, { merge: true });
+    await window.db.collection("usuarios").doc(uid).set({ activo: !!nextActivo }, { merge: true });
     await cargarUsuarios();
   }
 

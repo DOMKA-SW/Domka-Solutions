@@ -28,9 +28,25 @@
     if (!user) return null;
     if (!window.db) throw new Error("Firestore no inicializado (db).");
 
-    const ref = window.db.collection("users").doc(user.uid);
-    const snap = await ref.get();
-    if (!snap.exists) return null;
+    let snap = null;
+    try {
+      snap = await window.db.collection("users").doc(user.uid).get();
+    } catch (_) {}
+    if (!snap || !snap.exists) {
+      try {
+        const legacy = await window.db.collection("usuarios").doc(user.uid).get();
+        if (legacy.exists) {
+          const data = legacy.data() || {};
+          return {
+            uid: user.uid,
+            ...data,
+            role: normalizeRole(data.rol || data.role),
+            clienteId: data.clienteId || null
+          };
+        }
+      } catch (_) {}
+      return null;
+    }
 
     const data = snap.data() || {};
     return {

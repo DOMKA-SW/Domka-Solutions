@@ -32,7 +32,7 @@
     btnRegister.textContent = "Creando…";
     try {
       // 1) validar invitación
-      const invRef = db.collection("clientInvites").doc(code);
+      const invRef = window.db.collection("clientInvites").doc(code);
       const invSnap = await invRef.get();
       if (!invSnap.exists) throw new Error("Código inválido.");
       const inv = invSnap.data();
@@ -40,23 +40,33 @@
       if (inv.claimedByUid) throw new Error("Este código ya fue usado.");
 
       // 2) crear usuario auth (esto inicia sesión como el cliente)
-      await auth.createUserWithEmailAndPassword(email, password);
-      const user = auth.currentUser;
+      await window.auth.createUserWithEmailAndPassword(email, password);
+      const user = window.auth.currentUser;
       if (!user) throw new Error("No se pudo iniciar sesión.");
 
       // 3) reclamar invitación (marcar claimed)
       await invRef.update({
         claimedByUid: user.uid,
-        claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+        claimedAt: window.firebase.firestore.FieldValue.serverTimestamp()
       });
 
       // 4) crear perfil de usuario vinculado a cliente
-      await db.collection("users").doc(user.uid).set({
+      const profile = {
         email,
         role: "client",
         clienteId: inv.clienteId,
         nombre: inv.clienteNombre || "Cliente",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        activo: true,
+        createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await window.db.collection("users").doc(user.uid).set(profile, { merge: true });
+      await window.db.collection("usuarios").doc(user.uid).set({
+        email: profile.email,
+        rol: "cliente",
+        clienteId: profile.clienteId,
+        nombre: profile.nombre,
+        activo: true,
+        createdAt: profile.createdAt
       }, { merge: true });
 
       show("ok", "Cuenta creada y vinculada. Entrando al portal…");
