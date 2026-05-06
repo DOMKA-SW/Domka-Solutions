@@ -94,12 +94,14 @@
         return;
       }
       try {
-        const query = empresaId
-          ? db.collection('proyectos').where('empresaId','==',empresaId)
-          : db.collection('proyectos').where('clienteId','==',clienteId);
-        const snap = await query.get();
-        const proyectos = snap.docs
-          .map(d=>({id:d.id,...d.data()}))
+        const [snapCli, snapEmp] = await Promise.all([
+          clienteId ? db.collection('proyectos').where('clienteId','==',clienteId).get() : Promise.resolve(null),
+          empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null)
+        ]);
+        const map = new Map();
+        (snapCli?.docs || []).forEach((d) => map.set(d.id, { id: d.id, ...d.data() }));
+        (snapEmp?.docs || []).forEach((d) => map.set(d.id, { id: d.id, ...d.data() }));
+        const proyectos = Array.from(map.values())
           .sort((a,b) => {
             const ad = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : new Date(a.creadoEn || 0).getTime();
             const bd = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : new Date(b.creadoEn || 0).getTime();

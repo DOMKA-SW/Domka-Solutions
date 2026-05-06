@@ -201,19 +201,23 @@
 
       // Estadísticas del cliente
       try {
-        const [cotSnap, proySnap, docSnap] = await Promise.all([
-          db.collection('cotizaciones').where('clienteId','==',clienteId).get(),
-          (empresaId
-            ? db.collection('proyectos').where('empresaId','==',empresaId).get()
-            : db.collection('proyectos').where('clienteId','==',clienteId).get()),
-          (empresaId
-            ? db.collection('documentos').where('empresaId','==',empresaId)
-            : db.collection('documentos').where('clienteId','==',clienteId))
-            .where('estado','==','pendiente').get()
+        const [cotCli, cotEmp, proyCli, proyEmp, docCli, docEmp] = await Promise.all([
+          clienteId ? db.collection('cotizaciones').where('clienteId','==',clienteId).get() : Promise.resolve(null),
+          empresaId ? db.collection('cotizaciones').where('empresaId','==',empresaId).get() : Promise.resolve(null),
+          clienteId ? db.collection('proyectos').where('clienteId','==',clienteId).get() : Promise.resolve(null),
+          empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null),
+          clienteId ? db.collection('documentos').where('clienteId','==',clienteId).where('estado','==','pendiente').get() : Promise.resolve(null),
+          empresaId ? db.collection('documentos').where('empresaId','==',empresaId).where('estado','==','pendiente').get() : Promise.resolve(null)
         ]);
-        document.getElementById('stat-cot').textContent  = cotSnap.size;
-        document.getElementById('stat-proy').textContent = proySnap.size;
-        document.getElementById('stat-doc').textContent  = docSnap.size;
+        const mergeCount = (a, b) => {
+          const m = new Map();
+          (a?.docs || []).forEach((d) => m.set(d.id, true));
+          (b?.docs || []).forEach((d) => m.set(d.id, true));
+          return m.size;
+        };
+        document.getElementById('stat-cot').textContent  = mergeCount(cotCli, cotEmp);
+        document.getElementById('stat-proy').textContent = mergeCount(proyCli, proyEmp);
+        document.getElementById('stat-doc').textContent  = mergeCount(docCli, docEmp);
       } catch(e) {
         console.error('Error cargando estadísticas:', e);
       }
