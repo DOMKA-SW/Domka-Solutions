@@ -195,14 +195,19 @@
         perfil?.nombre || user.email || '—';
 
       const clienteId = perfil?.clienteId;
-      if (!clienteId) return;
+      const empresaId = perfil?.empresaId;
+      if (!clienteId && !empresaId) return;
 
       // Estadísticas del cliente
       try {
         const [cotSnap, proySnap, docSnap] = await Promise.all([
           db.collection('cotizaciones').where('clienteId','==',clienteId).get(),
-          db.collection('proyectos').where('clienteId','==',clienteId).get(),
-          db.collection('documentos').where('clienteId','==',clienteId)
+          (empresaId
+            ? db.collection('proyectos').where('empresaId','==',empresaId).get()
+            : db.collection('proyectos').where('clienteId','==',clienteId).get()),
+          (empresaId
+            ? db.collection('documentos').where('empresaId','==',empresaId)
+            : db.collection('documentos').where('clienteId','==',clienteId))
             .where('estado','==','pendiente').get()
         ]);
         document.getElementById('stat-cot').textContent  = cotSnap.size;

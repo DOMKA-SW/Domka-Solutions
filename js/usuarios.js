@@ -130,7 +130,7 @@
         clienteId,
         activo: true,
         createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+      }, { merge: true }).catch(() => {});
       formNuevo.reset();
       await cargarUsuarios();
       alert("Usuario creado correctamente.");
@@ -166,14 +166,14 @@
     await window.db.collection("usuarios").doc(uid).set({
       nombre,
       rol: role === "client" ? "cliente" : role
-    }, { merge: true });
+    }, { merge: true }).catch(() => {});
     cerrarModalEdit();
     await cargarUsuarios();
   }
 
   async function toggleUsuarioActivo(uid, nextActivo) {
     await window.db.collection("users").doc(uid).set({ activo: !!nextActivo }, { merge: true });
-    await window.db.collection("usuarios").doc(uid).set({ activo: !!nextActivo }, { merge: true });
+    await window.db.collection("usuarios").doc(uid).set({ activo: !!nextActivo }, { merge: true }).catch(() => {});
     await cargarUsuarios();
   }
 

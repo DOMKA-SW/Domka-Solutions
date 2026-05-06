@@ -60,6 +60,7 @@
         email,
         role: "client",
         clienteId: inv.clienteId,
+        empresaId: inv.empresaId || null,
         nombre: inv.clienteNombre || "Cliente",
         activo: true,
         createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
@@ -69,6 +70,7 @@
         email: profile.email,
         rol: "cliente",
         clienteId: profile.clienteId,
+        empresaId: profile.empresaId,
         nombre: profile.nombre,
         activo: true,
         createdAt: profile.createdAt

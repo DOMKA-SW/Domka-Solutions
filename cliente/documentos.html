@@ -82,14 +82,17 @@
     unsub();
     const perfil = await cargarPerfil(user);
     const clienteId = perfil?.clienteId;
-    if (!clienteId) {
+    const empresaId = perfil?.empresaId;
+    if (!clienteId && !empresaId) {
       document.getElementById('lista-documentos').innerHTML =
         '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
       return;
     }
     try {
-      const snap = await db.collection('documentos')
-        .where('clienteId','==',clienteId)
+      const query = empresaId
+        ? db.collection('documentos').where('empresaId','==',empresaId)
+        : db.collection('documentos').where('clienteId','==',clienteId);
+      const snap = await query
         .orderBy('creadoEn','desc').get();
       _docs = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderDocs();

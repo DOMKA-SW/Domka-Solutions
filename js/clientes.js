@@ -136,6 +136,7 @@ async function generarInviteParaCliente(clienteId, clienteData) {
   await ref.set({
     code,
     clienteId,
+    empresaId: clienteData?.empresaId || clienteData?.empresa || null,
     clienteNombre: clienteData?.nombre || clienteData?.empresa || "Cliente",
     enabled: true,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),

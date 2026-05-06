@@ -68,8 +68,12 @@
   async function cargar() {
     try {
       let query = db.collection("proyectos");
-      if (_perfil?.role === "client" && _perfil?.clienteId) {
-        query = query.where("clienteId", "==", _perfil.clienteId);
+      if (_perfil?.role === "client") {
+        if (_perfil?.empresaId) {
+          query = query.where("empresaId", "==", _perfil.empresaId);
+        } else if (_perfil?.clienteId) {
+          query = query.where("clienteId", "==", _perfil.clienteId);
+        }
       }
       const snap = await query.orderBy("creadoEn", "desc").get();
       _all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -113,6 +117,7 @@
     const payload = {
       numero,
       clienteId,
+      empresaId: clienteData.empresaId || clienteData.empresa || null,
       nombreCliente: clienteData.nombre || clienteData.empresa || "Cliente",
       tecnico: (tecnicoInput?.value || "").trim(),
       estado: (estadoSelect?.value || "pendiente").trim(),
@@ -219,7 +224,7 @@
           contentType: f.type,
           size: f.size,
           base64,
-          uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
+          uploadedAt: new Date()
         });
       }
 

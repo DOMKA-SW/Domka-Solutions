@@ -28,6 +28,9 @@ service cloud.firestore {
     function myClientId() {
       return userDoc().clienteId;
     }
+    function myEmpresaId() {
+      return userDoc().empresaId;
+    }
 
     match /users/{uid} {
       allow read: if isAuth() && (request.auth.uid == uid || roleIs(["admin"]));
@@ -68,14 +71,18 @@ service cloud.firestore {
 
     match /proyectos/{id} {
       allow read: if isActive()
-        || (isClient() && resource.data.clienteId == myClientId());
+        || (isClient()
+            && ((myEmpresaId() != null && resource.data.empresaId == myEmpresaId())
+                || resource.data.clienteId == myClientId()));
       allow create, update: if roleIs(["admin", "comercial", "tecnico"]);
       allow delete: if roleIs(["admin"]);
     }
 
     match /documentos/{id} {
       allow read: if isActive()
-        || (isClient() && resource.data.clienteId == myClientId());
+        || (isClient()
+            && ((myEmpresaId() != null && resource.data.empresaId == myEmpresaId())
+                || resource.data.clienteId == myClientId()));
       allow create, update: if roleIs(["admin", "comercial", "tecnico"]);
       allow delete: if roleIs(["admin", "comercial"]);
     }

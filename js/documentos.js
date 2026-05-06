@@ -2,6 +2,7 @@
 (() => {
   const form = document.getElementById("form-documento");
   const selCliente = document.getElementById("doc-cliente");
+  const selProyecto = document.getElementById("doc-proyecto");
   const tipoEl = document.getElementById("doc-tipo");
   const descEl = document.getElementById("doc-descripcion");
   const pdfEl = document.getElementById("doc-pdf");
@@ -11,6 +12,7 @@
 
   let _docs = [];
   let _clientesById = {};
+  let _proyectosById = {};
 
   function fmtDate(ts) {
     try {
@@ -43,6 +45,22 @@
     });
   }
 
+  async function cargarProyectosPorCliente(clienteId) {
+    if (!selProyecto) return;
+    selProyecto.innerHTML = `<option value="">— Selecciona proyecto —</option>`;
+    if (!clienteId) return;
+    const snap = await db.collection("proyectos").where("clienteId", "==", clienteId).get();
+    _proyectosById = {};
+    snap.forEach((d) => {
+      const p = d.data() || {};
+      _proyectosById[d.id] = p;
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = p.nombre || p.numero || d.id;
+      selProyecto.appendChild(opt);
+    });
+  }
+
   async function cargarDocs() {
     try {
       const snap = await db.collection("documentos").orderBy("creadoEn", "desc").get();
@@ -64,6 +82,7 @@
 
     tbody.innerHTML = _docs.map((d, idx) => {
       const cliente = _clientesById[d.clienteId];
+      const proyecto = d.proyectoNombre || d.proyectoId || "—";
       const clienteNombre = cliente?.nombre || cliente?.empresa || d.clienteId || "—";
       const estado = d.estado || "pendiente";
       const pdfData = d.pdfBase64 || "";
@@ -71,7 +90,7 @@
         <tr class="border-b hover:bg-gray-50">
           <td class="p-3">${String(idx + 1).padStart(2, "0")}</td>
           <td class="p-3">${esc(clienteNombre)}</td>
-          <td class="p-3">${esc((d.tipo || "Documento") + " · " + (d.descripcion || ""))}</td>
+          <td class="p-3">${esc((d.tipo || "Documento") + " · " + (d.descripcion || ""))}<div class="text-xs text-gray-400 mt-1">Proyecto: ${esc(proyecto)}</div></td>
           <td class="p-3">${badge(estado)}</td>
           <td class="p-3">${fmtDate(d.creadoEn || d.createdAt)}</td>
           <td class="p-3">
@@ -102,14 +121,20 @@
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const clienteId = selCliente.value;
+    const proyectoId = selProyecto?.value || "";
     if (!clienteId) return alert("Selecciona un cliente.");
+    if (!proyectoId) return alert("Selecciona un proyecto.");
 
     try {
       const pdfFile = pdfEl?.files?.[0] || null;
       const pdf = await pdfToBase64(pdfFile);
 
+      const proyecto = _proyectosById[proyectoId] || {};
       const doc = {
         clienteId,
+        empresaId: proyecto.empresaId || _clientesById[clienteId]?.empresaId || _clientesById[clienteId]?.empresa || null,
+        proyectoId,
+        proyectoNombre: proyecto.nombre || proyecto.numero || proyectoId,
         tipo: tipoEl.value,
         descripcion: descEl.value.trim(),
         estado: "pendiente",
@@ -138,6 +163,7 @@
         if (el) el.textContent = u?.email || "Usuario";
       });
       await cargarClientes();
+      selCliente?.addEventListener("change", (e) => cargarProyectosPorCliente(e.target.value));
       await cargarDocs();
     } catch (e) {
       console.error(e);
