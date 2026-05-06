@@ -25,32 +25,37 @@
     const email = emailEl.value.trim();
     const password = passEl.value;
     const code = inviteEl.value.trim().toUpperCase();
-    if (!email || !password) return show("err", "Completa correo y contraseña.");
-    if (!code) return show("err", "Pega el código de invitación.");
+    if (!email || !password) return show("err", "Completa correo y contrasena.");
+    if (!code) return show("err", "Pega el codigo de invitacion.");
 
     btnRegister.disabled = true;
-    btnRegister.textContent = "Creando…";
+    btnRegister.textContent = "Creando...";
     try {
-      // 1) validar invitación
       const invRef = window.db.collection("clientInvites").doc(code);
       const invSnap = await invRef.get();
-      if (!invSnap.exists) throw new Error("Código inválido.");
-      const inv = invSnap.data();
-      if (!inv.enabled) throw new Error("Código deshabilitado.");
-      if (inv.claimedByUid) throw new Error("Este código ya fue usado.");
+      if (!invSnap.exists) throw new Error("Codigo invalido.");
+      const inv = invSnap.data() || {};
+      if (!inv.enabled) throw new Error("Codigo deshabilitado.");
+      if (inv.claimedByUid) throw new Error("Este codigo ya fue usado.");
 
-      // 2) crear usuario auth (esto inicia sesión como el cliente)
-      await window.auth.createUserWithEmailAndPassword(email, password);
+      try {
+        await window.auth.createUserWithEmailAndPassword(email, password);
+      } catch (err) {
+        if (err?.code === "auth/email-already-in-use") {
+          await window.auth.signInWithEmailAndPassword(email, password);
+        } else {
+          throw err;
+        }
+      }
+
       const user = window.auth.currentUser;
-      if (!user) throw new Error("No se pudo iniciar sesión.");
+      if (!user) throw new Error("No se pudo iniciar sesion.");
 
-      // 3) reclamar invitación (marcar claimed)
       await invRef.update({
         claimedByUid: user.uid,
         claimedAt: window.firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      // 4) crear perfil de usuario vinculado a cliente
       const profile = {
         email,
         role: "client",
@@ -69,14 +74,19 @@
         createdAt: profile.createdAt
       }, { merge: true });
 
-      show("ok", "Cuenta creada y vinculada. Entrando al portal…");
+      show("ok", "Cuenta vinculada correctamente. Entrando al portal...");
       window.location.href = "/cliente/index.html";
     } catch (e) {
-      show("err", e?.message || String(e));
+      if (e?.code === "auth/email-already-in-use") {
+        show("err", "Ese correo ya existe. Usa la misma contrasena para vincular el codigo.");
+      } else if (e?.code === "auth/wrong-password") {
+        show("err", "Ese correo ya existe pero la contrasena no coincide.");
+      } else {
+        show("err", e?.message || String(e));
+      }
     } finally {
       btnRegister.disabled = false;
       btnRegister.textContent = "Crear cuenta y vincular";
     }
   });
 })();
-

@@ -135,7 +135,11 @@
       await cargarUsuarios();
       alert("Usuario creado correctamente.");
     } catch (err) {
-      alert("No se pudo crear el usuario: " + (err?.message || err));
+      if (err?.code === "auth/email-already-in-use") {
+        alert("Ese correo ya existe en Authentication. Para cliente usa el flujo de invitacion desde Clientes.");
+      } else {
+        alert("No se pudo crear el usuario: " + (err?.message || err));
+      }
     }
   }
 

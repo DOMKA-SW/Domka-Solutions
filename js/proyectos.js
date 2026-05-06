@@ -2,6 +2,11 @@
 (() => {
   const tbody = document.getElementById("tabla-proyectos");
   const empty = document.getElementById("empty-proyectos");
+  const formProyecto = document.getElementById("form-proyecto");
+  const clienteSelect = document.getElementById("proy-cliente");
+  const tecnicoInput = document.getElementById("proy-tecnico");
+  const estadoSelect = document.getElementById("proy-estado");
+  const descripcionInput = document.getElementById("proy-descripcion");
 
   const modal = document.getElementById("modal-detalle");
   const galeria = document.getElementById("galeria-evidencias");
@@ -11,6 +16,7 @@
   let _all = [];
   let _filtro = "todos";
   let _current = null;
+  let _perfil = null;
 
   function fmtDate(ts) {
     try {
@@ -61,13 +67,64 @@
 
   async function cargar() {
     try {
-      const snap = await db.collection("proyectos").orderBy("creadoEn", "desc").get();
+      let query = db.collection("proyectos");
+      if (_perfil?.role === "client" && _perfil?.clienteId) {
+        query = query.where("clienteId", "==", _perfil.clienteId);
+      }
+      const snap = await query.orderBy("creadoEn", "desc").get();
       _all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       aplicarFiltro();
     } catch (e) {
       console.error(e);
       tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-600">Error cargando proyectos.</td></tr>`;
     }
+  }
+
+  async function cargarClientesForm() {
+    if (!clienteSelect) return;
+    clienteSelect.innerHTML = `<option value="">Selecciona cliente</option>`;
+    const snap = await db.collection("clientes").orderBy("nombre").get().catch(async () => db.collection("clientes").get());
+    snap.forEach((doc) => {
+      const c = doc.data() || {};
+      const opt = document.createElement("option");
+      opt.value = doc.id;
+      opt.textContent = c.nombre || c.empresa || c.email || doc.id;
+      clienteSelect.appendChild(opt);
+    });
+  }
+
+  async function crearProyecto(e) {
+    e.preventDefault();
+    if (!_perfil) return;
+    if (!["admin", "comercial", "tecnico"].includes(_perfil.role)) {
+      alert("Tu rol no tiene permiso para crear proyectos.");
+      return;
+    }
+
+    const clienteId = (clienteSelect?.value || "").trim();
+    if (!clienteId) {
+      alert("Selecciona un cliente.");
+      return;
+    }
+
+    const clienteDoc = await db.collection("clientes").doc(clienteId).get();
+    const clienteData = clienteDoc.data() || {};
+    const numero = `PRY-${Date.now().toString().slice(-6)}`;
+    const payload = {
+      numero,
+      clienteId,
+      nombreCliente: clienteData.nombre || clienteData.empresa || "Cliente",
+      tecnico: (tecnicoInput?.value || "").trim(),
+      estado: (estadoSelect?.value || "pendiente").trim(),
+      descripcion: (descripcionInput?.value || "").trim(),
+      evidencias: [],
+      creadoPor: window.auth?.currentUser?.uid || null,
+      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    await db.collection("proyectos").add(payload);
+    formProyecto.reset();
+    await cargar();
   }
 
   function setFiltroUI() {
@@ -198,12 +255,24 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     Promise.resolve(window.__domkaFirebaseReady).then(() => {
-      if (!window.auth) return;
-      auth.onAuthStateChanged(u => {
+      if (!window.auth || !window.db) return;
+      auth.onAuthStateChanged(async (u) => {
         const el = document.getElementById("user-email");
         if (el) el.textContent = u?.email || "Usuario";
+        if (!u) return;
+        _perfil = (typeof window.cargarPerfil === "function")
+          ? await window.cargarPerfil(u).catch(() => null)
+          : null;
+        if (formProyecto) {
+          const canCreate = ["admin", "comercial", "tecnico"].includes(_perfil?.role);
+          formProyecto.closest("#crear-proyecto-card")?.classList.toggle("hidden", !canCreate);
+          if (canCreate) {
+            await cargarClientesForm();
+            formProyecto.addEventListener("submit", crearProyecto);
+          }
+        }
+        await cargar();
       });
-      cargar();
     }).catch(console.error);
   });
 })();

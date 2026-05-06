@@ -95,6 +95,40 @@
     </div>
   </div>
 
+  <div class="form-container p-6 mb-6" id="crear-proyecto-card" data-rol-min="comercial">
+    <span class="section-label">Crear proyecto</span>
+    <form id="form-proyecto" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+      <div class="md:col-span-2">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Cliente</label>
+        <select id="proy-cliente" class="w-full border rounded-lg px-3 py-2 text-sm" required>
+          <option value="">Selecciona cliente</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Tecnico</label>
+        <input id="proy-tecnico" type="text" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Responsable">
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Estado</label>
+        <select id="proy-estado" class="w-full border rounded-lg px-3 py-2 text-sm">
+          <option value="pendiente">Pendiente</option>
+          <option value="en_ejecucion">En ejecucion</option>
+          <option value="finalizado">Finalizado</option>
+          <option value="suspendido">Suspendido</option>
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="px-4 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 transition w-full">
+          Guardar
+        </button>
+      </div>
+      <div class="md:col-span-5">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Descripcion</label>
+        <textarea id="proy-descripcion" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Detalle del proyecto"></textarea>
+      </div>
+    </form>
+  </div>
+
   <!-- Filtros -->
   <div class="flex flex-wrap gap-2 mb-6">
     <button data-filtro="todos"        class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 active">Todos</button>
