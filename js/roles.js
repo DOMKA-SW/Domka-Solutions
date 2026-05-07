@@ -35,6 +35,19 @@
     async function completarVinculos(perfil) {
       if (!perfil || perfil.role !== "client") return perfil;
       let out = { ...perfil };
+      const maybeInviteCode = (v) => /^[A-Z0-9]{8,14}$/.test(String(v || "").trim().toUpperCase());
+
+      if (out.clienteId && maybeInviteCode(out.clienteId)) {
+        try {
+          const invSnap = await window.db.collection("clientInvites").doc(String(out.clienteId).trim().toUpperCase()).get();
+          if (invSnap.exists) {
+            const inv = invSnap.data() || {};
+            out.clienteId = inv.clienteId || out.clienteId;
+            out.empresaId = out.empresaId || inv.empresaId || null;
+          }
+        } catch (_) {}
+      }
+
       if (!out.clienteId && out.email) {
         try {
           const email = String(out.email).trim().toLowerCase();
@@ -56,6 +69,20 @@
           }
         } catch (_) {}
       }
+
+      if (out.clienteId !== perfil.clienteId || out.empresaId !== perfil.empresaId) {
+        try {
+          await window.db.collection("users").doc(perfil.uid).set({
+            clienteId: out.clienteId || null,
+            empresaId: out.empresaId || null
+          }, { merge: true });
+          await window.db.collection("usuarios").doc(perfil.uid).set({
+            clienteId: out.clienteId || null,
+            empresaId: out.empresaId || null
+          }, { merge: true });
+        } catch (_) {}
+      }
+
       return out;
     }
 
