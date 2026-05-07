@@ -13,7 +13,7 @@ async function imageToDataURL(path) {
     if (path && path.startsWith("data:")) return path;
     let url = path;
     if (!path.startsWith("http")) {
-      url = `https://domka-sw.github.io/domka-cotizador${path.startsWith("/") ? path : "/" + path}`;
+      url = `https://domka-sw.github.io/Domka-Solutions${path.startsWith("/") ? path : "/" + path}`;
     }
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
