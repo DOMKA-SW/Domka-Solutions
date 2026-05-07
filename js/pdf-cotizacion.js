@@ -6,7 +6,7 @@
 //   • Texto: #1A1A1A
 //   • CERO fondos oscuros en ningún elemento
 //   • Layout: TODO en tablas — nada flota, escala con muchos ítems
-// ─────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────── 
 
 async function imageToDataURL(path) {
   try {
