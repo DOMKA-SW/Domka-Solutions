@@ -8,41 +8,71 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root{--bg:#f4efe7;--white:#ffffff;--green:#1b7a51;--green-lt:#e8f5ee;--text:#2c2c2c;--gray:#5a5a5a;--gray-lt:#9a9a9a;--line:#d6cfc5}
+    :root{--bg:#f4efe7;--white:#ffffff;--green:#1b7a51;--green-dk:#155c3c;--green-lt:#e8f5ee;--text:#2c2c2c;--gray:#5a5a5a;--gray-lt:#9a9a9a;--line:#d6cfc5}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);min-height:100vh}
     h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
     a{text-decoration:none;color:inherit}
     button{cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
 
-    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04)}
     .portal-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green)}
-    .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px}
-    .main{max-width:900px;margin:0 auto;padding:40px 24px 80px}
-    .page-title{margin-bottom:28px}
-    .page-title h1{font-size:1.8rem;color:var(--text);margin-bottom:4px}
-    .page-title p{color:var(--gray-lt);font-size:.88rem}
+    .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1.5px solid var(--green);transition:all .18s}
+    .nav-back:hover{background:var(--green-lt)}
 
-    .proy-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px}
-    .proy-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
-    .proy-num{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text)}
-    .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:999px;margin-top:6px}
+    .main{max-width:960px;margin:0 auto;padding:40px 20px 80px}
+    .page-title{margin-bottom:32px}
+    .page-title h1{font-size:2rem;margin-bottom:4px}
+    .page-title p{color:var(--gray-lt);font-size:.9rem}
+
+    /* Proyecto card */
+    .proy-card{background:var(--white);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:24px;box-shadow:0 2px 12px rgba(0,0,0,.04);transition:box-shadow .2s}
+    .proy-card:hover{box-shadow:0 6px 28px rgba(27,122,81,.09)}
+    .proy-card-header{padding:22px 26px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;cursor:pointer}
+    .proy-num{font-family:'DM Serif Display',serif;font-size:1.15rem}
+    .proy-nombre{font-size:.88rem;color:var(--gray);margin-top:2px}
+    .badge{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:999px}
     .badge-pendiente{background:#fef9c3;color:#854d0e}
     .badge-en_ejecucion{background:#dbeafe;color:#1e40af}
     .badge-finalizado{background:#dcfce7;color:#166534}
     .badge-suspendido{background:#fee2e2;color:#991b1b}
 
-    .evidence-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:14px}
-    .ev-img{width:100%;height:90px;object-fit:cover;border-radius:8px;cursor:pointer;transition:opacity .2s}
-    .ev-img:hover{opacity:.85}
-    .ev-fecha{font-size:.7rem;color:var(--gray-lt);margin-top:4px;text-align:center}
+    /* Tabs */
+    .tabs-bar{display:flex;border-bottom:2px solid var(--line);padding:0 26px;background:#fafaf9}
+    .tab-pill{font-size:.82rem;font-weight:600;padding:12px 16px;border:none;background:none;color:var(--gray-lt);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .18s}
+    .tab-pill.active{color:var(--green);border-bottom-color:var(--green)}
+    .tab-body{padding:22px 26px;display:none}
+    .tab-body.active{display:block}
 
-    #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:flex;align-items:center;justify-content:center;cursor:pointer}
-    #lightbox img{max-width:90vw;max-height:90vh;border-radius:8px}
-    .empty{text-align:center;padding:80px 20px;color:var(--gray-lt)}
-    .empty i{font-size:2.5rem;color:var(--line);display:block;margin-bottom:16px}
+    /* Documentos */
+    .doc-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);last-child:border-0}
+    .doc-icon{width:36px;height:36px;border-radius:9px;background:var(--green-lt);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .doc-info{flex:1;min-width:0}
+    .doc-name{font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .doc-meta{font-size:.75rem;color:var(--gray-lt);margin-top:2px}
+    .badge-doc-pendiente{background:#fef9c3;color:#854d0e;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:999px}
+    .badge-doc-aprobado{background:#dcfce7;color:#166534;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:999px}
+    .badge-doc-rechazado{background:#fee2e2;color:#991b1b;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:999px}
+    .btn-ver{font-size:.78rem;color:var(--green);font-weight:600;padding:5px 12px;border-radius:8px;border:1.5px solid var(--green);background:none;transition:all .18s}
+    .btn-ver:hover{background:var(--green-lt)}
+
+    /* Evidencias */
+    .semana-label{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-lt);margin:18px 0 10px;display:block}
+    .evidence-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+    .ev-img{width:100%;height:95px;object-fit:cover;border-radius:10px;cursor:pointer;transition:opacity .2s;display:block}
+    .ev-img:hover{opacity:.85}
+    .ev-file{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;font-size:.82rem;color:var(--gray);transition:all .18s}
+    .ev-file:hover{border-color:var(--green);color:var(--green);background:var(--green-lt)}
+    .ev-link{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;font-size:.82rem;color:#1d4ed8;transition:all .18s;grid-column:1/-1}
+    .ev-link:hover{background:#dbeafe}
+
+    /* Lightbox */
+    #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    #lightbox img{max-width:90vw;max-height:90vh;border-radius:10px}
+
+    .empty{text-align:center;padding:48px 20px;color:var(--gray-lt)}
+    .empty i{font-size:2.2rem;color:var(--line);display:block;margin-bottom:12px}
     .spinner{text-align:center;padding:60px;color:var(--gray-lt)}
-    .section-mini{font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:10px;display:block}
   </style>
 </head>
 <body>
@@ -55,7 +85,7 @@
 <div class="main">
   <div class="page-title">
     <h1>Mis proyectos</h1>
-    <p>Sigue el avance de tus obras y revisa las evidencias</p>
+    <p>Seguimiento de obras, documentos y evidencias</p>
   </div>
 
   <div id="lista-proyectos">
@@ -77,9 +107,41 @@
 <script src="../js/roles.js"></script>
 <script src="../js/auth.js"></script>
 <script>
-  const badgeLabel = {pendiente:'Pendiente',en_ejecucion:'En ejecución',finalizado:'Finalizado',suspendido:'Suspendido'};
+  const badgeCls = {pendiente:'badge-pendiente',en_ejecucion:'badge-en_ejecucion',finalizado:'badge-finalizado',suspendido:'badge-suspendido'};
+  const badgeLbl = {pendiente:'⏳ Pendiente',en_ejecucion:'🔧 En ejecución',finalizado:'✅ Finalizado',suspendido:'⏸ Suspendido'};
 
-  document.addEventListener("DOMContentLoaded", async () => {
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function fmtDate(ts){try{const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—'}catch{return'—'}}
+
+  function semanaLabel(ts){
+    try{
+      const d=ts?.toDate?ts.toDate():(ts?new Date(ts):new Date());
+      const day=d.getDay();
+      const diff=d.getDate()-day+(day===0?-6:1);
+      const lun=new Date(new Date(d).setDate(diff));
+      return 'Semana del '+lun.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+    }catch{return'Sin fecha'}
+  }
+
+  function tipoIcon(ev){
+    const ct=(ev.contentType||ev.tipo||'').toLowerCase();
+    const n=(ev.name||ev.nombre||'').toLowerCase();
+    if(ct.startsWith('image/'))return'🖼️';
+    if(ct.startsWith('video/'))return'🎬';
+    if(ct==='application/pdf'||n.endsWith('.pdf'))return'📄';
+    if(n.endsWith('.zip')||n.endsWith('.rar'))return'🗜️';
+    if(ev.tipo==='link')return'🔗';
+    return'📎';
+  }
+
+  function switchTab(proyId, tab){
+    document.querySelectorAll('[data-proy="'+proyId+'"].tab-body').forEach(el=>el.classList.remove('active'));
+    document.querySelectorAll('[data-proy="'+proyId+'"].tab-pill').forEach(el=>el.classList.remove('active'));
+    document.getElementById('tab-'+proyId+'-'+tab)?.classList.add('active');
+    document.getElementById('pill-'+proyId+'-'+tab)?.classList.add('active');
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
     await Promise.resolve(window.__domkaFirebaseReady);
     if (!window.auth || !window.db) return;
     const unsub = window.auth.onAuthStateChanged(async (user) => {
@@ -90,7 +152,7 @@
       const empresaId = perfil?.empresaId;
       if (!clienteId && !empresaId) {
         document.getElementById('lista-proyectos').innerHTML =
-          '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
+          '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada.<br>Contacta a DOMKA.</p></div>';
         return;
       }
       try {
@@ -99,16 +161,17 @@
           empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null)
         ]);
         const map = new Map();
-        (snapCli?.docs || []).forEach((d) => map.set(d.id, { id: d.id, ...d.data() }));
-        (snapEmp?.docs || []).forEach((d) => map.set(d.id, { id: d.id, ...d.data() }));
+        (snapCli?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+        (snapEmp?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
         const proyectos = Array.from(map.values())
-          .sort((a,b) => {
-            const ad = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : new Date(a.creadoEn || 0).getTime();
-            const bd = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : new Date(b.creadoEn || 0).getTime();
-            return bd - ad;
+          .sort((a,b)=>{
+            const ad=a.creadoEn?.toDate?a.creadoEn.toDate().getTime():new Date(a.creadoEn||0).getTime();
+            const bd=b.creadoEn?.toDate?b.creadoEn.toDate().getTime():new Date(b.creadoEn||0).getTime();
+            return bd-ad;
           });
         renderProyectos(proyectos);
       } catch(e) {
+        console.error(e);
         document.getElementById('lista-proyectos').innerHTML =
           '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando proyectos.</p></div>';
       }
@@ -118,39 +181,98 @@
   function renderProyectos(list) {
     const c = document.getElementById('lista-proyectos');
     if (!list.length) {
-      c.innerHTML = '<div class="empty"><i class="fas fa-hard-hat"></i><p>Aún no tienes proyectos registrados.</p></div>';
+      c.innerHTML = '<div class="empty"><i class="fas fa-hard-hat"></i><p>Aún no tienes proyectos.</p></div>';
       return;
     }
+
     c.innerHTML = list.map(p => {
-      const evs = (p.evidencias||[]).filter(e=>((e.contentType||e.tipo||'').startsWith('image/')));
-      const badgeCls = 'badge-'+(p.estado||'pendiente');
-      const fecha = p.creadoEn?.toDate ? p.creadoEn.toDate().toLocaleDateString('es-CO') : '—';
-      return `
-      <div class="proy-card">
-        <div class="proy-header">
-          <div>
-            <div class="proy-num">${esc(p.numero||'Proyecto')}</div>
-            <div style="font-size:.82rem;color:var(--gray-lt);margin-top:2px">${fecha}</div>
-            <span class="badge ${badgeCls}">${badgeLabel[p.estado]||p.estado}</span>
-          </div>
-        </div>
-        ${p.descripcion ? `<p style="font-size:.88rem;color:var(--gray);margin-bottom:14px">${esc(p.descripcion)}</p>` : ''}
-        ${evs.length ? `
-          <span class="section-mini">Evidencias (${evs.length})</span>
+      const pid    = p.id;
+      const estado = p.estado || 'pendiente';
+      const docs   = p.documentos || [];
+      const evs    = p.evidencias || [];
+
+      // ── Documentos ────────────────────────────────
+      const docsHTML = docs.length ? docs.map(d => {
+        const bc = d.estado==='aprobado'?'badge-doc-aprobado':d.estado==='rechazado'?'badge-doc-rechazado':'badge-doc-pendiente';
+        const bl = d.estado==='aprobado'?'Aprobado ✓':d.estado==='rechazado'?'Rechazado':'Pendiente';
+        return `
+          <div class="doc-row">
+            <div class="doc-icon">📄</div>
+            <div class="doc-info">
+              <div class="doc-name">${esc(d.nombre||d.tipo)}</div>
+              <div class="doc-meta">${esc(d.tipo||'')} · ${fmtDate(d.creadoEn)}</div>
+            </div>
+            <span class="${bc}">${bl}</span>
+            ${d.url?`<a href="${esc(d.url)}" target="_blank" class="btn-ver">Ver</a>`:''}
+          </div>`;
+      }).join('') : '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin documentos aún.</p>';
+
+      // ── Evidencias agrupadas por semana ───────────
+      let evidHTML = '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin evidencias aún.</p>';
+      if (evs.length) {
+        const semanas = {};
+        evs.slice().reverse().forEach(ev => {
+          const sk = semanaLabel(ev.uploadedAt || ev.fecha);
+          if (!semanas[sk]) semanas[sk] = [];
+          semanas[sk].push(ev);
+        });
+        evidHTML = Object.entries(semanas).map(([sem, items]) => `
+          <span class="semana-label">${esc(sem)}</span>
           <div class="evidence-grid">
-            ${evs.map(ev=>`
-              <div>
-                <img class="ev-img" src="${ev.base64}" alt="${esc(ev.name||ev.nombre||'')}"
-                  onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').style.display='flex'">
-                <div class="ev-fecha">${ev.uploadedAt?.toDate?ev.uploadedAt.toDate().toLocaleDateString('es-CO'):(ev.fecha?new Date(ev.fecha).toLocaleDateString('es-CO'):'—')}</div>
-              </div>`).join('')}
+            ${items.map(ev => {
+              const isImg  = (ev.contentType||ev.tipo||'').startsWith('image/');
+              const isVid  = (ev.contentType||ev.tipo||'').startsWith('video/');
+              const isLink = ev.tipo === 'link';
+              const label  = esc(ev.name||ev.nombre||ev.url||'Archivo');
+              const icon   = tipoIcon(ev);
+              if (isLink) return `<a href="${esc(ev.url)}" target="_blank" class="ev-link">${icon} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></a>`;
+              if (isImg && ev.base64) return `<div><img class="ev-img" src="${ev.base64}" alt="${label}" onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').style.display='flex'"></div>`;
+              if (isVid && ev.base64) return `<video style="width:100%;height:95px;object-fit:cover;border-radius:10px" controls><source src="${ev.base64}" type="${esc(ev.contentType)}"></video>`;
+              if (ev.base64) return `<a href="${ev.base64}" download="${label}" class="ev-file">${icon} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></a>`;
+              return '';
+            }).join('')}
+          </div>`).join('');
+      }
+
+      const docCount = docs.length;
+      const evCount  = evs.length;
+
+      return `
+        <div class="proy-card">
+          <div class="proy-card-header" onclick="switchTab('${pid}', document.getElementById('tab-${pid}-docs')?.classList.contains('active')?'docs':'docs')">
+            <div>
+              <div class="proy-num">${esc(p.numero||p.id.slice(0,8).toUpperCase())}</div>
+              ${p.nombre?`<div class="proy-nombre">${esc(p.nombre)}</div>`:''}
+              <div style="font-size:.8rem;color:var(--gray-lt);margin-top:4px">${fmtDate(p.creadoEn)}</div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge ${badgeCls[estado]}">${badgeLbl[estado]||estado}</span>
+              <div style="font-size:.75rem;color:var(--gray-lt);margin-top:6px">
+                ${docCount?`📄 ${docCount} doc${docCount!==1?'s':''}`:''} ${evCount?`📷 ${evCount} evidencia${evCount!==1?'s':''}` : ''}
+              </div>
+            </div>
           </div>
-        ` : '<p style="font-size:.85rem;color:var(--gray-lt);margin-top:8px">Sin evidencias aún.</p>'}
-      </div>`;
+
+          ${p.descripcion?`<div style="padding:14px 26px;font-size:.88rem;color:var(--gray);border-bottom:1px solid var(--line)">${esc(p.descripcion)}</div>`:''}
+
+          <div class="tabs-bar">
+            <button id="pill-${pid}-docs" class="tab-pill active" data-proy="${pid}" onclick="switchTab('${pid}','docs')">
+              <i class="fas fa-file-alt" style="margin-right:5px"></i>Documentos ${docCount?`(${docCount})`:''}
+            </button>
+            <button id="pill-${pid}-evid" class="tab-pill" data-proy="${pid}" onclick="switchTab('${pid}','evid')">
+              <i class="fas fa-images" style="margin-right:5px"></i>Evidencias ${evCount?`(${evCount})`:''}
+            </button>
+          </div>
+
+          <div id="tab-${pid}-docs" class="tab-body active" data-proy="${pid}">
+            ${docsHTML}
+          </div>
+          <div id="tab-${pid}-evid" class="tab-body" data-proy="${pid}">
+            ${evidHTML}
+          </div>
+        </div>`;
     }).join('');
   }
-
-  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 </script>
 </body>
 </html>
