@@ -10,21 +10,24 @@
 
 async function imageToDataURL(path) {
   try {
-    if (path && path.startsWith("data:")) return path;
-    let url = path;
-    if (!path.startsWith("http")) {
-      url = `https://domka-sw.github.io/Domka-Solutions${path.startsWith("/") ? path : "/" + path}`;
+    if (path && path.startsWith("data:")) {
+      return path;
     }
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetch(path);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
     const blob = await res.blob();
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onloadend = () => resolve(r.result);
-      r.onerror = reject;
-      r.readAsDataURL(blob);
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
-  } catch { return null; }
+  } catch (err) {
+    console.error("Error cargando imagen:", err);
+    return null;
+  }
 }
 
 async function preloadImages(paths) {
