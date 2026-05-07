@@ -15,37 +15,60 @@
     a{text-decoration:none;color:inherit}
     button{cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
 
-    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04)}
     .portal-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green)}
-    .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px}
+    .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1.5px solid var(--green);transition:all .18s}
+    .nav-back:hover{background:var(--green-lt)}
 
-    .main{max-width:900px;margin:0 auto;padding:40px 24px 80px}
-    .page-title{margin-bottom:28px}
-    .page-title h1{font-size:1.8rem;margin-bottom:4px}
-    .page-title p{color:var(--gray-lt);font-size:.88rem}
+    .main{max-width:860px;margin:0 auto;padding:40px 20px 80px}
+    .page-title{margin-bottom:32px}
+    .page-title h1{font-size:2rem;margin-bottom:4px}
+    .page-title p{color:var(--gray-lt);font-size:.9rem}
 
-    .doc-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:16px;transition:box-shadow .2s}
+    /* Filtros */
+    .filtros{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .filtro-btn{font-size:.78rem;font-weight:600;padding:7px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--white);color:var(--gray);cursor:pointer;transition:all .18s}
+    .filtro-btn:hover,.filtro-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+    /* Card */
+    .doc-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:0;margin-bottom:16px;overflow:hidden;transition:box-shadow .2s}
     .doc-card:hover{box-shadow:0 4px 20px rgba(27,122,81,.08)}
-    .doc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px}
-    .doc-num{font-family:'DM Serif Display',serif;font-size:1.05rem}
-    .doc-tipo{font-size:.75rem;font-weight:600;color:var(--green);letter-spacing:.08em;text-transform:uppercase}
+    .doc-card-header{padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}
+    .doc-tipo-chip{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);background:var(--green-lt);padding:4px 10px;border-radius:6px;margin-bottom:8px}
+    .doc-num{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text)}
     .doc-fecha{font-size:.75rem;color:var(--gray-lt);margin-top:3px}
-    .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:999px}
+    .badge{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;padding:6px 14px;border-radius:999px}
     .badge-pendiente{background:#fef9c3;color:#854d0e}
     .badge-aprobado{background:#dcfce7;color:#166534}
     .badge-rechazado{background:#fee2e2;color:#991b1b}
-    .doc-desc{font-size:.88rem;color:var(--gray);margin-bottom:16px;line-height:1.6}
+    .doc-body{padding:20px 24px}
+    .doc-desc{font-size:.88rem;color:var(--gray);line-height:1.65;margin-bottom:18px}
+    .doc-meta-row{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--gray-lt);margin-bottom:14px}
     .doc-actions{display:flex;gap:10px;flex-wrap:wrap}
-    .btn-aprobar{padding:9px 22px;background:var(--green);color:#fff;border-radius:9px;font-weight:600;font-size:.88rem;transition:all .2s}
-    .btn-aprobar:hover{background:var(--green-dk)}
-    .btn-rechazar{padding:9px 22px;background:#fee2e2;color:#991b1b;border-radius:9px;font-weight:600;font-size:.88rem;transition:all .2s}
-    .btn-rechazar:hover{background:#fecaca}
-    .btn-ver-pdf{padding:9px 22px;background:var(--bg);border:1px solid var(--line);color:var(--gray);border-radius:9px;font-weight:600;font-size:.88rem;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+
+    /* Botones acción */
+    .btn-aprobar{padding:10px 24px;background:var(--green);color:#fff;border-radius:10px;font-weight:700;font-size:.88rem;display:inline-flex;align-items:center;gap:7px;transition:all .2s}
+    .btn-aprobar:hover{background:var(--green-dk);transform:translateY(-1px)}
+    .btn-rechazar{padding:10px 24px;background:#fff0f0;color:#991b1b;border:1.5px solid #fecaca;border-radius:10px;font-weight:700;font-size:.88rem;display:inline-flex;align-items:center;gap:7px;transition:all .2s}
+    .btn-rechazar:hover{background:#fee2e2}
+    .btn-ver-pdf{padding:10px 20px;background:var(--bg);border:1.5px solid var(--line);color:var(--gray);border-radius:10px;font-weight:600;font-size:.88rem;display:inline-flex;align-items:center;gap:7px;transition:all .2s}
     .btn-ver-pdf:hover{border-color:var(--green);color:var(--green)}
+
+    /* Confirmación modal */
+    .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px}
+    .confirm-box{background:var(--white);border-radius:18px;padding:32px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.18)}
+    .confirm-box h3{font-size:1.2rem;margin-bottom:8px}
+    .confirm-box p{font-size:.9rem;color:var(--gray);margin-bottom:24px;line-height:1.6}
+    .confirm-actions{display:flex;gap:12px}
+    .confirm-ok{flex:1;padding:11px;background:var(--green);color:#fff;border-radius:10px;font-weight:700;font-size:.9rem;transition:background .2s}
+    .confirm-ok.rechazar-ok{background:#dc2626}
+    .confirm-ok:hover{opacity:.9}
+    .confirm-cancel{flex:1;padding:11px;border:1.5px solid var(--line);color:var(--gray);border-radius:10px;font-size:.9rem;font-weight:600;background:none;transition:all .18s}
+    .confirm-cancel:hover{background:var(--bg)}
+
     .empty{text-align:center;padding:80px 20px;color:var(--gray-lt)}
     .empty i{font-size:2.5rem;color:var(--line);display:block;margin-bottom:16px}
     .spinner{text-align:center;padding:60px;color:var(--gray-lt)}
-    .resp-badge{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:.8rem;color:var(--gray-lt)}
   </style>
 </head>
 <body>
@@ -58,11 +81,30 @@
 <div class="main">
   <div class="page-title">
     <h1>Mis documentos</h1>
-    <p>Revisa y firma los documentos enviados por DOMKA</p>
+    <p>Revisa y aprueba los documentos enviados por DOMKA</p>
+  </div>
+
+  <div class="filtros">
+    <button class="filtro-btn active" data-filtro="todos" onclick="filtrar(this,'todos')">Todos</button>
+    <button class="filtro-btn" data-filtro="pendiente" onclick="filtrar(this,'pendiente')">⏳ Pendientes</button>
+    <button class="filtro-btn" data-filtro="aprobado" onclick="filtrar(this,'aprobado')">✅ Aprobados</button>
+    <button class="filtro-btn" data-filtro="rechazado" onclick="filtrar(this,'rechazado')">❌ Rechazados</button>
   </div>
 
   <div id="lista-documentos">
     <div class="spinner"><i class="fas fa-circle-notch fa-spin"></i></div>
+  </div>
+</div>
+
+<!-- Modal confirmación -->
+<div id="confirm-overlay" class="confirm-overlay" style="display:none">
+  <div class="confirm-box">
+    <h3 id="confirm-title">¿Confirmar acción?</h3>
+    <p id="confirm-text">Esta acción no se puede deshacer.</p>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" onclick="cancelarConfirm()">Cancelar</button>
+      <button id="confirm-ok-btn" class="confirm-ok" onclick="ejecutarDecision()">Confirmar</button>
+    </div>
   </div>
 </div>
 
@@ -76,8 +118,33 @@
 <script src="../js/auth.js"></script>
 <script>
   let _docs = [];
+  let _filtroActual = 'todos';
+  let _pendingDecision = { id: null, estado: null };
 
-  document.addEventListener("DOMContentLoaded", async () => {
+  const tipoIcon = {
+    'Acta de Inicio': '🚀',
+    'Contrato': '📋',
+    'Acta de Cierre': '✅',
+    'Informe': '📊',
+    'Documento': '📄'
+  };
+
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function fmtDate(ts){
+    try{
+      const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);
+      return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}):'—';
+    }catch{return'—'}
+  }
+
+  function filtrar(btn, filtro) {
+    _filtroActual = filtro;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderDocs();
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
     await Promise.resolve(window.__domkaFirebaseReady);
     if (!window.auth || !window.db) return;
     const unsub = window.auth.onAuthStateChanged(async (user) => {
@@ -97,16 +164,16 @@
           empresaId ? db.collection('documentos').where('empresaId','==',empresaId).get() : Promise.resolve(null)
         ]);
         const map = new Map();
-        (snapCli?.docs || []).forEach((d) => map.set(d.id, { id: d.id, ...d.data() }));
-        (snapEmp?.docs || []).forEach((d) => map.set(d.id, { id: d.id, ...d.data() }));
-        _docs = Array.from(map.values())
-          .sort((a,b) => {
-            const ad = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : new Date(a.creadoEn || 0).getTime();
-            const bd = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : new Date(b.creadoEn || 0).getTime();
-            return bd - ad;
-          });
+        (snapCli?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+        (snapEmp?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+        _docs = Array.from(map.values()).sort((a,b)=>{
+          const ad=a.creadoEn?.toDate?a.creadoEn.toDate().getTime():new Date(a.creadoEn||0).getTime();
+          const bd=b.creadoEn?.toDate?b.creadoEn.toDate().getTime():new Date(b.creadoEn||0).getTime();
+          return bd-ad;
+        });
         renderDocs();
       } catch(e) {
+        console.error(e);
         document.getElementById('lista-documentos').innerHTML =
           '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando documentos.</p></div>';
       }
@@ -115,75 +182,130 @@
 
   function renderDocs() {
     const c = document.getElementById('lista-documentos');
-    if (!_docs.length) {
-      c.innerHTML = '<div class="empty"><i class="fas fa-folder-open"></i><p>Aún no hay documentos para ti.</p></div>';
+    const lista = _filtroActual === 'todos' ? _docs : _docs.filter(d => (d.estado||'pendiente') === _filtroActual);
+    if (!lista.length) {
+      const msgs = {
+        todos: 'Aún no hay documentos para ti.',
+        pendiente: 'No tienes documentos pendientes. ✅',
+        aprobado: 'No tienes documentos aprobados aún.',
+        rechazado: 'No tienes documentos rechazados.'
+      };
+      c.innerHTML = `<div class="empty"><i class="fas fa-folder-open"></i><p>${msgs[_filtroActual]||'Sin resultados.'}</p></div>`;
       return;
     }
-    c.innerHTML = _docs.map(d => {
-      const fecha = d.creadoEn?.toDate ? d.creadoEn.toDate().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}) : '—';
+    c.innerHTML = lista.map(d => {
       const estado = d.estado || 'pendiente';
-      const badgeCls = 'badge-'+(estado==='aprobado'?'aprobado':(estado==='rechazado'?'rechazado':'pendiente'));
-      const badgeLbl = {pendiente:'Pendiente revisión',aprobado:'Aprobado ✓',rechazado:'Rechazado'}[estado]||estado;
       const decidido = ['aprobado','rechazado','anulado'].includes(estado);
+      const badgeCls = `badge-${estado==='aprobado'?'aprobado':estado==='rechazado'?'rechazado':'pendiente'}`;
+      const badgeLbl = {pendiente:'⏳ Pendiente revisión', aprobado:'✅ Aprobado', rechazado:'❌ Rechazado'}[estado]||estado;
+      const fecha = fmtDate(d.creadoEn);
       const fechaResp = d.fechaRespuesta?.toDate ? d.fechaRespuesta.toDate().toLocaleDateString('es-CO') : null;
+      const icon = tipoIcon[d.tipo] || '📄';
+      const proyectoInfo = d.proyectoNombre || d.proyectoId ? `<span><i class="fas fa-hard-hat" style="margin-right:5px"></i>${esc(d.proyectoNombre||d.proyectoId)}</span>` : '';
 
       return `
       <div class="doc-card">
-        <div class="doc-header">
-          <div>
-            <div class="doc-tipo">${esc(d.tipo||'Documento')}</div>
+        <div class="doc-card-header">
+          <div style="flex:1;min-width:0">
+            <div class="doc-tipo-chip">${icon} ${esc(d.tipo||'Documento')}</div>
             <div class="doc-num">${esc(d.numero||'—')}</div>
-            <div class="doc-fecha">${fecha}</div>
+            <div class="doc-fecha"><i class="fas fa-calendar-alt" style="margin-right:4px"></i>${fecha}</div>
           </div>
           <span class="badge ${badgeCls}">${badgeLbl}</span>
         </div>
 
-        ${d.descripcion ? `<p class="doc-desc">${esc(d.descripcion)}</p>` : ''}
+        <div class="doc-body">
+          ${d.descripcion ? `<p class="doc-desc">${esc(d.descripcion)}</p>` : ''}
 
-        ${fechaResp ? `<p class="resp-badge"><i class="fas fa-clock"></i> Respondido el ${fechaResp}</p>` : ''}
+          ${proyectoInfo || fechaResp ? `
+          <div class="doc-meta-row" style="gap:16px;margin-bottom:18px">
+            ${proyectoInfo}
+            ${fechaResp ? `<span><i class="fas fa-reply" style="margin-right:4px"></i>Respondido el ${fechaResp}</span>` : ''}
+          </div>` : ''}
 
-        <div class="doc-actions">
-          ${d.pdfBase64 ? `<button class="btn-ver-pdf" onclick="verPDF('${d.id}')"><i class="fas fa-file-pdf"></i> Ver PDF</button>` : ''}
-          ${!decidido ? `
-            <button class="btn-aprobar" onclick="decidir('${d.id}','aprobado')">✅ Aprobar</button>
-            <button class="btn-rechazar" onclick="decidir('${d.id}','rechazado')">❌ Rechazar</button>
-          ` : ''}
+          <div class="doc-actions">
+            ${d.pdfBase64 ? `<button class="btn-ver-pdf" onclick="verPDF('${d.id}')"><i class="fas fa-file-pdf"></i> Ver documento</button>` : ''}
+            ${!decidido ? `
+              <button class="btn-aprobar" onclick="pedirDecision('${d.id}','aprobado')">
+                <i class="fas fa-check"></i> Aprobar
+              </button>
+              <button class="btn-rechazar" onclick="pedirDecision('${d.id}','rechazado')">
+                <i class="fas fa-times"></i> Rechazar
+              </button>
+            ` : ''}
+          </div>
         </div>
       </div>`;
     }).join('');
   }
 
-  async function decidir(id, estado) {
-    const accion = estado === 'aprobado' ? 'APROBAR' : 'RECHAZAR';
-    if (!confirm(`¿${accion} este documento? Esta acción no se puede deshacer.`)) return;
+  /* ── Confirmación con modal (no confirm()) ─── */
+  function pedirDecision(id, estado) {
+    _pendingDecision = { id, estado };
+    const esAprobar = estado === 'aprobado';
+    const d = _docs.find(x=>x.id===id);
+    document.getElementById('confirm-title').textContent = esAprobar ? '¿Aprobar este documento?' : '¿Rechazar este documento?';
+    document.getElementById('confirm-text').textContent =
+      `Estás a punto de ${esAprobar?'aprobar':'rechazar'} "${d?.numero||'este documento'}". Esta acción no se puede deshacer.`;
+    const okBtn = document.getElementById('confirm-ok-btn');
+    okBtn.textContent = esAprobar ? '✅ Sí, aprobar' : '❌ Sí, rechazar';
+    okBtn.className = 'confirm-ok' + (esAprobar?'':' rechazar-ok');
+    document.getElementById('confirm-overlay').style.display = 'flex';
+  }
+
+  function cancelarConfirm() {
+    document.getElementById('confirm-overlay').style.display = 'none';
+    _pendingDecision = { id: null, estado: null };
+  }
+
+  async function ejecutarDecision() {
+    const { id, estado } = _pendingDecision;
+    if (!id || !estado) return;
+    cancelarConfirm();
+
+    // Mostrar loading en el botón
+    const c = document.getElementById('lista-documentos');
+
     try {
-      const doc = _docs.find(d => d.id === id);
+      // ✅ Solo actualizamos los dos campos permitidos por las reglas Firestore
       await db.collection('documentos').doc(id).update({
-        estado,
-        fechaRespuesta: firebase.firestore.FieldValue.serverTimestamp(),
-        ...(doc?.tokenPublico ? { tokenPublico: doc.tokenPublico } : {})
+        estado: estado,
+        fechaRespuesta: firebase.firestore.FieldValue.serverTimestamp()
       });
+
+      // Actualizar local
       const idx = _docs.findIndex(d=>d.id===id);
-      if (idx>=0) {
+      if (idx >= 0) {
         _docs[idx].estado = estado;
         _docs[idx].fechaRespuesta = { toDate: () => new Date() };
       }
       renderDocs();
     } catch(e) {
-      alert('Error: '+e.message);
+      console.error('Error al actualizar documento:', e);
+      alert('Error al guardar la respuesta: ' + (e?.message || 'Error desconocido') +
+        '\n\nSi el error persiste, contacta a DOMKA.');
     }
   }
 
   function verPDF(id) {
     const d = _docs.find(x=>x.id===id);
     const src = d?.pdfBase64;
-    if (!src) { alert('Sin PDF adjunto.'); return; }
+    if (!src) { alert('Sin documento adjunto.'); return; }
     const win = window.open();
-    win.document.write(`<iframe src="${src}" style="width:100%;height:100vh;border:none"></iframe>`);
+    win.document.write(`
+      <html><head><title>${d.numero||'Documento'}</title></head>
+      <body style="margin:0">
+        <iframe src="${src}" style="width:100%;height:100vh;border:none"></iframe>
+      </body></html>`);
   }
 
+  window.filtrar = filtrar;
+  window.pedirDecision = pedirDecision;
+  window.cancelarConfirm = cancelarConfirm;
+  window.ejecutarDecision = ejecutarDecision;
+  window.verPDF = verPDF;
+
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-  window.decidir=decidir; window.verPDF=verPDF;
 </script>
 </body>
 </html>
