@@ -109,7 +109,7 @@ async function generarPDFCotizacion(cotizacion, nombreCliente = "Cliente") {
     mostrarDocumento = true, adjuntos = []
   } = cotizacion;
 
-  const images = await preloadImages({ logo: "/img/logo.png", firma: "/img/firma.png" });
+  const images = await preloadImages({ logo: "/img/logofondo.png", firma: "/img/firma.png" });
 
   const numDoc       = (id || "").substring(0, 8).toUpperCase() || "—";
   const fechaStr     = fmtDate(fecha);
