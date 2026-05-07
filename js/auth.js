@@ -53,6 +53,19 @@
     async function completarVinculos(perfil) {
       if (!perfil || perfil.role !== "client") return perfil;
       let out = { ...perfil };
+      const maybeInviteCode = (value) => /^[A-Z0-9]{8,14}$/.test(String(value || "").toUpperCase());
+
+      if (out.clienteId && maybeInviteCode(out.clienteId)) {
+        try {
+          const invSnap = await window.db.collection("clientInvites").doc(String(out.clienteId).toUpperCase()).get();
+          if (invSnap.exists) {
+            const inv = invSnap.data() || {};
+            out.clienteId = inv.clienteId || out.clienteId;
+            out.empresaId = out.empresaId || inv.empresaId || null;
+          }
+        } catch (_) {}
+      }
+
       if (!out.clienteId && out.email) {
         try {
           const email = String(out.email).trim().toLowerCase();
