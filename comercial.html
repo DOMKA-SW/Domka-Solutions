@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Comercial</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/app-pages.css">
+  <style>
+    .hidden { display: none !important; }
+
+    /* Pipeline kanban */
+    .kanban-wrap { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; }
+    .kanban-col {
+      min-width: 220px; max-width: 220px;
+      background: #f9f7f4; border-radius: 14px; padding: 14px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .kanban-col-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .kanban-col-title { font-size: .7rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .kanban-count { font-size: .72rem; font-weight: 700; background: #fff; border-radius: 999px; padding: 2px 8px; color: #555; }
+
+    .lead-card {
+      background: #fff; border: 1px solid #e5e0d8; border-radius: 10px;
+      padding: 13px 14px; cursor: pointer; transition: all .18s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+    .lead-card:hover { border-color: var(--green); box-shadow: 0 4px 14px rgba(27,122,81,.1); transform: translateY(-1px); }
+    .lead-card-nombre { font-weight: 700; font-size: .88rem; color: #2c2c2c; margin-bottom: 2px; }
+    .lead-card-empresa { font-size: .76rem; color: #9a9a9a; }
+    .lead-card-servicio { font-size: .72rem; color: var(--green); font-weight: 600; margin-top: 6px; }
+    .lead-card-date { font-size: .68rem; color: #b0a898; margin-top: 4px; }
+    .lead-card-task { font-size: .72rem; color: #1d4ed8; background: #eff6ff; border-radius: 6px; padding: 4px 8px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+
+    /* Colores por estado */
+    .col-nuevo      .kanban-col-title { color: #6b7280; }
+    .col-contactado .kanban-col-title { color: #1d4ed8; }
+    .col-calificado .kanban-col-title { color: #7c3aed; }
+    .col-propuesta  .kanban-col-title { color: #d97706; }
+    .col-ganado     .kanban-col-title { color: #16a34a; }
+    .col-perdido    .kanban-col-title { color: #dc2626; }
+
+    .col-nuevo      { border-top: 3px solid #9ca3af; }
+    .col-contactado { border-top: 3px solid #3b82f6; }
+    .col-calificado { border-top: 3px solid #8b5cf6; }
+    .col-propuesta  { border-top: 3px solid #f59e0b; }
+    .col-ganado     { border-top: 3px solid #22c55e; }
+    .col-perdido    { border-top: 3px solid #ef4444; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      z-index: 500; display: flex; align-items: flex-start; justify-content: center;
+      padding: 28px 16px; overflow-y: auto;
+    }
+    .modal-box {
+      background: #fff; border-radius: 20px; width: 100%; max-width: 680px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18); overflow: hidden;
+    }
+    .modal-top { padding: 24px 28px; border-bottom: 1px solid #ede8e0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .modal-body { padding: 24px 28px; }
+
+    .estado-select {
+      padding: 6px 14px; border-radius: 999px; font-size: .78rem; font-weight: 700;
+      border: 1.5px solid; cursor: pointer; appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+    }
+
+    .actividad-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0ece5; }
+    .actividad-item:last-child { border-bottom: none; }
+    .activ-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 5px; }
+    .activ-text { font-size: .86rem; color: #3a3a3a; line-height: 1.5; }
+    .activ-date { font-size: .72rem; color: #9a9a9a; margin-top: 2px; }
+
+    .tarea-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; margin-bottom: 8px; }
+    .tarea-item.done { background: #f0fdf4; border-color: #bbf7d0; opacity: .7; }
+    .tarea-check { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid #d6cfc5; flex-shrink: 0; cursor: pointer; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+    .tarea-check.done { background: var(--green); border-color: var(--green); color: #fff; font-size: .65rem; }
+
+    .tab-btn { font-size: .82rem; font-weight: 600; padding: 9px 16px; border: none; background: none; color: #9a9a9a; cursor: pointer; border-bottom: 2.5px solid transparent; transition: all .18s; }
+    .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+    .tab-pane { display: none; padding-top: 16px; }
+    .tab-pane.active { display: block; }
+
+    .section-lbl { font-size: .65rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; display: block; }
+
+    /* Vista lista (tabla) */
+    #vista-lista { display: none; }
+    #vista-kanban { display: block; }
+    .vista-toggle.active { background: var(--green); color: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="sidebar-brand-wrap">
+    <span class="sidebar-brand-name">DOMKA</span>
+    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+  </div>
+  <nav class="sidebar-links">
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="cotizaciones.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-file-alt"></i> Cotizaciones</a>
+    <a href="clientes.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-users"></i> Clientes</a>
+    <a href="proyectos.html" class="sidebar-link"><i class="fas fa-hard-hat"></i> Proyectos</a>
+    <a href="comercial.html" class="sidebar-link active" data-rol-min="comercial"><i class="fas fa-funnel-dollar"></i> Comercial</a>
+    <a href="contabilidad.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+    <a href="usuarios.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-user-cog"></i> Usuarios</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-indicator">
+      <div class="user-dot"></div>
+      <div>
+        <span class="user-email-text" id="user-email">Cargando…</span>
+        <span style="display:block;font-size:.6rem;color:var(--gray-lt)" id="user-rol"></span>
+      </div>
+    </div>
+    <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="page-with-sidebar">
+
+  <div class="page-topbar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="page-heading">Comercial</h1>
+      <p class="page-subheading">Leads y oportunidades de negocio</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <!-- Filtro estado -->
+      <select id="filtro-estado" onchange="aplicarFiltros()" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
+        <option value="">Todos los estados</option>
+        <option value="nuevo">Nuevo</option>
+        <option value="contactado">Contactado</option>
+        <option value="calificado">Calificado</option>
+        <option value="propuesta">Propuesta enviada</option>
+        <option value="ganado">Ganado</option>
+        <option value="perdido">Perdido</option>
+      </select>
+      <!-- Vista toggle -->
+      <button id="btn-kanban" class="vista-toggle active text-xs px-3 py-1.5 rounded-lg border border-gray-200" onclick="setVista('kanban')">
+        <i class="fas fa-columns mr-1"></i> Kanban
+      </button>
+      <button id="btn-lista" class="vista-toggle text-xs px-3 py-1.5 rounded-lg border border-gray-200" onclick="setVista('lista')">
+        <i class="fas fa-list mr-1"></i> Lista
+      </button>
+      <!-- Nuevo lead manual -->
+      <button onclick="abrirNuevoLead()" class="px-4 py-1.5 bg-green-700 text-white text-xs rounded-lg hover:bg-green-800 transition font-semibold">
+        <i class="fas fa-plus mr-1"></i> Nuevo lead
+      </button>
+    </div>
+  </div>
+
+  <!-- Métricas rápidas -->
+  <div id="metricas" class="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6"></div>
+
+  <!-- VISTA KANBAN -->
+  <div id="vista-kanban">
+    <div class="kanban-wrap" id="kanban-board"></div>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <div id="vista-lista">
+    <div class="form-container overflow-x-auto" style="padding:0">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-gray-50">
+            <th class="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead</th>
+            <th class="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contacto</th>
+            <th class="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Servicio</th>
+            <th class="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+            <th class="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Próx. tarea</th>
+            <th class="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Creado</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-leads"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /page-with-sidebar -->
+
+
+<!-- ── MODAL DETALLE LEAD ───────────────────────────── -->
+<div id="modal-lead" class="modal-overlay hidden" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal-box">
+
+    <div class="modal-top">
+      <div style="flex:1;min-width:0">
+        <p style="font-size:.65rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:4px">Lead</p>
+        <h2 id="m-nombre" style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:#2c2c2c;margin-bottom:2px">—</h2>
+        <p id="m-empresa" style="font-size:.85rem;color:#9a9a9a"></p>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="m-estado-sel" class="estado-select" onchange="cambiarEstado(this.value)">
+          <option value="nuevo">🆕 Nuevo</option>
+          <option value="contactado">📞 Contactado</option>
+          <option value="calificado">⭐ Calificado</option>
+          <option value="propuesta">📋 Propuesta</option>
+          <option value="ganado">🏆 Ganado</option>
+          <option value="perdido">❌ Perdido</option>
+        </select>
+        <button onclick="cerrarModal()" style="color:#9a9a9a;font-size:1.3rem;background:none;border:none;cursor:pointer;padding:4px">✕</button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Info básica -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5 p-4 bg-gray-50 rounded-xl text-sm">
+        <div><p class="section-lbl">Teléfono</p><p id="m-tel" class="font-semibold">—</p></div>
+        <div><p class="section-lbl">Email</p><p id="m-email" style="word-break:break-all" class="font-semibold">—</p></div>
+        <div><p class="section-lbl">Servicio</p><p id="m-servicio" class="font-semibold">—</p></div>
+        <div><p class="section-lbl">Origen</p><p id="m-origen" class="font-semibold">—</p></div>
+      </div>
+      <div id="m-desc-wrap" class="mb-5 hidden">
+        <p class="section-lbl">Descripción del proyecto</p>
+        <p id="m-desc" style="font-size:.88rem;color:#5a5a5a;line-height:1.65;background:#f9f7f4;padding:12px 14px;border-radius:10px"></p>
+      </div>
+
+      <!-- Tabs -->
+      <div style="border-bottom:2px solid #ede8e0;margin-bottom:0;display:flex;gap:4px">
+        <button class="tab-btn active" id="tab-act-btn" onclick="switchTab('act')"><i class="fas fa-clock mr-1"></i>Actividades</button>
+        <button class="tab-btn" id="tab-tar-btn" onclick="switchTab('tar')"><i class="fas fa-tasks mr-1"></i>Tareas</button>
+        <button class="tab-btn" id="tab-inf-btn" onclick="switchTab('inf')"><i class="fas fa-info-circle mr-1"></i>Info</button>
+      </div>
+
+      <!-- TAB Actividades -->
+      <div id="tab-act" class="tab-pane active">
+        <!-- Nueva actividad -->
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <input id="nueva-actividad" type="text"
+            placeholder="Agregar nota o actividad (ej: llamé al cliente, envié propuesta...)"
+            class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            onkeydown="if(event.key==='Enter')agregarActividad()">
+          <button onclick="agregarActividad()"
+            class="px-4 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 transition font-semibold whitespace-nowrap">
+            + Agregar
+          </button>
+        </div>
+        <div id="lista-actividades">
+          <p style="color:#9a9a9a;font-size:.85rem;text-align:center;padding:24px 0">Sin actividades aún.</p>
+        </div>
+      </div>
+
+      <!-- TAB Tareas -->
+      <div id="tab-tar" class="tab-pane">
+        <!-- Nueva tarea -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <input id="nueva-tarea" type="text" placeholder="Nueva tarea..."
+            class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" style="min-width:140px"
+            onkeydown="if(event.key==='Enter')agregarTarea()">
+          <input id="nueva-tarea-fecha" type="date"
+            class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <button onclick="agregarTarea()"
+            class="px-4 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 transition font-semibold whitespace-nowrap">
+            + Agregar
+          </button>
+        </div>
+        <div id="lista-tareas">
+          <p style="color:#9a9a9a;font-size:.85rem;text-align:center;padding:24px 0">Sin tareas pendientes.</p>
+        </div>
+      </div>
+
+      <!-- TAB Info -->
+      <div id="tab-inf" class="tab-pane">
+        <div class="grid grid-cols-1 gap-3 mt-2" id="tab-inf-content"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ── MODAL NUEVO LEAD MANUAL ─────────────────────── -->
+<div id="modal-nuevo" class="modal-overlay hidden" onclick="if(event.target===this)cerrarNuevo()">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:520px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.18);margin:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.25rem">Nuevo lead</h3>
+      <button onclick="cerrarNuevo()" style="color:#9a9a9a;font-size:1.3rem;background:none;border:none;cursor:pointer">✕</button>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="col-span-2 md:col-span-1">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Nombre *</label>
+        <input id="nl-nombre" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Nombre completo">
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Empresa</label>
+        <input id="nl-empresa" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Empresa">
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Teléfono *</label>
+        <input id="nl-telefono" type="tel" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="+57 300...">
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Email</label>
+        <input id="nl-email" type="email" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="correo@...">
+      </div>
+      <div class="col-span-2">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Servicio de interés</label>
+        <select id="nl-servicio" class="w-full border rounded-lg px-3 py-2 text-sm">
+          <option value="">Seleccionar...</option>
+          <option>Construcción nueva</option>
+          <option>Remodelación</option>
+          <option>Adecuación empresarial</option>
+          <option>Mantenimiento</option>
+          <option>Diseño y acabados</option>
+          <option>Solución integral</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="col-span-2">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Notas iniciales</label>
+        <textarea id="nl-desc" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Descripción del proyecto o cómo llegó el contacto..."></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="cerrarNuevo()" class="flex-1 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>
+      <button onclick="guardarNuevoLead()" class="flex-1 py-2 bg-green-700 text-white rounded-lg text-sm font-semibold hover:bg-green-800">Guardar lead</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/security.js"></script>
+<script src="js/roles.js"></script>
+<script src="js/auth.js"></script>
+<script>
+// ──────────────────────────────────────────────────────────
+//  COMERCIAL.JS — inline
+// ──────────────────────────────────────────────────────────
+let _leads = [];
+let _currentId = null;
+let _vistaActual = 'kanban';
+
+const ESTADOS = [
+  { key:'nuevo',      label:'Nuevo',      color:'#6b7280' },
+  { key:'contactado', label:'Contactado', color:'#3b82f6' },
+  { key:'calificado', label:'Calificado', color:'#8b5cf6' },
+  { key:'propuesta',  label:'Propuesta',  color:'#f59e0b' },
+  { key:'ganado',     label:'Ganado',     color:'#22c55e' },
+  { key:'perdido',    label:'Perdido',    color:'#ef4444' },
+];
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtDate(ts){
+  try{const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);
+  return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—'}catch{return'—'}
+}
+function estadoBadge(e){
+  const m={nuevo:'bg-gray-100 text-gray-600',contactado:'bg-blue-100 text-blue-700',calificado:'bg-purple-100 text-purple-700',propuesta:'bg-yellow-100 text-yellow-700',ganado:'bg-green-100 text-green-700',perdido:'bg-red-100 text-red-700'};
+  const l={nuevo:'Nuevo',contactado:'Contactado',calificado:'Calificado',propuesta:'Propuesta',ganado:'Ganado',perdido:'Perdido'};
+  return `<span style="font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:999px" class="${m[e]||m.nuevo}">${l[e]||e}</span>`;
+}
+
+// ── Cargar leads ─────────────────────────────────────────
+async function cargar(){
+  try{
+    const snap = await db.collection('leads').orderBy('creadoEn','desc').get();
+    _leads = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderMetricas();
+    aplicarFiltros();
+  }catch(e){
+    console.error(e);
+  }
+}
+
+// ── Métricas ─────────────────────────────────────────────
+function renderMetricas(){
+  const total   = _leads.length;
+  const nuevos  = _leads.filter(l=>l.estado==='nuevo').length;
+  const activos = _leads.filter(l=>!['ganado','perdido'].includes(l.estado)).length;
+  const ganados = _leads.filter(l=>l.estado==='ganado').length;
+  const perdidos= _leads.filter(l=>l.estado==='perdido').length;
+  const tasa    = total ? Math.round(ganados/(ganados+perdidos)*100)||0 : 0;
+
+  const data=[
+    {label:'Total leads', val:total,   icon:'fa-users',         color:'#6b7280'},
+    {label:'Nuevos',      val:nuevos,  icon:'fa-star',          color:'#6b7280'},
+    {label:'En proceso',  val:activos, icon:'fa-fire',          color:'#f59e0b'},
+    {label:'Ganados',     val:ganados, icon:'fa-trophy',        color:'#22c55e'},
+    {label:'Perdidos',    val:perdidos,icon:'fa-times-circle',  color:'#ef4444'},
+    {label:'Tasa cierre', val:tasa+'%',icon:'fa-percentage',    color:'#8b5cf6'},
+  ];
+  document.getElementById('metricas').innerHTML = data.map(d=>`
+    <div style="background:#fff;border:1px solid #ede8e0;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;border-radius:9px;background:${d.color}18;color:${d.color};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas ${d.icon}" style="font-size:.9rem"></i>
+      </div>
+      <div>
+        <p style="font-size:1.15rem;font-weight:800;color:#2c2c2c;line-height:1">${d.val}</p>
+        <p style="font-size:.68rem;color:#9a9a9a;margin-top:2px">${d.label}</p>
+      </div>
+    </div>`).join('');
+}
+
+// ── Filtros y vistas ─────────────────────────────────────
+function aplicarFiltros(){
+  const filtroEstado = document.getElementById('filtro-estado').value;
+  let lista = filtroEstado ? _leads.filter(l=>l.estado===filtroEstado) : _leads;
+  if(_vistaActual==='kanban') renderKanban(lista);
+  else renderTabla(lista);
+}
+
+function setVista(v){
+  _vistaActual = v;
+  document.getElementById('vista-kanban').style.display = v==='kanban'?'block':'none';
+  document.getElementById('vista-lista').style.display  = v==='lista'?'block':'none';
+  document.getElementById('btn-kanban').classList.toggle('active', v==='kanban');
+  document.getElementById('btn-lista').classList.toggle('active',  v==='lista');
+  aplicarFiltros();
+}
+
+// ── Kanban ───────────────────────────────────────────────
+function renderKanban(lista){
+  const board = document.getElementById('kanban-board');
+  board.innerHTML = ESTADOS.map(est=>{
+    const cards = lista.filter(l=>l.estado===est.key);
+    const proxTarea = (l) => {
+      const tareas = (l.tareas||[]).filter(t=>!t.done);
+      return tareas.length ? tareas[0] : null;
+    };
+    return `
+      <div class="kanban-col col-${est.key}">
+        <div class="kanban-col-header">
+          <span class="kanban-col-title">${est.label}</span>
+          <span class="kanban-count">${cards.length}</span>
+        </div>
+        ${cards.length ? cards.map(l=>{
+          const t = proxTarea(l);
+          return `
+          <div class="lead-card" onclick="abrirLead('${l.id}')">
+            <div class="lead-card-nombre">${esc(l.nombre||'Sin nombre')}</div>
+            ${l.empresa?`<div class="lead-card-empresa">${esc(l.empresa)}</div>`:''}
+            ${l.servicio?`<div class="lead-card-servicio"><i class="fas fa-tag" style="margin-right:4px;font-size:.65rem"></i>${esc(l.servicio)}</div>`:''}
+            ${t?`<div class="lead-card-task"><i class="fas fa-calendar-check"></i>${esc(t.texto)}${t.fecha?` · ${t.fecha}`:''}</div>`:''}
+            <div class="lead-card-date"><i class="fas fa-clock" style="margin-right:3px"></i>${fmtDate(l.creadoEn)}</div>
+          </div>`}).join('')
+        : `<p style="font-size:.75rem;color:#b0a898;text-align:center;padding:16px 0">Sin leads</p>`}
+      </div>`;
+  }).join('');
+}
+
+// ── Tabla ────────────────────────────────────────────────
+function renderTabla(lista){
+  const tbody = document.getElementById('tabla-leads');
+  if(!lista.length){
+    tbody.innerHTML='<tr><td colspan="6" class="p-6 text-center text-gray-400">Sin leads.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(l=>{
+    const proxTarea = (l.tareas||[]).filter(t=>!t.done)[0];
+    return `<tr class="border-b hover:bg-gray-50 cursor-pointer" onclick="abrirLead('${l.id}')">
+      <td class="p-3">
+        <div class="font-semibold text-sm">${esc(l.nombre||'—')}</div>
+        ${l.empresa?`<div class="text-xs text-gray-400">${esc(l.empresa)}</div>`:''}
+      </td>
+      <td class="p-3 text-xs">
+        <div>${esc(l.telefono||'—')}</div>
+        <div class="text-gray-400">${esc(l.email||'')}</div>
+      </td>
+      <td class="p-3 text-xs text-gray-600">${esc(l.servicio||'—')}</td>
+      <td class="p-3">${estadoBadge(l.estado)}</td>
+      <td class="p-3 text-xs text-blue-700">${proxTarea?esc(proxTarea.texto):'<span class="text-gray-300">—</span>'}</td>
+      <td class="p-3 text-xs text-gray-400">${fmtDate(l.creadoEn)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Modal detalle ────────────────────────────────────────
+function abrirLead(id){
+  const l = _leads.find(x=>x.id===id);
+  if(!l) return;
+  _currentId = id;
+
+  document.getElementById('m-nombre').textContent   = l.nombre || 'Sin nombre';
+  document.getElementById('m-empresa').textContent  = l.empresa || '';
+  document.getElementById('m-tel').textContent      = l.telefono || '—';
+  document.getElementById('m-email').textContent    = l.email || '—';
+  document.getElementById('m-servicio').textContent = l.servicio || '—';
+  document.getElementById('m-origen').textContent   = l.origen === 'web' ? '🌐 Web' : '✍️ Manual';
+  document.getElementById('m-estado-sel').value     = l.estado || 'nuevo';
+
+  const descEl = document.getElementById('m-desc');
+  const descWrap = document.getElementById('m-desc-wrap');
+  if(l.descripcion){
+    descEl.textContent = l.descripcion;
+    descWrap.classList.remove('hidden');
+  } else {
+    descWrap.classList.add('hidden');
+  }
+
+  renderActividades(l);
+  renderTareas(l);
+  renderInfoTab(l);
+  switchTab('act');
+  document.getElementById('modal-lead').classList.remove('hidden');
+}
+
+function cerrarModal(){
+  document.getElementById('modal-lead').classList.add('hidden');
+  _currentId = null;
+}
+
+// ── Tabs modal ───────────────────────────────────────────
+function switchTab(tab){
+  ['act','tar','inf'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t+'-btn').classList.toggle('active', t===tab);
+  });
+}
+
+// ── Actividades ──────────────────────────────────────────
+function renderActividades(l){
+  const el = document.getElementById('lista-actividades');
+  const acts = (l.actividades||[]).slice().reverse();
+  if(!acts.length){
+    el.innerHTML='<p style="color:#9a9a9a;font-size:.85rem;text-align:center;padding:24px 0">Sin actividades aún.</p>';
+    return;
+  }
+  el.innerHTML = acts.map(a=>`
+    <div class="actividad-item">
+      <div class="activ-dot"></div>
+      <div>
+        <div class="activ-text">${esc(a.texto)}</div>
+        <div class="activ-date">${esc(a.usuario||'')} · ${a.fecha||''}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function agregarActividad(){
+  const inp = document.getElementById('nueva-actividad');
+  const texto = inp.value.trim();
+  if(!texto || !_currentId) return;
+
+  const nueva = {
+    texto,
+    fecha: new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    usuario: auth?.currentUser?.email || 'Usuario'
+  };
+
+  inp.value='';
+  try{
+    await db.collection('leads').doc(_currentId).update({
+      actividades: firebase.firestore.FieldValue.arrayUnion(nueva)
+    });
+    const idx = _leads.findIndex(l=>l.id===_currentId);
+    if(idx>=0){
+      if(!_leads[idx].actividades) _leads[idx].actividades=[];
+      _leads[idx].actividades.push(nueva);
+      renderActividades(_leads[idx]);
+    }
+  }catch(e){ alert('Error: '+e.message); }
+}
+
+// ── Tareas ───────────────────────────────────────────────
+function renderTareas(l){
+  const el = document.getElementById('lista-tareas');
+  const tareas = l.tareas || [];
+  if(!tareas.length){
+    el.innerHTML='<p style="color:#9a9a9a;font-size:.85rem;text-align:center;padding:24px 0">Sin tareas pendientes.</p>';
+    return;
+  }
+  const pendientes = tareas.filter(t=>!t.done);
+  const hechas     = tareas.filter(t=>t.done);
+  const renderItem = (t,i)=>`
+    <div class="tarea-item ${t.done?'done':''}" id="tarea-${i}">
+      <div class="tarea-check ${t.done?'done':''}" onclick="toggleTarea(${i})">
+        ${t.done?'✓':''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:.86rem;color:#3a3a3a;${t.done?'text-decoration:line-through;color:#9a9a9a':''}">${esc(t.texto)}</p>
+        ${t.fecha?`<p style="font-size:.72rem;color:#9a9a9a;margin-top:2px"><i class="fas fa-calendar" style="margin-right:3px"></i>${esc(t.fecha)}</p>`:''}
+      </div>
+    </div>`;
+
+  el.innerHTML =
+    (pendientes.length ? pendientes.map((t,i)=>renderItem(t, tareas.indexOf(t))).join('') : '') +
+    (hechas.length ? `<p style="font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b0a898;margin:12px 0 6px">Completadas</p>` + hechas.map((t,i)=>renderItem(t, tareas.indexOf(t))).join('') : '');
+}
+
+async function agregarTarea(){
+  const txt   = document.getElementById('nueva-tarea').value.trim();
+  const fecha = document.getElementById('nueva-tarea-fecha').value;
+  if(!txt || !_currentId) return;
+
+  const nueva = { texto: txt, fecha: fecha||'', done: false };
+  document.getElementById('nueva-tarea').value='';
+  document.getElementById('nueva-tarea-fecha').value='';
+
+  try{
+    const l = _leads.find(x=>x.id===_currentId);
+    const tareas = [...(l?.tareas||[]), nueva];
+    await db.collection('leads').doc(_currentId).update({ tareas });
+    if(l){ l.tareas = tareas; renderTareas(l); }
+  }catch(e){ alert('Error: '+e.message); }
+}
+
+async function toggleTarea(idx){
+  if(!_currentId) return;
+  const l = _leads.find(x=>x.id===_currentId);
+  if(!l?.tareas?.[idx]) return;
+  l.tareas[idx].done = !l.tareas[idx].done;
+  try{
+    await db.collection('leads').doc(_currentId).update({ tareas: l.tareas });
+    renderTareas(l);
+    aplicarFiltros();
+  }catch(e){ console.error(e); }
+}
+
+// ── Info tab ─────────────────────────────────────────────
+function renderInfoTab(l){
+  document.getElementById('tab-inf-content').innerHTML = `
+    <div class="grid grid-cols-2 gap-3 text-sm">
+      <div><p class="section-lbl">ID</p><p class="font-mono text-xs text-gray-500">${l.id}</p></div>
+      <div><p class="section-lbl">Creado</p><p>${fmtDate(l.creadoEn)}</p></div>
+      <div><p class="section-lbl">Actividades</p><p>${(l.actividades||[]).length}</p></div>
+      <div><p class="section-lbl">Tareas pendientes</p><p>${(l.tareas||[]).filter(t=>!t.done).length}</p></div>
+    </div>`;
+}
+
+// ── Cambiar estado ───────────────────────────────────────
+async function cambiarEstado(nuevoEstado){
+  if(!_currentId) return;
+  try{
+    await db.collection('leads').doc(_currentId).update({ estado: nuevoEstado });
+    const l = _leads.find(x=>x.id===_currentId);
+    if(l){ l.estado = nuevoEstado; }
+    renderMetricas();
+    aplicarFiltros();
+  }catch(e){ alert('Error: '+e.message); }
+}
+
+// ── Nuevo lead manual ─────────────────────────────────────
+function abrirNuevoLead(){
+  document.getElementById('modal-nuevo').classList.remove('hidden');
+}
+function cerrarNuevo(){
+  document.getElementById('modal-nuevo').classList.add('hidden');
+}
+async function guardarNuevoLead(){
+  const nombre   = document.getElementById('nl-nombre').value.trim();
+  const telefono = document.getElementById('nl-telefono').value.trim();
+  if(!nombre || !telefono){ alert('Nombre y teléfono son obligatorios.'); return; }
+
+  const payload = {
+    nombre,
+    empresa:     document.getElementById('nl-empresa').value.trim(),
+    telefono,
+    email:       document.getElementById('nl-email').value.trim(),
+    servicio:    document.getElementById('nl-servicio').value.trim(),
+    descripcion: document.getElementById('nl-desc').value.trim(),
+    estado: 'nuevo',
+    origen: 'manual',
+    actividades: [],
+    tareas: [],
+    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try{
+    const ref = await db.collection('leads').add(payload);
+    cerrarNuevo();
+    ['nl-nombre','nl-empresa','nl-telefono','nl-email','nl-desc'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('nl-servicio').value='';
+    await cargar();
+  }catch(e){ alert('Error: '+e.message); }
+}
+
+// ── Globales ─────────────────────────────────────────────
+window.abrirLead        = abrirLead;
+window.cerrarModal      = cerrarModal;
+window.switchTab        = switchTab;
+window.aplicarFiltros   = aplicarFiltros;
+window.setVista         = setVista;
+window.agregarActividad = agregarActividad;
+window.agregarTarea     = agregarTarea;
+window.toggleTarea      = toggleTarea;
+window.cambiarEstado    = cambiarEstado;
+window.abrirNuevoLead   = abrirNuevoLead;
+window.cerrarNuevo      = cerrarNuevo;
+window.guardarNuevoLead = guardarNuevoLead;
+
+// ── Init ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  Promise.resolve(window.__domkaFirebaseReady).then(() => {
+    if(!window.auth || !window.db) return;
+    auth.onAuthStateChanged(async (u) => {
+      if(!u) return;
+      const el = document.getElementById('user-email');
+      if(el) el.textContent = u.email;
+      const perfil = typeof window.cargarPerfil === 'function'
+        ? await window.cargarPerfil(u).catch(()=>null) : null;
+      if(typeof window.aplicarRestriccionesUI === 'function') window.aplicarRestriccionesUI(perfil);
+      await cargar();
+    });
+  }).catch(console.error);
+});
+</script>
+</body>
+</html>
