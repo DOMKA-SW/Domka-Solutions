@@ -207,11 +207,315 @@
         <div class="stat-sub">Total registrados</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Proyectos</div>
+        <div class="stat-label">Proyectos activos</div>
         <div class="stat-value" id="count-proyectos" style="font-size:1.4rem">—</div>
-        <div class="stat-sub">Total registrados</div>
+        <div class="stat-sub">En ejecución</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ingresos mes</div>
+        <div class="stat-value" id="count-ingresos" style="font-size:1.1rem;color:var(--green)">—</div>
+        <div class="stat-sub">Cuentas de cobro</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cots. aprobadas</div>
+        <div class="stat-value" id="count-aprobadas" style="font-size:1.4rem;color:#16a34a">—</div>
+        <div class="stat-sub">Este mes</div>
       </div>
     </div>
+
+    <!-- SEMÁFORO PROYECTOS -->
+    <div style="margin-bottom:28px">
+      <p style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:14px">🚦 Semáforo de proyectos</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+        <div class="stat-card" style="border-left:4px solid #f59e0b">
+          <div class="stat-label">Pendientes</div>
+          <div class="stat-value" id="sem-pendiente" style="font-size:1.8rem;color:#f59e0b">—</div>
+          <div class="stat-sub">⏳ Por iniciar</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #3b82f6">
+          <div class="stat-label">En ejecución</div>
+          <div class="stat-value" id="sem-ejecucion" style="font-size:1.8rem;color:#3b82f6">—</div>
+          <div class="stat-sub">🔨 En curso</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #22c55e">
+          <div class="stat-label">Finalizados</div>
+          <div class="stat-value" id="sem-finalizado" style="font-size:1.8rem;color:#22c55e">—</div>
+          <div class="stat-sub">✅ Completados</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #ef4444">
+          <div class="stat-label">Suspendidos</div>
+          <div class="stat-value" id="sem-suspendido" style="font-size:1.8rem;color:#ef4444">—</div>
+          <div class="stat-sub">🔴 Detenidos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BARRA PROGRESO GLOBAL -->
+    <div class="card" style="margin-bottom:28px;padding:20px 24px">
+      <p style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:12px">📊 Progreso global de proyectos</p>
+      <div style="background:#f3f4f6;border-radius:999px;height:12px;overflow:hidden;margin-bottom:8px">
+        <div id="barra-progreso" style="height:100%;background:linear-gradient(90deg,#1b7a51,#22c55e);border-radius:999px;width:0%;transition:width .8s ease"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--gray-lt)">
+        <span id="barra-label">Cargando…</span>
+        <span id="barra-pct" style="font-weight:700;color:var(--green)">0%</span>
+      </div>
+    </div>
+
+    <!-- GRID: MÓDULOS + ACTIVIDAD + CONTABILIDAD -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px">
+
+      <!-- Accesos rápidos -->
+      <div>
+        <p style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:16px">Accesos rápidos</p>
+        <div class="quick-actions">
+          <a href="cotizaciones.html" class="quick-action">
+            <div class="qa-icon"><i class="fas fa-file-alt"></i></div>
+            <div class="qa-name">Cotizaciones</div>
+            <div class="qa-desc">Crear y gestionar</div>
+          </a>
+          <a href="clientes.html" class="quick-action">
+            <div class="qa-icon"><i class="fas fa-users"></i></div>
+            <div class="qa-name">Clientes</div>
+            <div class="qa-desc">Administrar directorio</div>
+          </a>
+          <a href="proyectos.html" class="quick-action">
+            <div class="qa-icon"><i class="fas fa-hard-hat"></i></div>
+            <div class="qa-name">Proyectos</div>
+            <div class="qa-desc">Obras y avances</div>
+          </a>
+          <a href="contabilidad.html" class="quick-action">
+            <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
+            <div class="qa-name">Contabilidad</div>
+            <div class="qa-desc">Reportes y finanzas</div>
+          </a>
+          <a href="documentos.html" class="quick-action">
+            <div class="qa-icon"><i class="fas fa-folder-open"></i></div>
+            <div class="qa-name">Documentos</div>
+            <div class="qa-desc">Actas y contratos</div>
+          </a>
+          <a href="comercial.html" class="quick-action">
+            <div class="qa-icon"><i class="fas fa-funnel-dollar"></i></div>
+            <div class="qa-name">Comercial</div>
+            <div class="qa-desc">Pipeline y ventas</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Resumen financiero -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">💰 Resumen financiero</span>
+        </div>
+        <div class="card-pad" style="padding-top:12px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f0fdf4;border-radius:8px">
+              <span style="font-size:.82rem;font-weight:600;color:var(--green)">💚 Total cobrado</span>
+              <span id="fin-cobrado" style="font-size:.95rem;font-weight:700;color:#16a34a">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#fef9c3;border-radius:8px">
+              <span style="font-size:.82rem;font-weight:600;color:#a16207">⏳ Por cobrar</span>
+              <span id="fin-porcobrar" style="font-size:.95rem;font-weight:700;color:#a16207">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#fef2f2;border-radius:8px">
+              <span style="font-size:.82rem;font-weight:600;color:#b91c1c">❌ Gastos mes</span>
+              <span id="fin-gastos" style="font-size:.95rem;font-weight:700;color:#ef4444">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#eff6ff;border-radius:8px;border:1.5px solid #bfdbfe">
+              <span style="font-size:.82rem;font-weight:700;color:#1d4ed8">📈 Utilidad neta</span>
+              <span id="fin-utilidad" style="font-size:1rem;font-weight:800;color:#1d4ed8">—</span>
+            </div>
+          </div>
+          <p style="font-size:.7rem;color:var(--gray-lt);margin-top:10px;text-align:center">Basado en cuentas de cobro y gastos registrados</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PROYECTOS RECIENTES + COTIZACIONES PIPELINE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px">
+
+      <!-- Proyectos recientes -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏗️ Proyectos recientes</span>
+          <a href="proyectos.html" style="font-size:.78rem;color:var(--green);font-weight:600">Ver todos →</a>
+        </div>
+        <div class="card-pad" style="padding-top:8px">
+          <div id="lista-proy-recientes">
+            <div style="text-align:center;padding:20px;color:var(--gray-lt);font-size:.82rem">Cargando…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline de cotizaciones -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 Pipeline comercial</span>
+          <a href="cotizaciones.html" style="font-size:.78rem;color:var(--green);font-weight:600">Ver todas →</a>
+        </div>
+        <div class="card-pad" style="padding-top:12px">
+          <div style="display:flex;flex-direction:column;gap:8px" id="pipeline-cots">
+            <div style="text-align:center;padding:20px;color:var(--gray-lt);font-size:.82rem">Cargando…</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="border-top:1px solid var(--line);padding-top:24px;text-align:center;font-size:.78rem;color:var(--gray-lt)">
+      DOMKA Construcción &amp; Diseño ·
+      <a href="mailto:piter030509@gmail.com" style="color:var(--green)">software.domka@gmail.com</a> ·
+        © 2026
+    </div>
+
+  </main>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/security.js"></script>
+<script src="js/roles.js"></script>
+<script src="js/auth.js"></script>
+
+<script>
+  function fmt(n) {
+    return Number(n||0).toLocaleString("es-CO", {style:"currency",currency:"COP",maximumFractionDigits:0});
+  }
+
+  (async function () {
+    try {
+      await Promise.resolve(window.__domkaFirebaseReady);
+      if (!window.db) return;
+
+      const [cotSnap, clientesSnap, proySnap, cuentasSnap, movSnap] = await Promise.all([
+        db.collection("cotizaciones").get(),
+        db.collection("clientes").get(),
+        db.collection("proyectos").get(),
+        db.collection("cuentas").get().catch(()=>({docs:[]})),
+        db.collection("movimientos").get().catch(()=>({docs:[]}))
+      ]);
+
+      const now = new Date();
+      const mesActual = now.getMonth();
+      const anioActual = now.getFullYear();
+
+      // ── Básicos ───────────────────────────────────
+      document.getElementById("count-clientes").textContent = clientesSnap.size.toLocaleString("es-CO");
+
+      // Proyectos semáforo
+      const proyData = proySnap.docs.map(d => d.data());
+      const semCounts = { pendiente:0, en_ejecucion:0, finalizado:0, suspendido:0 };
+      proyData.forEach(p => { const e = p.estado || "pendiente"; if (semCounts[e] !== undefined) semCounts[e]++; });
+      document.getElementById("sem-pendiente").textContent  = semCounts.pendiente;
+      document.getElementById("sem-ejecucion").textContent  = semCounts.en_ejecucion;
+      document.getElementById("sem-finalizado").textContent = semCounts.finalizado;
+      document.getElementById("sem-suspendido").textContent = semCounts.suspendido;
+      document.getElementById("count-proyectos").textContent = semCounts.en_ejecucion;
+
+      // Barra de progreso: % proyectos finalizados
+      const total = proyData.length;
+      const pct = total ? Math.round((semCounts.finalizado / total) * 100) : 0;
+      document.getElementById("barra-progreso").style.width = pct + "%";
+      document.getElementById("barra-pct").textContent = pct + "%";
+      document.getElementById("barra-label").textContent =
+        total ? `${semCounts.finalizado} de ${total} proyectos finalizados` : "Sin proyectos registrados";
+
+      // ── Cotizaciones ─────────────────────────────
+      const cotData = cotSnap.docs.map(d => ({id:d.id,...d.data()}));
+      document.getElementById("count-cot").textContent = cotData.length.toLocaleString("es-CO");
+
+      const estadosCot = {};
+      let aprobMes = 0;
+      cotData.forEach(c => {
+        const e = c.estado || "pendiente";
+        estadosCot[e] = (estadosCot[e]||0) + 1;
+        if (e === "aprobada") {
+          const f = c.fecha?.toDate ? c.fecha.toDate() : c.fecha ? new Date(c.fecha) : null;
+          if (f && f.getMonth()===mesActual && f.getFullYear()===anioActual) aprobMes++;
+        }
+      });
+      document.getElementById("count-aprobadas").textContent = aprobMes;
+
+      // Pipeline
+      const pipeline = document.getElementById("pipeline-cots");
+      const estadoColors = {
+        pendiente:"#f59e0b", aprobada:"#22c55e", rechazada:"#ef4444",
+        enviada:"#3b82f6", revision:"#8b5cf6"
+      };
+      const estadoEmojis = {
+        pendiente:"⏳", aprobada:"✅", rechazada:"❌", enviada:"📤", revision:"🔍"
+      };
+      const totalCot = cotData.length || 1;
+      pipeline.innerHTML = Object.entries(estadosCot).map(([est, cnt]) => `
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:.8rem;font-weight:600;color:var(--text)">${estadoEmojis[est]||"📋"} ${est.charAt(0).toUpperCase()+est.slice(1)}</span>
+            <span style="font-size:.8rem;font-weight:700;color:${estadoColors[est]||"var(--green)"}">${cnt}</span>
+          </div>
+          <div style="background:#f3f4f6;border-radius:999px;height:6px;overflow:hidden">
+            <div style="height:100%;background:${estadoColors[est]||"var(--green)"};border-radius:999px;width:${Math.round((cnt/totalCot)*100)}%"></div>
+          </div>
+        </div>`).join("") || '<p style="color:var(--gray-lt);font-size:.82rem">Sin cotizaciones.</p>';
+
+      // ── Contabilidad / Finanzas ───────────────────
+      const cuentas = cuentasSnap.docs.map(d => d.data());
+      const movs    = movSnap.docs.map(d => d.data());
+
+      const totalCobrado = cuentas
+        .filter(c => c.estado === "pagada" || c.estado === "cobrada")
+        .reduce((s,c) => s + Number(c.total||c.valor||0), 0);
+      const totalPorCobrar = cuentas
+        .filter(c => c.estado !== "pagada" && c.estado !== "cobrada")
+        .reduce((s,c) => s + Number(c.total||c.valor||0), 0);
+      const totalGastos = movs
+        .filter(m => {
+          const f = m.fecha?.toDate ? m.fecha.toDate() : m.fecha ? new Date(m.fecha) : null;
+          return f && f.getMonth()===mesActual && f.getFullYear()===anioActual
+            && (m.tipo === "egreso" || m.tipo === "gasto");
+        })
+        .reduce((s,m) => s + Number(m.valor||m.monto||0), 0);
+      const utilidad = totalCobrado - totalGastos;
+
+      document.getElementById("fin-cobrado").textContent   = fmt(totalCobrado);
+      document.getElementById("fin-porcobrar").textContent = fmt(totalPorCobrar);
+      document.getElementById("fin-gastos").textContent    = fmt(totalGastos);
+      document.getElementById("fin-utilidad").textContent  = fmt(utilidad);
+      document.getElementById("count-ingresos").textContent = fmt(totalCobrado);
+
+      // ── Proyectos recientes ───────────────────────
+      const badge = (e) => {
+        const m = {pendiente:"#f59e0b",en_ejecucion:"#3b82f6",finalizado:"#22c55e",suspendido:"#ef4444"};
+        const l = {pendiente:"Pendiente",en_ejecucion:"En ejecución",finalizado:"Finalizado",suspendido:"Suspendido"};
+        return `<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;background:${m[e]||"#ccc"}20;color:${m[e]||"#ccc"}">${l[e]||e}</span>`;
+      };
+      const recientes = proySnap.docs
+        .map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>{ const ta=a.creadoEn?.toMillis?.()||0; const tb=b.creadoEn?.toMillis?.()||0; return tb-ta; })
+        .slice(0,5);
+      const listaEl = document.getElementById("lista-proy-recientes");
+      listaEl.innerHTML = recientes.length ? recientes.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+          <div>
+            <div style="font-size:.85rem;font-weight:600">${p.nombre || p.numero || p.id.slice(0,8)}</div>
+            <div style="font-size:.72rem;color:var(--gray-lt)">${p.nombreCliente||"Cliente"}</div>
+          </div>
+          ${badge(p.estado||"pendiente")}
+        </div>`).join("") :
+        '<p style="color:var(--gray-lt);font-size:.82rem;padding:12px 0">Sin proyectos registrados.</p>';
+
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>
+</body>
+</html>
 
     <!-- GRID: MÓDULOS + ACTIVIDAD -->
     <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;margin-bottom:32px">
