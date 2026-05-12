@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root{--bg:#f4efe7;--white:#ffffff;--green:#1b7a51;--green-dk:#155c3c;--green-lt:#e8f5ee;--text:#2c2c2c;--gray:#5a5a5a;--gray-lt:#9a9a9a;--line:#d6cfc5}
+    :root{--bg:#f4efe7;--white:#fff;--green:#1b7a51;--green-dk:#155c3c;--green-lt:#e8f5ee;--text:#2c2c2c;--gray:#5a5a5a;--gray-lt:#9a9a9a;--line:#d6cfc5}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);min-height:100vh}
     h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
@@ -20,7 +20,7 @@
     .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1.5px solid var(--green);transition:all .18s}
     .nav-back:hover{background:var(--green-lt)}
 
-    .main{max-width:900px;margin:0 auto;padding:40px 20px 80px}
+    .main{max-width:860px;margin:0 auto;padding:40px 20px 80px}
     .page-title{margin-bottom:32px}
     .page-title h1{font-size:2rem;margin-bottom:4px}
     .page-title p{color:var(--gray-lt);font-size:.9rem}
@@ -31,54 +31,57 @@
     .cot-numero{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:3px}
     .cot-fecha{font-size:.78rem;color:var(--gray-lt)}
     .cot-total{font-size:1.1rem;font-weight:700;color:var(--green);white-space:nowrap}
+
     .badge{display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:999px}
     .badge-pendiente{background:#fef9c3;color:#854d0e}
     .badge-aprobada{background:#dcfce7;color:#166534}
     .badge-rechazada{background:#fee2e2;color:#991b1b}
     .badge-enviada{background:#dbeafe;color:#1e40af}
 
-    /* Modal detalle */
+    /* Modal */
     .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:flex;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto}
     .modal-box{background:var(--white);border-radius:20px;width:100%;max-width:680px;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden}
-    .modal-header{padding:24px 28px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--green)}
+    .modal-header{padding:24px 28px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--green)}
     .modal-header h2{font-family:'DM Serif Display',serif;font-size:1.4rem;color:#fff}
     .modal-header p{font-size:.82rem;color:rgba(255,255,255,.75);margin-top:3px}
-    .modal-btn-close{color:rgba(255,255,255,.8);font-size:1.4rem;line-height:1;background:none;border:none;cursor:pointer;padding:4px}
+    .modal-btn-close{color:rgba(255,255,255,.8);font-size:1.4rem;background:none;border:none;cursor:pointer;padding:4px}
     .modal-btn-close:hover{color:#fff}
     .modal-body{padding:28px}
 
+    .lbl{display:block;font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-lt);margin-bottom:4px}
     .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
-    .info-item label{display:block;font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-lt);margin-bottom:4px}
     .info-item p{font-size:.92rem;font-weight:600;color:var(--text)}
 
-    /* Items table */
-    .items-section{margin-bottom:22px}
-    .items-section h4{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:12px}
-    .items-table{width:100%;border-collapse:collapse;font-size:.85rem}
+    .items-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:22px}
     .items-table th{text-align:left;padding:8px 10px;background:#f9f7f4;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-lt);border-bottom:1px solid var(--line)}
-    .items-table td{padding:10px 10px;border-bottom:1px solid #f0ece5}
+    .items-table td{padding:10px;border-bottom:1px solid #f0ece5}
     .items-table tr:last-child td{border-bottom:none}
-    .td-right{text-align:right;font-weight:600;color:var(--text)}
+    .td-r{text-align:right;font-weight:600}
 
-    /* Totales */
     .totales-box{background:#f9f7f4;border-radius:12px;padding:16px 20px;margin-bottom:22px}
     .total-row{display:flex;justify-content:space-between;font-size:.88rem;padding:4px 0}
     .total-row.final{font-size:1.05rem;font-weight:700;color:var(--green);border-top:1px solid var(--line);margin-top:8px;padding-top:10px}
 
-    /* Pagos */
     .pagos-list{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
     .pago-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--green-lt);border-radius:10px;font-size:.85rem}
     .pago-item span:last-child{font-weight:700;color:var(--green)}
 
-    /* Notas */
-    .notas-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;font-size:.85rem;color:var(--gray);line-height:1.65;white-space:pre-wrap}
+    .notas-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;font-size:.85rem;color:var(--gray);line-height:1.65;white-space:pre-wrap;margin-bottom:22px}
 
-    .btn-ver-pdf{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--green);color:#fff;border-radius:10px;font-weight:700;font-size:.88rem;transition:all .2s;margin-top:4px}
-    .btn-ver-pdf:hover{background:var(--green-dk)}
+    /* Acciones */
+    .acciones-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+    .btn-accion{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:700;font-size:.88rem;transition:all .2s;cursor:pointer;border:none}
+    .btn-ver{background:var(--green);color:#fff}
+    .btn-ver:hover{background:var(--green-dk)}
+    .btn-link{background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe}
+    .btn-link:hover{background:#dbeafe}
+    .btn-wa{background:#dcfce7;color:#166534;border:1.5px solid #bbf7d0}
+    .btn-wa:hover{background:#bbf7d0}
 
     .empty{text-align:center;padding:80px 20px;color:var(--gray-lt)}
     .empty i{font-size:2.5rem;color:var(--line);display:block;margin-bottom:16px}
     .spinner{text-align:center;padding:60px;color:var(--gray-lt)}
+    .alert-vinculacion{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:18px 22px;color:#9a3412;font-size:.9rem;margin-bottom:20px}
   </style>
 </head>
 <body>
@@ -112,8 +115,8 @@
 
       <div class="info-grid" id="m-info-grid"></div>
 
-      <div id="m-items-wrap" class="items-section" style="display:none">
-        <h4><i class="fas fa-list" style="margin-right:6px"></i>Ítems del servicio</h4>
+      <div id="m-items-wrap" style="display:none;margin-bottom:22px">
+        <span class="lbl" style="color:var(--green);margin-bottom:10px"><i class="fas fa-list" style="margin-right:5px"></i>Ítems del servicio</span>
         <table class="items-table">
           <thead>
             <tr>
@@ -130,20 +133,17 @@
       <div class="totales-box" id="m-totales"></div>
 
       <div id="m-pagos-wrap" style="display:none;margin-bottom:22px">
-        <p style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:10px">
-          <i class="fas fa-calendar-check" style="margin-right:5px"></i>Plan de pagos
-        </p>
+        <span class="lbl" style="color:var(--green);margin-bottom:10px"><i class="fas fa-calendar-check" style="margin-right:5px"></i>Plan de pagos</span>
         <div id="m-pagos" class="pagos-list"></div>
       </div>
 
-      <div id="m-notas-wrap" style="display:none;margin-bottom:22px">
-        <p style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:10px">
-          <i class="fas fa-sticky-note" style="margin-right:5px"></i>Notas y condiciones
-        </p>
+      <div id="m-notas-wrap" style="display:none">
+        <span class="lbl" style="color:var(--green);margin-bottom:10px"><i class="fas fa-sticky-note" style="margin-right:5px"></i>Notas y condiciones</span>
         <div id="m-notas" class="notas-box"></div>
       </div>
 
-      <div id="m-acciones"></div>
+      <!-- Acciones -->
+      <div class="acciones-row" id="m-acciones"></div>
 
     </div>
   </div>
@@ -163,46 +163,72 @@
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
   function fmt(n){return Number(n||0).toLocaleString('es-CO')}
   function fmtDate(ts){
-    try{const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}):'—'}catch{return'—'}
+    try{const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);
+    return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}):'—'}catch{return'—'}
   }
   function badgeEstado(e){
-    const m={pendiente:'badge-pendiente pendiente',aprobada:'badge-aprobada aprobada',rechazada:'badge-rechazada rechazada',enviada:'badge-enviada enviada'};
+    const m={pendiente:'badge-pendiente',aprobada:'badge-aprobada',rechazada:'badge-rechazada',enviada:'badge-enviada'};
     const l={pendiente:'⏳ Pendiente',aprobada:'✅ Aprobada',rechazada:'❌ Rechazada',enviada:'📤 Enviada'};
     return `<span class="badge ${m[e]||'badge-pendiente'}">${l[e]||e}</span>`;
+  }
+
+  // Construir link público de la cotización aunque no esté guardado en el campo
+  function getLinkPublico(cot) {
+    if (cot.linkPublico) return cot.linkPublico;
+    // Reconstruir con la base del config
+    const base = window.DOMKA_CONFIG?.PUBLIC_BASE_URL || window.location.origin.replace('/cliente','');
+    return `${base}/public/cotizacion.html?id=${cot.id}`;
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
     await Promise.resolve(window.__domkaFirebaseReady);
     if (!window.auth || !window.db) return;
+
     const unsub = window.auth.onAuthStateChanged(async (user) => {
-      if (!user) return;
+      if (!user) { window.location.href = 'login.html'; return; }
       unsub();
+
       const perfil = await cargarPerfil(user).catch(()=>null);
+
+      // Si no es cliente redirigir
+      if (perfil?.role && perfil.role !== 'client') {
+        window.location.href = '../cotizaciones.html'; return;
+      }
+
       const clienteId = perfil?.clienteId;
       const empresaId = perfil?.empresaId;
+
       if (!clienteId && !empresaId) {
-        document.getElementById('lista-cotizaciones').innerHTML =
-          '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
+        document.getElementById('lista-cotizaciones').innerHTML = `
+          <div class="alert-vinculacion">
+            <i class="fas fa-exclamation-circle" style="margin-right:8px"></i>
+            Tu cuenta aún no está vinculada a un cliente. Contacta a DOMKA para activar tu acceso.
+          </div>`;
         return;
       }
+
       try {
+        // ✅ Filtrar SOLO las cotizaciones de este cliente
         const [snapCli, snapEmp] = await Promise.all([
           clienteId ? db.collection('cotizaciones').where('clienteId','==',clienteId).get() : Promise.resolve(null),
           empresaId ? db.collection('cotizaciones').where('empresaId','==',empresaId).get() : Promise.resolve(null)
         ]);
+
         const map = new Map();
-        (snapCli?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-        (snapEmp?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+        (snapCli?.docs||[]).forEach(d => map.set(d.id, {id:d.id,...d.data()}));
+        (snapEmp?.docs||[]).forEach(d => map.set(d.id, {id:d.id,...d.data()}));
+
         _cots = Array.from(map.values()).sort((a,b)=>{
-          const ad=a.fecha?.toDate?a.fecha.toDate().getTime():new Date(a.fecha||0).getTime();
-          const bd=b.fecha?.toDate?b.fecha.toDate().getTime():new Date(b.fecha||0).getTime();
-          return bd-ad;
+          const ad = a.fecha?.toDate?a.fecha.toDate().getTime():new Date(a.fecha||0).getTime();
+          const bd = b.fecha?.toDate?b.fecha.toDate().getTime():new Date(b.fecha||0).getTime();
+          return bd - ad;
         });
+
         renderLista();
       } catch(e) {
-        console.error(e);
+        console.error('Error cotizaciones:', e);
         document.getElementById('lista-cotizaciones').innerHTML =
-          '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando cotizaciones.</p></div>';
+          '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando cotizaciones.<br><small>'+e.message+'</small></p></div>';
       }
     });
   });
@@ -229,22 +255,20 @@
   }
 
   function verDetalle(id) {
-    const c = _cots.find(x=>x.id===id);
+    const c = _cots.find(x => x.id === id);
     if (!c) return;
 
     document.getElementById('m-numero').textContent = c.numero || 'Cotización';
-    document.getElementById('m-fecha').textContent = fmtDate(c.fecha);
+    document.getElementById('m-fecha').textContent  = fmtDate(c.fecha);
 
     // Info grid
-    const infos = [
-      { label:'Estado',      val: badgeEstado(c.estado||'pendiente'), raw:true },
-      { label:'Tipo',        val: c.tipo || '—' },
-      { label:'Forma de pago', val: {contado:'Contado','60-40':'60/40','50-50':'50/50','tres-pagos':'3 pagos',personalizado:'Personalizado'}[c.formaPago] || c.formaPago || '—' },
-      { label:'Fecha',       val: fmtDate(c.fecha) },
-    ];
-    document.getElementById('m-info-grid').innerHTML = infos.map(i=>
-      `<div class="info-item"><label>${i.label}</label><p>${i.raw?i.val:esc(i.val)}</p></div>`
-    ).join('');
+    const fmtPago = {contado:'Contado','60-40':'60% / 40%','50-50':'50% / 50%','tres-pagos':'3 pagos',personalizado:'Personalizado'};
+    document.getElementById('m-info-grid').innerHTML = [
+      { label:'Estado',        val: badgeEstado(c.estado||'pendiente'), raw:true },
+      { label:'Tipo',          val: c.tipo || '—' },
+      { label:'Forma de pago', val: fmtPago[c.formaPago] || c.formaPago || '—' },
+      { label:'Fecha',         val: fmtDate(c.fecha) },
+    ].map(i=>`<div class="info-item"><span class="lbl">${i.label}</span><p>${i.raw?i.val:esc(i.val)}</p></div>`).join('');
 
     // Items
     const items = c.items || [];
@@ -255,22 +279,19 @@
         <tr>
           <td>${esc(it.descripcion||'')}</td>
           <td style="text-align:center">${it.cantidad||1}</td>
-          <td class="td-right">$${fmt(it.precio)}</td>
-          <td class="td-right">$${fmt(it.subtotal)}</td>
+          <td class="td-r">$${fmt(it.precio)}</td>
+          <td class="td-r">$${fmt(it.subtotal)}</td>
         </tr>`).join('');
     } else {
       itemsWrap.style.display = 'none';
     }
 
     // Totales
-    const totalesEl = document.getElementById('m-totales');
-    if (c.tipoCalculo !== 'valor-total' && c.subtotal !== c.total) {
-      totalesEl.innerHTML = `
-        <div class="total-row"><span>Subtotal</span><span>$${fmt(c.subtotal)}</span></div>
-        <div class="total-row final"><span>Total</span><span>$${fmt(c.total)}</span></div>`;
-    } else {
-      totalesEl.innerHTML = `<div class="total-row final"><span>Total</span><span>$${fmt(c.total)}</span></div>`;
-    }
+    const totEl = document.getElementById('m-totales');
+    totEl.innerHTML = (c.subtotal && c.subtotal !== c.total)
+      ? `<div class="total-row"><span>Subtotal</span><span>$${fmt(c.subtotal)}</span></div>
+         <div class="total-row final"><span>Total</span><span>$${fmt(c.total)}</span></div>`
+      : `<div class="total-row final"><span>Total</span><span>$${fmt(c.total)}</span></div>`;
 
     // Plan de pagos
     const pagos = c.planPagos || [];
@@ -296,27 +317,38 @@
       notasWrap.style.display = 'none';
     }
 
-    // Acciones
-    const accionesEl = document.getElementById('m-acciones');
-    accionesEl.innerHTML = '';
-    if (c.linkPublico) {
-      const btn = document.createElement('a');
-      btn.href = c.linkPublico;
-      btn.target = '_blank';
-      btn.className = 'btn-ver-pdf';
-      btn.innerHTML = '<i class="fas fa-file-pdf"></i> Ver cotización completa (PDF)';
-      accionesEl.appendChild(btn);
-    }
+    // ✅ Acciones — siempre mostrar el link (reconstruido si no existe)
+    const link = getLinkPublico(c);
+    const tel  = (c.telefono||'').replace(/\D/g,'');
+
+    document.getElementById('m-acciones').innerHTML = `
+      <a href="${esc(link)}" target="_blank" class="btn-accion btn-ver">
+        <i class="fas fa-external-link-alt"></i> Ver cotización
+      </a>
+      <button onclick="copiarLink('${esc(link)}')" class="btn-accion btn-link">
+        <i class="fas fa-copy"></i> Copiar link
+      </button>
+      ${tel ? `<a href="https://wa.me/${tel}?text=${encodeURIComponent('Hola, tengo una consulta sobre mi cotización: '+link)}" target="_blank" class="btn-accion btn-wa">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>` : ''}`;
 
     document.getElementById('modal-cot').style.display = 'flex';
+  }
+
+  function copiarLink(link) {
+    navigator.clipboard.writeText(link).then(() => {
+      const btn = document.querySelector('.btn-link');
+      if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!'; setTimeout(()=>btn.innerHTML='<i class="fas fa-copy"></i> Copiar link', 2000); }
+    }).catch(() => { prompt('Copia este link:', link); });
   }
 
   function cerrarModal() {
     document.getElementById('modal-cot').style.display = 'none';
   }
 
-  window.verDetalle = verDetalle;
+  window.verDetalle  = verDetalle;
   window.cerrarModal = cerrarModal;
+  window.copiarLink  = copiarLink;
 </script>
 </body>
 </html>
