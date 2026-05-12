@@ -1,302 +1,322 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>DOMKA - Cotizaciones</title>
-  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>DOMKA — Mis Cotizaciones</title>
+  <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/app-pages.css">
   <style>
-    .hidden { display: none !important; }
+    :root{--bg:#f4efe7;--white:#ffffff;--green:#1b7a51;--green-dk:#155c3c;--green-lt:#e8f5ee;--text:#2c2c2c;--gray:#5a5a5a;--gray-lt:#9a9a9a;--line:#d6cfc5}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);min-height:100vh}
+    h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
+    a{text-decoration:none;color:inherit}
+    button{cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
 
-    /* Totales con diseÃ±o DOMKA */
-    .totales-container {
-      background: var(--white);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      padding: 20px 22px;
-    }
+    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04)}
+    .portal-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green)}
+    .nav-back{font-size:.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1.5px solid var(--green);transition:all .18s}
+    .nav-back:hover{background:var(--green-lt)}
 
-    .totales-total-row {
-      background: var(--text);
-      border-radius: 10px;
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 12px;
-    }
+    .main{max-width:900px;margin:0 auto;padding:40px 20px 80px}
+    .page-title{margin-bottom:32px}
+    .page-title h1{font-size:2rem;margin-bottom:4px}
+    .page-title p{color:var(--gray-lt);font-size:.9rem}
 
-    .totales-total-label {
-      font-size: .68rem; font-weight: 700;
-      letter-spacing: .14em; text-transform: uppercase;
-      color: rgba(255,255,255,.6);
-    }
+    /* Cards lista */
+    .cot-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;transition:all .2s;flex-wrap:wrap}
+    .cot-card:hover{border-color:var(--green);box-shadow:0 4px 20px rgba(27,122,81,.1);transform:translateY(-1px)}
+    .cot-numero{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:3px}
+    .cot-fecha{font-size:.78rem;color:var(--gray-lt)}
+    .cot-total{font-size:1.1rem;font-weight:700;color:var(--green);white-space:nowrap}
+    .badge{display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:999px}
+    .badge-pendiente{background:#fef9c3;color:#854d0e}
+    .badge-aprobada{background:#dcfce7;color:#166534}
+    .badge-rechazada{background:#fee2e2;color:#991b1b}
+    .badge-enviada{background:#dbeafe;color:#1e40af}
 
-    .totales-total-value {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.6rem; color: #fff;
-    }
+    /* Modal detalle */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:flex;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto}
+    .modal-box{background:var(--white);border-radius:20px;width:100%;max-width:680px;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden}
+    .modal-header{padding:24px 28px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--green)}
+    .modal-header h2{font-family:'DM Serif Display',serif;font-size:1.4rem;color:#fff}
+    .modal-header p{font-size:.82rem;color:rgba(255,255,255,.75);margin-top:3px}
+    .modal-btn-close{color:rgba(255,255,255,.8);font-size:1.4rem;line-height:1;background:none;border:none;cursor:pointer;padding:4px}
+    .modal-btn-close:hover{color:#fff}
+    .modal-body{padding:28px}
 
-    /* Scrollbar */
-    .scrollable-table::-webkit-scrollbar { height: 5px; }
-    .scrollable-table::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+    .info-item label{display:block;font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-lt);margin-bottom:4px}
+    .info-item p{font-size:.92rem;font-weight:600;color:var(--text)}
+
+    /* Items table */
+    .items-section{margin-bottom:22px}
+    .items-section h4{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:12px}
+    .items-table{width:100%;border-collapse:collapse;font-size:.85rem}
+    .items-table th{text-align:left;padding:8px 10px;background:#f9f7f4;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-lt);border-bottom:1px solid var(--line)}
+    .items-table td{padding:10px 10px;border-bottom:1px solid #f0ece5}
+    .items-table tr:last-child td{border-bottom:none}
+    .td-right{text-align:right;font-weight:600;color:var(--text)}
+
+    /* Totales */
+    .totales-box{background:#f9f7f4;border-radius:12px;padding:16px 20px;margin-bottom:22px}
+    .total-row{display:flex;justify-content:space-between;font-size:.88rem;padding:4px 0}
+    .total-row.final{font-size:1.05rem;font-weight:700;color:var(--green);border-top:1px solid var(--line);margin-top:8px;padding-top:10px}
+
+    /* Pagos */
+    .pagos-list{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+    .pago-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--green-lt);border-radius:10px;font-size:.85rem}
+    .pago-item span:last-child{font-weight:700;color:var(--green)}
+
+    /* Notas */
+    .notas-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;font-size:.85rem;color:var(--gray);line-height:1.65;white-space:pre-wrap}
+
+    .btn-ver-pdf{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:var(--green);color:#fff;border-radius:10px;font-weight:700;font-size:.88rem;transition:all .2s;margin-top:4px}
+    .btn-ver-pdf:hover{background:var(--green-dk)}
+
+    .empty{text-align:center;padding:80px 20px;color:var(--gray-lt)}
+    .empty i{font-size:2.5rem;color:var(--line);display:block;margin-bottom:16px}
+    .spinner{text-align:center;padding:60px;color:var(--gray-lt)}
   </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="app-sidebar">
-  <div class="sidebar-brand-wrap">
-    <span class="sidebar-brand-name">DOMKA</span>
-    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+<header class="portal-header">
+  <span class="portal-logo">DOMKA</span>
+  <a href="index.html" class="nav-back"><i class="fas fa-arrow-left"></i> Portal</a>
+</header>
+
+<div class="main">
+  <div class="page-title">
+    <h1>Mis cotizaciones</h1>
+    <p>Presupuestos y propuestas enviadas por DOMKA</p>
   </div>
-  <nav class="sidebar-links">
-    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="cotizaciones.html" class="sidebar-link active" data-rol-min="comercial"><i class="fas fa-file-alt"></i> Cotizaciones</a>
-    <a href="clientes.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-users"></i> Clientes</a>
-    <a href="proyectos.html" class="sidebar-link"><i class="fas fa-hard-hat"></i> Proyectos</a>
-    <a href="documentos.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-folder-open"></i> Documentos</a>
-    <a href="contabilidad.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-chart-bar"></i> Contabilidad</a>
-    <a href="usuarios.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-user-cog"></i> Usuarios</a>
-  </nav>
-  <div class="sidebar-bottom">
-    <div class="user-indicator">
-      <div class="user-dot"></div>
-      <div>
-        <span class="user-email-text" id="user-email">Cargando…</span>
-        <span style="display:block;font-size:.6rem;color:var(--gray-lt)" id="user-rol"></span>
-      </div>
-    </div>
-    <button onclick="logout()" class="btn-logout">
-      <i class="fas fa-sign-out-alt"></i> Cerrar sesion
-    </button>
+  <div id="lista-cotizaciones">
+    <div class="spinner"><i class="fas fa-circle-notch fa-spin"></i></div>
   </div>
-</aside>
-
-<!-- MAIN -->
-<div class="page-with-sidebar">
-
-  <!-- TOP BAR -->
-  <div class="page-topbar">
-    <div>
-      <h1 class="page-heading">Cotizaciones</h1>
-      <p class="page-subheading">Crea y gestiona tus cotizaciones</p>
-    </div>
-    <a href="dashboard.html" class="btn-secondary px-4 py-2 rounded-lg inline-flex items-center gap-2 text-sm">
-      <i class="fas fa-arrow-left"></i> Volver al Dashboard
-    </a>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Formulario CotizaciÃ³n -->
-    <div class="lg:col-span-2">
-      <div class="form-container p-6 mb-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200">
-          Nueva Cotización
-        </h2>
-
-        <form id="form-cotizacion" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label class="form-label">Cliente</label>
-              <select id="cliente" class="form-input" required>
-                <option value="">Selecciona un cliente</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label">Ubicación</label>
-              <input type="text" id="ubicacion" class="form-input" placeholder="Ej: Bogotá¡, Calle 123 #45-67">
-            </div>
-          </div>
-
-          <!-- Notas -->
-          <div>
-            <label class="form-label">Notas</label>
-            <div class="flex gap-2 mb-3">
-              <button type="button" id="btn-notas-libre" class="px-3 py-1.5 rounded text-sm">Texto libre</button>
-              <button type="button" id="btn-notas-vinetas" class="px-3 py-1.5 rounded text-sm">Viñetas</button>
-            </div>
-            <div id="notas-modo-libre">
-              <textarea id="notas" rows="3" spellcheck="true" lang="es" class="form-input" placeholder="Notas adicionales... (cada line sera una viñeta en el PDF)"></textarea>
-            </div>
-            <div id="notas-modo-vinetas" class="hidden">
-              <div id="notas-vinetas-container"></div>
-              <button type="button" id="agregar-vineta" class="mt-2 text-sm" style="color:var(--green)">Agregar viñeta</button>
-            </div>
-          </div>
-
-          <!-- Mostrar documento -->
-          <div class="p-3 rounded-lg" style="background:var(--bg-alt);border:1px solid var(--line)">
-            <label class="flex items-center gap-2" style="font-size:.88rem">
-              <input type="checkbox" id="mostrar-documento" checked style="accent-color:var(--green)">
-              Mostrar numero de documento en el PDF
-            </label>
-          </div>
-
-          <!-- Anexos -->
-          <div>
-            <div class="flex justify-between items-center px-4 py-3 rounded-lg cursor-pointer" style="background:var(--bg-alt);border:1px solid var(--line)" id="toggle-anexos">
-              <span class="font-semibold text-sm flex items-center gap-2" style="color:var(--text)">
-                <i class="fas fa-paperclip" style="color:var(--green)"></i> Anexos
-              </span>
-              <span id="icon-anexos" style="color:var(--gray)">+</span>
-            </div>
-            <div id="seccion-anexos" class="hidden mt-2 p-4 rounded-lg" style="background:var(--bg-alt);border:1px solid var(--line)">
-              <input type="file" id="anexos-input" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,image/*" class="w-full border rounded p-2 mb-2" style="border-color:var(--line)">
-              <p class="text-xs" style="color:var(--gray-lt)">Max. 500 KB por archivo· PDF, Word, PPT o imagenes</p>
-              <ul id="lista-anexos" class="mt-3 space-y-2"></ul>
-            </div>
-          </div>
-
-          <!-- Tipo de cotizaciÃ³n -->
-          <div>
-            <label class="form-label mb-2">Tipo de Cotización</label>
-            <div class="radio-group flex gap-3 flex-wrap">
-              <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
-                <input type="radio" name="tipo" value="mano-obra" checked style="accent-color:var(--green)"> Mano de obra
-              </label>
-              <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
-                <input type="radio" name="tipo" value="materiales" style="accent-color:var(--green)"> Materiales
-              </label>
-              <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
-                <input type="radio" name="tipo" value="ambos" style="accent-color:var(--green)"> Ambos
-              </label>
-            </div>
-          </div>
-
-          <!-- Forma de pago -->
-          <div>
-            <label class="form-label">Forma de Pago</label>
-            <select id="forma-pago" class="form-input mb-3">
-              <option value="contado">Pago al contado</option>
-              <option value="60-40">60% al inicio - 40% al finalizar</option>
-              <option value="50-50">50% al inicio - 50% al finalizar</option>
-              <option value="tres-pagos">Tres pagos (40%-30%-30%)</option>
-              <option value="personalizado">Personalizado...</option>
-            </select>
-            <div id="pagos-personalizados" class="hidden mt-4 p-4 rounded-lg" style="background:var(--green-lt);border:1px solid rgba(27,122,81,.2)">
-              <div class="grid grid-cols-3 gap-3 mb-2">
-                <div><label class="form-label">Pago 1 (%)</label><input type="number" id="pago1" class="form-input" value="50"></div>
-                <div><label class="form-label">Pago 2 (%)</label><input type="number" id="pago2" class="form-input" value="50"></div>
-                <div><label class="form-label">Pago 3 (%)</label><input type="number" id="pago3" class="form-input" value="0"></div>
-              </div>
-              <p class="text-xs" style="color:var(--green)">La suma debe ser 100%</p>
-            </div>
-          </div>
-
-          <!-- Tipo de cÃ¡lculo -->
-          <div>
-            <label class="form-label mb-2">Tipo de calculo</label>
-            <div class="flex gap-3 flex-wrap">
-              <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
-                <input type="radio" name="tipo-calculo" value="por-items" checked style="accent-color:var(--green)"> Calcular por Items
-              </label>
-              <label class="radio-option flex items-center gap-2 px-4 py-2 cursor-pointer" style="border:1.5px solid var(--line);border-radius:8px;background:var(--white)">
-                <input type="radio" name="tipo-calculo" value="valor-total" style="accent-color:var(--green)"> Ingresar valor total
-              </label>
-            </div>
-          </div>
-
-          <div id="campo-valor-total" class="hidden">
-            <label class="form-label">Valor total</label>
-            <input type="number" id="valor-total" class="form-input" value="0" min="0">
-          </div>
-
-          <!-- Mostrar letras -->
-          <div class="p-3 rounded-lg" style="background:var(--bg-alt);border:1px solid var(--line)">
-            <label class="flex items-center gap-2" style="font-size:.88rem">
-              <input type="checkbox" id="mostrar-valor-letras" checked style="accent-color:var(--green)">
-              Mostrar valor total en letras en el PDF
-            </label>
-          </div>
-
-          <!-- Tabla Ã­tems -->
-          <div>
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="font-semibold" style="color:var(--text)">Items</h3>
-              <button type="button" id="agregar-item" class="btn-primary px-3 py-2 rounded-lg text-sm">
-                + Agregar Item
-              </button>
-            </div>
-            <div class="scrollable-table" style="border-radius:10px;overflow:hidden;border:1px solid var(--line)">
-              <table class="w-full border-collapse" id="tabla-items">
-                <thead>
-                  <tr>
-                    <th class="p-3 text-left">Descripción</th>
-                    <th class="p-3 text-center col-cantidad">Cantidad</th>
-                    <th class="p-3 text-right col-precio">Precio</th>
-                    <th class="p-3 text-right col-subtotal">Subtotal</th>
-                    <th class="p-3 text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Totales -->
-          <div class="totales-container">
-            <div class="flex justify-between items-center mb-2">
-              <span style="color:var(--gray);font-size:.9rem">Subtotal:</span>
-              <span class="font-semibold" id="subtotal">$0</span>
-            </div>
-            <div class="totales-total-row">
-              <span class="totales-total-label">Total a pagar</span>
-              <span class="totales-total-value" id="total">$0</span>
-            </div>
-            <p id="valor-letras" class="text-sm mt-2 italic" style="color:var(--gray-lt);text-align:right">Cero pesos</p>
-          </div>
-
-          <button type="submit" class="btn-primary px-6 py-3 rounded-lg text-base w-full mt-2">
-            Guardar Cotización
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Lista cotizaciones -->
-    <div>
-      <div class="form-container p-5">
-        <h2 class="text-xl mb-5 pb-3" style="border-bottom:1px solid var(--line)">
-          Cotizaciones Guardadas
-        </h2>
-        <div class="scrollable-table">
-          <table class="w-full border-collapse" id="tabla-cotizaciones">
-            <thead>
-              <tr>
-                <th class="p-3 text-left">Cliente</th>
-                <th class="p-3 text-left">Total</th>
-                <th class="p-3 text-left">Tipo</th>
-                <th class="p-3 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<!-- Scripts -->
+<!-- Modal detalle -->
+<div id="modal-cot" class="modal-overlay" style="display:none" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <h2 id="m-numero">—</h2>
+        <p id="m-fecha">—</p>
+      </div>
+      <button class="modal-btn-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="info-grid" id="m-info-grid"></div>
+
+      <div id="m-items-wrap" class="items-section" style="display:none">
+        <h4><i class="fas fa-list" style="margin-right:6px"></i>Ítems del servicio</h4>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th style="text-align:center">Cant.</th>
+              <th style="text-align:right">Precio</th>
+              <th style="text-align:right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="m-items-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="totales-box" id="m-totales"></div>
+
+      <div id="m-pagos-wrap" style="display:none;margin-bottom:22px">
+        <p style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:10px">
+          <i class="fas fa-calendar-check" style="margin-right:5px"></i>Plan de pagos
+        </p>
+        <div id="m-pagos" class="pagos-list"></div>
+      </div>
+
+      <div id="m-notas-wrap" style="display:none;margin-bottom:22px">
+        <p style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:10px">
+          <i class="fas fa-sticky-note" style="margin-right:5px"></i>Notas y condiciones
+        </p>
+        <div id="m-notas" class="notas-box"></div>
+      </div>
+
+      <div id="m-acciones"></div>
+
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-<script src="js/config.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/roles.js"></script>
-<script src="js/security.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/numero-letras.js"></script>
-<script src="js/pdf-cotizacion.js"></script>
-<script src="js/spellcheck.js"></script>
-<script src="js/cotizaciones.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/firebase.js"></script>
+<script src="../js/security.js"></script>
+<script src="../js/roles.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  let _cots = [];
+
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function fmt(n){return Number(n||0).toLocaleString('es-CO')}
+  function fmtDate(ts){
+    try{const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}):'—'}catch{return'—'}
+  }
+  function badgeEstado(e){
+    const m={pendiente:'badge-pendiente pendiente',aprobada:'badge-aprobada aprobada',rechazada:'badge-rechazada rechazada',enviada:'badge-enviada enviada'};
+    const l={pendiente:'⏳ Pendiente',aprobada:'✅ Aprobada',rechazada:'❌ Rechazada',enviada:'📤 Enviada'};
+    return `<span class="badge ${m[e]||'badge-pendiente'}">${l[e]||e}</span>`;
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await Promise.resolve(window.__domkaFirebaseReady);
+    if (!window.auth || !window.db) return;
+    const unsub = window.auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+      unsub();
+      const perfil = await cargarPerfil(user).catch(()=>null);
+      const clienteId = perfil?.clienteId;
+      const empresaId = perfil?.empresaId;
+      if (!clienteId && !empresaId) {
+        document.getElementById('lista-cotizaciones').innerHTML =
+          '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada. Contacta a DOMKA.</p></div>';
+        return;
+      }
+      try {
+        const [snapCli, snapEmp] = await Promise.all([
+          clienteId ? db.collection('cotizaciones').where('clienteId','==',clienteId).get() : Promise.resolve(null),
+          empresaId ? db.collection('cotizaciones').where('empresaId','==',empresaId).get() : Promise.resolve(null)
+        ]);
+        const map = new Map();
+        (snapCli?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+        (snapEmp?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+        _cots = Array.from(map.values()).sort((a,b)=>{
+          const ad=a.fecha?.toDate?a.fecha.toDate().getTime():new Date(a.fecha||0).getTime();
+          const bd=b.fecha?.toDate?b.fecha.toDate().getTime():new Date(b.fecha||0).getTime();
+          return bd-ad;
+        });
+        renderLista();
+      } catch(e) {
+        console.error(e);
+        document.getElementById('lista-cotizaciones').innerHTML =
+          '<div class="empty"><i class="fas fa-exclamation-triangle"></i><p>Error cargando cotizaciones.</p></div>';
+      }
+    });
+  });
+
+  function renderLista() {
+    const c = document.getElementById('lista-cotizaciones');
+    if (!_cots.length) {
+      c.innerHTML = '<div class="empty"><i class="fas fa-file-alt"></i><p>Aún no tienes cotizaciones.</p></div>';
+      return;
+    }
+    c.innerHTML = _cots.map(cot => `
+      <div class="cot-card" onclick="verDetalle('${cot.id}')">
+        <div>
+          <div class="cot-numero">${esc(cot.numero||'Cotización')}</div>
+          <div class="cot-fecha"><i class="fas fa-calendar" style="margin-right:4px"></i>${fmtDate(cot.fecha)}</div>
+          <div style="margin-top:8px">${badgeEstado(cot.estado||'pendiente')}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="cot-total">$${fmt(cot.total)}</div>
+          <div style="font-size:.75rem;color:var(--gray-lt);margin-top:4px">${esc(cot.tipo||'')}</div>
+          <div style="font-size:.78rem;color:var(--green);margin-top:8px;font-weight:600">Ver detalle →</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function verDetalle(id) {
+    const c = _cots.find(x=>x.id===id);
+    if (!c) return;
+
+    document.getElementById('m-numero').textContent = c.numero || 'Cotización';
+    document.getElementById('m-fecha').textContent = fmtDate(c.fecha);
+
+    // Info grid
+    const infos = [
+      { label:'Estado',      val: badgeEstado(c.estado||'pendiente'), raw:true },
+      { label:'Tipo',        val: c.tipo || '—' },
+      { label:'Forma de pago', val: {contado:'Contado','60-40':'60/40','50-50':'50/50','tres-pagos':'3 pagos',personalizado:'Personalizado'}[c.formaPago] || c.formaPago || '—' },
+      { label:'Fecha',       val: fmtDate(c.fecha) },
+    ];
+    document.getElementById('m-info-grid').innerHTML = infos.map(i=>
+      `<div class="info-item"><label>${i.label}</label><p>${i.raw?i.val:esc(i.val)}</p></div>`
+    ).join('');
+
+    // Items
+    const items = c.items || [];
+    const itemsWrap = document.getElementById('m-items-wrap');
+    if (items.length && c.tipoCalculo !== 'valor-total') {
+      itemsWrap.style.display = '';
+      document.getElementById('m-items-tbody').innerHTML = items.map(it=>`
+        <tr>
+          <td>${esc(it.descripcion||'')}</td>
+          <td style="text-align:center">${it.cantidad||1}</td>
+          <td class="td-right">$${fmt(it.precio)}</td>
+          <td class="td-right">$${fmt(it.subtotal)}</td>
+        </tr>`).join('');
+    } else {
+      itemsWrap.style.display = 'none';
+    }
+
+    // Totales
+    const totalesEl = document.getElementById('m-totales');
+    if (c.tipoCalculo !== 'valor-total' && c.subtotal !== c.total) {
+      totalesEl.innerHTML = `
+        <div class="total-row"><span>Subtotal</span><span>$${fmt(c.subtotal)}</span></div>
+        <div class="total-row final"><span>Total</span><span>$${fmt(c.total)}</span></div>`;
+    } else {
+      totalesEl.innerHTML = `<div class="total-row final"><span>Total</span><span>$${fmt(c.total)}</span></div>`;
+    }
+
+    // Plan de pagos
+    const pagos = c.planPagos || [];
+    const pagosWrap = document.getElementById('m-pagos-wrap');
+    if (pagos.length > 1) {
+      pagosWrap.style.display = '';
+      document.getElementById('m-pagos').innerHTML = pagos.map(p=>`
+        <div class="pago-item">
+          <span>${esc(p.descripcion||'')}</span>
+          <span>$${fmt(p.monto)} (${p.porcentaje}%)</span>
+        </div>`).join('');
+    } else {
+      pagosWrap.style.display = 'none';
+    }
+
+    // Notas
+    const notas = (c.notasArray||[]).join('\n') || c.notas || '';
+    const notasWrap = document.getElementById('m-notas-wrap');
+    if (notas.trim()) {
+      notasWrap.style.display = '';
+      document.getElementById('m-notas').textContent = notas;
+    } else {
+      notasWrap.style.display = 'none';
+    }
+
+    // Acciones
+    const accionesEl = document.getElementById('m-acciones');
+    accionesEl.innerHTML = '';
+    if (c.linkPublico) {
+      const btn = document.createElement('a');
+      btn.href = c.linkPublico;
+      btn.target = '_blank';
+      btn.className = 'btn-ver-pdf';
+      btn.innerHTML = '<i class="fas fa-file-pdf"></i> Ver cotización completa (PDF)';
+      accionesEl.appendChild(btn);
+    }
+
+    document.getElementById('modal-cot').style.display = 'flex';
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-cot').style.display = 'none';
+  }
+
+  window.verDetalle = verDetalle;
+  window.cerrarModal = cerrarModal;
+</script>
 </body>
 </html>
-
