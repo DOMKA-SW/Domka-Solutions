@@ -81,11 +81,43 @@
       <div class="portal-user-name" id="user-nombre">—</div>
       <div class="portal-user-sub" id="user-empresa">Cliente</div>
     </div>
+    <button onclick="abrirCambiarPass()" style="padding:7px 12px;background:var(--bg-alt);border-radius:8px;font-size:.78rem;font-weight:600;color:var(--gray);border:none;cursor:pointer" title="Cambiar contraseña">
+      <i class="fas fa-key"></i> Contraseña
+    </button>
     <button class="btn-logout-portal" onclick="logout()">
       <i class="fas fa-sign-out-alt"></i> Salir
     </button>
   </div>
 </header>
+
+<!-- Modal cambiar contraseña -->
+<div id="modal-cambiar-pass" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;padding:24px">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:400px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 style="font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:16px">🔑 Cambiar contraseña</h3>
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5a5a5a;margin-bottom:6px">Contraseña actual</label>
+      <input id="cp-actual" type="password" placeholder="••••••••"
+        style="width:100%;padding:10px 12px;border:1.5px solid #d6cfc5;border-radius:8px;font-size:.92rem;background:#faf8f4">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5a5a5a;margin-bottom:6px">Nueva contraseña</label>
+      <input id="cp-nueva" type="password" placeholder="••••••••"
+        style="width:100%;padding:10px 12px;border:1.5px solid #d6cfc5;border-radius:8px;font-size:.92rem;background:#faf8f4">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5a5a5a;margin-bottom:6px">Confirmar nueva</label>
+      <input id="cp-confirmar" type="password" placeholder="••••••••"
+        style="width:100%;padding:10px 12px;border:1.5px solid #d6cfc5;border-radius:8px;font-size:.92rem;background:#faf8f4">
+    </div>
+    <div id="cp-msg" style="display:none;border-radius:8px;padding:9px 12px;font-size:.84rem;margin-bottom:12px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="cerrarCambiarPass()"
+        style="flex:1;padding:11px;border:1.5px solid #d6cfc5;border-radius:9px;font-size:.9rem;font-weight:600;color:#5a5a5a;background:transparent;cursor:pointer">Cancelar</button>
+      <button id="cp-btn" onclick="confirmarCambiarPass()"
+        style="flex:1;padding:11px;background:#1b7a51;color:#fff;border:none;border-radius:9px;font-size:.9rem;font-weight:700;cursor:pointer">Cambiar</button>
+    </div>
+  </div>
+</div>
 
 <div class="portal-main">
 
@@ -271,6 +303,66 @@
       }
     });
   });
+</script>
+
+<script>
+  // ── Cambiar contraseña ────────────────────────────
+  function abrirCambiarPass() {
+    const m = document.getElementById('modal-cambiar-pass');
+    m.style.display = 'flex';
+    ['cp-actual','cp-nueva','cp-confirmar'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const msg = document.getElementById('cp-msg');
+    if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+  }
+
+  function cerrarCambiarPass() {
+    document.getElementById('modal-cambiar-pass').style.display = 'none';
+  }
+
+  async function confirmarCambiarPass() {
+    const actual    = document.getElementById('cp-actual')?.value || '';
+    const nueva     = document.getElementById('cp-nueva')?.value || '';
+    const confirmar = document.getElementById('cp-confirmar')?.value || '';
+    const msg       = document.getElementById('cp-msg');
+    const btn       = document.getElementById('cp-btn');
+
+    function showMsg(type, text) {
+      msg.style.display = 'block';
+      msg.style.background = type === 'ok' ? '#dcfce7' : '#fee2e2';
+      msg.style.border = `1px solid ${type === 'ok' ? '#86efac' : '#fca5a5'}`;
+      msg.style.color  = type === 'ok' ? '#166534' : '#991b1b';
+      msg.textContent  = text;
+    }
+
+    if (!actual || !nueva || !confirmar) { showMsg('err','Completa todos los campos.'); return; }
+    if (nueva.length < 6)               { showMsg('err','La nueva contraseña debe tener al menos 6 caracteres.'); return; }
+    if (nueva !== confirmar)             { showMsg('err','Las contraseñas nuevas no coinciden.'); return; }
+
+    btn.disabled = true; btn.textContent = 'Cambiando…';
+    try {
+      const user = window.auth?.currentUser;
+      if (!user) throw new Error('No hay sesión activa.');
+
+      // Re-autenticar antes de cambiar contraseña (requerido por Firebase)
+      const cred = window.firebase.auth.EmailAuthProvider.credential(user.email, actual);
+      await user.reauthenticateWithCredential(cred);
+      await user.updatePassword(nueva);
+      showMsg('ok','✅ Contraseña actualizada correctamente.');
+      setTimeout(cerrarCambiarPass, 2000);
+    } catch(e) {
+      if (e?.code === 'auth/wrong-password') {
+        showMsg('err','La contraseña actual es incorrecta.');
+      } else if (e?.code === 'auth/weak-password') {
+        showMsg('err','La contraseña nueva es muy débil (mínimo 6 caracteres).');
+      } else {
+        showMsg('err', e?.message || String(e));
+      }
+    } finally {
+      btn.disabled = false; btn.textContent = 'Cambiar';
+    }
+  }
 </script>
 </body>
 </html>
