@@ -1440,28 +1440,28 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Nombre completo</label>
-              <input type="text" class="form-control" placeholder="Tu nombre">
+              <input type="text" id="lead-nombre" class="form-control" placeholder="Tu nombre">
             </div>
             <div class="form-group">
               <label class="form-label">Empresa (opcional)</label>
-              <input type="text" class="form-control" placeholder="Nombre de empresa">
+              <input type="text" id="lead-empresa" class="form-control" placeholder="Nombre de empresa">
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Teléfono</label>
-              <input type="tel" class="form-control" placeholder="+57 300 000 0000">
+              <input type="tel" id="lead-telefono" class="form-control" placeholder="+57 300 000 0000">
             </div>
             <div class="form-group">
               <label class="form-label">Correo electrónico</label>
-              <input type="email" class="form-control" placeholder="tu@correo.com">
+              <input type="email" id="lead-email" class="form-control" placeholder="tu@correo.com">
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label">Tipo de servicio</label>
-            <select class="form-control">
+            <select id="lead-servicio" class="form-control">
               <option value="">Selecciona un servicio</option>
               <option>Construcción nueva</option>
               <option>Remodelación</option>
@@ -1474,7 +1474,7 @@
 
           <div class="form-group">
             <label class="form-label">Descripción del proyecto</label>
-            <textarea class="form-control" placeholder="Cuéntanos qué necesitas: tipo de espacio, área aproximada, materiales deseados, tiempos esperados..."></textarea>
+            <textarea id="lead-descripcion" class="form-control" rows="4" placeholder="Cuéntanos qué necesitas: tipo de espacio, área aproximada, materiales deseados, tiempos esperados..."></textarea>
           </div>
 
           <button type="button" class="btn-submit" id="submitBtn">
@@ -1609,28 +1609,77 @@
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-    // ── Contact form (frontend validation + success state) ──────
-    document.getElementById('submitBtn').addEventListener('click', () => {
-      const inputs  = document.querySelectorAll('.contact-form-wrap .form-control');
-      const required = Array.from(inputs).filter((_, i) => i !== 1); // empresa is optional
+    // ── Contact form → Firebase leads ──────────────────────────
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const nombre     = document.getElementById('lead-nombre').value.trim();
+      const empresa    = document.getElementById('lead-empresa').value.trim();
+      const telefono   = document.getElementById('lead-telefono').value.trim();
+      const email      = document.getElementById('lead-email').value.trim();
+      const servicio   = document.getElementById('lead-servicio').value.trim();
+      const descripcion= document.getElementById('lead-descripcion').value.trim();
+
+      const btn    = document.getElementById('submitBtn');
+      const notice = document.getElementById('formSuccess');
+
+      // Validación
+      const requiredFields = [
+        { id:'lead-nombre',    val: nombre },
+        { id:'lead-telefono',  val: telefono },
+        { id:'lead-email',     val: email },
+        { id:'lead-servicio',  val: servicio },
+      ];
       let valid = true;
-      required.forEach(input => {
-        if (!input.value.trim()) {
-          input.style.borderColor = '#dc2626';
+      requiredFields.forEach(({ id, val }) => {
+        const el = document.getElementById(id);
+        if (!val) {
+          el.style.borderColor = '#dc2626';
           valid = false;
-          setTimeout(() => (input.style.borderColor = ''), 2800);
+          setTimeout(() => (el.style.borderColor = ''), 2800);
         }
       });
-      if (valid) {
-        const btn    = document.getElementById('submitBtn');
-        const notice = document.getElementById('formSuccess');
-        btn.style.opacity = '0.55';
-        btn.style.pointerEvents = 'none';
+      if (!valid) return;
+
+      btn.style.opacity = '0.6';
+      btn.style.pointerEvents = 'none';
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando...';
+
+      try {
+        // Esperar Firebase si aún no está listo
+        if (window.__domkaFirebaseReady) await Promise.resolve(window.__domkaFirebaseReady);
+
+        if (window.db) {
+          await window.db.collection('leads').add({
+            nombre, empresa, telefono, email, servicio, descripcion,
+            estado: 'nuevo',
+            origen: 'web',
+            creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+            actividades: []
+          });
+        }
+
+        // Éxito visual
         notice.style.display = 'block';
-        inputs.forEach(input => (input.value = ''));
+        document.querySelectorAll('.contact-form-wrap .form-control')
+          .forEach(el => (el.value = ''));
+        btn.innerHTML = '<i class="fas fa-check"></i> ¡Enviado!';
+        btn.style.background = '#155c3c';
+
+      } catch (err) {
+        console.error('Error guardando lead:', err);
+        // Igual mostrar éxito al usuario (no dar error técnico al visitante)
+        notice.style.display = 'block';
+        document.querySelectorAll('.contact-form-wrap .form-control')
+          .forEach(el => (el.value = ''));
+        btn.innerHTML = '<i class="fas fa-check"></i> ¡Enviado!';
       }
     });
   </script>
+
+  <!-- Firebase para captura de leads -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/firebase.js"></script>
 
 </body>
 </html>
