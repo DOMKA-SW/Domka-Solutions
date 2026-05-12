@@ -208,15 +208,20 @@
       }
 
       try {
-        // ✅ Filtrar SOLO las cotizaciones de este cliente
-        const [snapCli, snapEmp] = await Promise.all([
-          clienteId ? db.collection('cotizaciones').where('clienteId','==',clienteId).get() : Promise.resolve(null),
-          empresaId ? db.collection('cotizaciones').where('empresaId','==',empresaId).get() : Promise.resolve(null)
-        ]);
+        // ✅ Filtrar ESTRICTAMENTE por clienteId (prioridad), luego empresaId como respaldo
+        let snap1 = null, snap2 = null;
+
+        if (clienteId) {
+          snap1 = await db.collection('cotizaciones').where('clienteId','==',clienteId).get();
+        }
+        // Solo consultar por empresaId si NO hay clienteId para evitar ver cotizaciones de otros
+        if (!clienteId && empresaId) {
+          snap2 = await db.collection('cotizaciones').where('empresaId','==',empresaId).get();
+        }
 
         const map = new Map();
-        (snapCli?.docs||[]).forEach(d => map.set(d.id, {id:d.id,...d.data()}));
-        (snapEmp?.docs||[]).forEach(d => map.set(d.id, {id:d.id,...d.data()}));
+        (snap1?.docs||[]).forEach(d => map.set(d.id, {id:d.id,...d.data()}));
+        (snap2?.docs||[]).forEach(d => map.set(d.id, {id:d.id,...d.data()}));
 
         _cots = Array.from(map.values()).sort((a,b)=>{
           const ad = a.fecha?.toDate?a.fecha.toDate().getTime():new Date(a.fecha||0).getTime();
