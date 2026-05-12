@@ -14,7 +14,7 @@
       --bg:#f4efe7; --bg-alt:#ede7dc; --white:#ffffff;
       --green:#1b7a51; --green-dk:#155c3c; --green-lt:#e8f5ee;
       --text:#2c2c2c; --gray:#5a5a5a; --gray-lt:#9a9a9a;
-      --line:#d6cfc5; --line-lt:#e8e2d8;
+      --line:#d6cfc5;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);min-height:100vh}
@@ -22,86 +22,56 @@
     a{text-decoration:none;color:inherit}
     button{cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
 
-    /* Layout */
-    .portal-header {
-      background:var(--white);
-      border-bottom:1px solid var(--line);
-      padding:16px 32px;
-      display:flex; align-items:center; justify-content:space-between;
-      position:sticky; top:0; z-index:100;
-    }
-    .portal-logo { font-family:'DM Serif Display',serif; font-size:1.3rem; color:var(--green); }
-    .portal-logo span { font-size:.7rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gray-lt); margin-left:10px; }
-    .portal-user { display:flex; align-items:center; gap:12px; }
-    .portal-user-name { font-size:.85rem; font-weight:600; color:var(--text); }
-    .portal-user-sub  { font-size:.72rem; color:var(--gray-lt); }
-    .btn-logout-portal {
-      padding:7px 16px; background:var(--bg-alt);
-      border-radius:8px; font-size:.82rem; font-weight:600;
-      color:var(--gray); transition:all .2s;
-    }
-    .btn-logout-portal:hover { background:var(--line); }
+    .portal-header{background:var(--white);border-bottom:1px solid var(--line);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04)}
+    .portal-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green)}
+    .portal-logo span{font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-lt);margin-left:10px}
+    .portal-user{display:flex;align-items:center;gap:12px}
+    .portal-user-name{font-size:.85rem;font-weight:600;color:var(--text)}
+    .portal-user-sub{font-size:.72rem;color:var(--gray-lt)}
+    .btn-logout-portal{padding:7px 16px;background:var(--bg-alt);border-radius:8px;font-size:.82rem;font-weight:600;color:var(--gray);transition:all .2s}
+    .btn-logout-portal:hover{background:var(--line)}
 
-    .portal-main { max-width:1060px; margin:0 auto; padding:40px 24px 80px; }
+    .portal-main{max-width:960px;margin:0 auto;padding:40px 24px 80px}
 
-    .welcome-band {
-      background:var(--green); border-radius:14px;
-      padding:28px 32px; margin-bottom:32px;
-      display:flex; align-items:center; justify-content:space-between;
-      position:relative; overflow:hidden;
-    }
-    .welcome-band::before {
-      content:''; position:absolute; top:-40px; right:-40px;
-      width:180px; height:180px;
-      background:rgba(255,255,255,.07); border-radius:50%;
-    }
-    .welcome-band h2 { font-size:1.5rem; color:#fff; margin-bottom:4px; }
-    .welcome-band p  { color:rgba(255,255,255,.75); font-size:.88rem; }
-
-    /* Nav módulos */
-    .module-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-      gap:16px; margin-bottom:36px;
-    }
-    .module-card {
-      background:var(--white); border:1px solid var(--line);
-      border-radius:14px; padding:24px 20px;
-      text-align:center; transition:all .2s; display:block;
-    }
-    .module-card:hover {
-      border-color:var(--green);
-      box-shadow:0 6px 24px rgba(27,122,81,.12);
-      transform:translateY(-3px);
-    }
-    .module-icon {
-      width:50px; height:50px; background:var(--green-lt);
-      border-radius:12px; display:flex; align-items:center;
-      justify-content:center; color:var(--green); font-size:1.3rem;
-      margin:0 auto 14px;
-    }
-    .module-name { font-weight:600; font-size:.92rem; color:var(--text); margin-bottom:4px; }
-    .module-desc { font-size:.76rem; color:var(--gray-lt); }
-    .module-badge {
-      display:inline-block; background:var(--green); color:#fff;
-      font-size:.62rem; font-weight:700; border-radius:999px;
-      padding:2px 8px; margin-top:8px;
-    }
+    .welcome-band{background:var(--green);border-radius:16px;padding:30px 36px;margin-bottom:32px;position:relative;overflow:hidden}
+    .welcome-band::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:rgba(255,255,255,.06);border-radius:50%}
+    .welcome-band::after{content:'';position:absolute;bottom:-30px;right:60px;width:120px;height:120px;background:rgba(255,255,255,.04);border-radius:50%}
+    .welcome-band h2{font-size:1.6rem;color:#fff;margin-bottom:6px}
+    .welcome-band p{color:rgba(255,255,255,.75);font-size:.9rem}
+    .welcome-empresa{display:inline-block;background:rgba(255,255,255,.15);color:#fff;font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:999px;margin-top:10px;letter-spacing:.06em}
 
     /* Stats */
-    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:36px; }
-    .stat-box {
-      background:var(--white); border:1px solid var(--line);
-      border-radius:12px; padding:20px;
-    }
-    .stat-box-label { font-size:.65rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gray-lt); }
-    .stat-box-value { font-family:'DM Serif Display',serif; font-size:2rem; color:var(--green); margin:6px 0 2px; }
-    .stat-box-sub { font-size:.75rem; color:var(--gray-lt); }
+    .stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:36px}
+    .stat-box{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:flex;align-items:center;gap:16px}
+    .stat-icon{width:44px;height:44px;border-radius:11px;background:var(--green-lt);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .stat-label{font-size:.65rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gray-lt);margin-bottom:4px}
+    .stat-value{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--text);line-height:1}
+    .stat-sub{font-size:.72rem;color:var(--gray-lt);margin-top:3px}
+
+    /* Módulos */
+    .section-label{font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:16px;display:block}
+    .module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:36px}
+    .module-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:26px 22px;text-align:center;transition:all .2s;display:block;position:relative;overflow:hidden}
+    .module-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+    .module-card:hover{border-color:var(--green);box-shadow:0 6px 24px rgba(27,122,81,.1);transform:translateY(-3px)}
+    .module-card:hover::after{transform:scaleX(1)}
+    .module-icon{width:52px;height:52px;background:var(--green-lt);border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:1.3rem;margin:0 auto 14px}
+    .module-name{font-weight:700;font-size:.94rem;color:var(--text);margin-bottom:5px}
+    .module-desc{font-size:.76rem;color:var(--gray-lt);line-height:1.5}
+    .module-badge{display:inline-block;background:var(--green);color:#fff;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;margin-top:10px}
+    .module-badge-warn{background:#f59e0b}
+
+    /* Actividad reciente */
+    .reciente-list{display:flex;flex-direction:column;gap:10px}
+    .reciente-item{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px}
+    .reciente-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .reciente-texto{font-size:.88rem;font-weight:600;color:var(--text);flex:1}
+    .reciente-fecha{font-size:.75rem;color:var(--gray-lt)}
+    .spinner{text-align:center;padding:40px;color:var(--gray-lt)}
   </style>
 </head>
 <body>
 
-<!-- Header -->
 <header class="portal-header">
   <div>
     <span class="portal-logo">DOMKA <span>Portal Cliente</span></span>
@@ -109,7 +79,7 @@
   <div class="portal-user">
     <div>
       <div class="portal-user-name" id="user-nombre">—</div>
-      <div class="portal-user-sub">Cliente</div>
+      <div class="portal-user-sub" id="user-empresa">Cliente</div>
     </div>
     <button class="btn-logout-portal" onclick="logout()">
       <i class="fas fa-sign-out-alt"></i> Salir
@@ -117,65 +87,60 @@
   </div>
 </header>
 
-<!-- Main -->
 <div class="portal-main">
 
   <!-- Bienvenida -->
   <div class="welcome-band">
-    <div>
-      <h2>Bienvenido a tu portal</h2>
-      <p>Aquí puedes revisar tus cotizaciones, proyectos y documentos.</p>
-    </div>
+    <h2>Bienvenido a tu portal</h2>
+    <p>Aquí puedes revisar tus cotizaciones y el avance de tus proyectos.</p>
+    <span class="welcome-empresa" id="welcome-empresa" style="display:none"></span>
   </div>
 
   <!-- Stats -->
   <div class="stats-row">
     <div class="stat-box">
-      <div class="stat-box-label">Cotizaciones</div>
-      <div class="stat-box-value" id="stat-cot">—</div>
-      <div class="stat-box-sub">Total recibidas</div>
+      <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+      <div>
+        <div class="stat-label">Cotizaciones</div>
+        <div class="stat-value" id="stat-cot"><span class="spinner" style="padding:0"><i class="fas fa-circle-notch fa-spin" style="font-size:.9rem"></i></span></div>
+        <div class="stat-sub">Total recibidas</div>
+      </div>
     </div>
     <div class="stat-box">
-      <div class="stat-box-label">Proyectos</div>
-      <div class="stat-box-value" id="stat-proy">—</div>
-      <div class="stat-box-sub">Activos</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-box-label">Documentos</div>
-      <div class="stat-box-value" id="stat-doc">—</div>
-      <div class="stat-box-sub">Pendientes de revisión</div>
+      <div class="stat-icon"><i class="fas fa-hard-hat"></i></div>
+      <div>
+        <div class="stat-label">Proyectos</div>
+        <div class="stat-value" id="stat-proy"><span class="spinner" style="padding:0"><i class="fas fa-circle-notch fa-spin" style="font-size:.9rem"></i></span></div>
+        <div class="stat-sub">En proceso</div>
+      </div>
     </div>
   </div>
 
-  <!-- Módulos -->
-  <p style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:16px">Accesos rápidos</p>
+  <!-- Módulos — SOLO cotizaciones y proyectos -->
+  <span class="section-label">Accesos rápidos</span>
   <div class="module-grid">
     <a href="cotizaciones.html" class="module-card">
       <div class="module-icon"><i class="fas fa-file-alt"></i></div>
       <div class="module-name">Cotizaciones</div>
-      <div class="module-desc">Ver y aprobar presupuestos</div>
+      <div class="module-desc">Ver y revisar presupuestos enviados por DOMKA</div>
+      <span class="module-badge" id="badge-cot" style="display:none"></span>
     </a>
     <a href="proyectos.html" class="module-card">
       <div class="module-icon"><i class="fas fa-hard-hat"></i></div>
       <div class="module-name">Proyectos</div>
-      <div class="module-desc">Seguimiento y evidencias</div>
+      <div class="module-desc">Seguimiento, documentos y evidencias de tu obra</div>
+      <span class="module-badge" id="badge-proy" style="display:none"></span>
     </a>
-    <a href="documentos.html" class="module-card">
-      <div class="module-icon"><i class="fas fa-folder-open"></i></div>
-      <div class="module-name">Documentos</div>
-      <div class="module-desc">Firmar y aprobar documentos</div>
-    </a>
+  </div>
+
+  <!-- Actividad reciente -->
+  <span class="section-label">Actividad reciente</span>
+  <div id="actividad-reciente">
+    <div class="spinner"><i class="fas fa-circle-notch fa-spin"></i></div>
   </div>
 
 </div>
 
-<div style="max-width:1060px;margin:0 auto;padding:0 24px 24px">
-  <p style="font-size:.78rem;color:var(--gray-lt)">
-    Si aún no tienes acceso, entra en <a href="login.html" style="color:var(--green);font-weight:700">login del portal cliente</a> con tu código.
-  </p>
-</div>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth-compat.js"></script>
@@ -185,41 +150,124 @@
 <script src="../js/roles.js"></script>
 <script src="../js/auth.js"></script>
 <script>
+  function fmtDate(ts){
+    try{const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);
+    return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—'}catch{return'—'}
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     await Promise.resolve(window.__domkaFirebaseReady);
     if (!window.auth || !window.db) return;
-    const unsub = window.auth.onAuthStateChanged(async (user) => {
-      if (!user) return;
-      unsub();
-      const perfil = await cargarPerfil(user);
-      document.getElementById('user-nombre').textContent =
-        perfil?.nombre || user.email || '—';
 
+    const unsub = window.auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      unsub();
+
+      const perfil = await cargarPerfil(user).catch(()=>null);
+
+      // Si no es cliente, redirigir al admin
+      if (perfil?.role && perfil.role !== 'client') {
+        window.location.href = '../dashboard.html'; return;
+      }
+
+      // Nombre y empresa
+      document.getElementById('user-nombre').textContent = perfil?.nombre || user.email || '—';
       const clienteId = perfil?.clienteId;
       const empresaId = perfil?.empresaId;
-      if (!clienteId && !empresaId) return;
 
-      // Estadísticas del cliente
+      if (!clienteId && !empresaId) {
+        document.getElementById('actividad-reciente').innerHTML =
+          '<p style="color:#9a9a9a;font-size:.88rem;padding:20px 0">Cuenta no vinculada. Contacta a DOMKA para activar tu acceso.</p>';
+        document.getElementById('stat-cot').textContent = '—';
+        document.getElementById('stat-proy').textContent = '—';
+        return;
+      }
+
+      // Mostrar empresa si existe
+      if (empresaId || perfil?.empresa) {
+        const empEl = document.getElementById('welcome-empresa');
+        empEl.textContent = perfil?.empresa || empresaId;
+        empEl.style.display = 'inline-block';
+      }
+
       try {
-        const [cotCli, cotEmp, proyCli, proyEmp, docCli, docEmp] = await Promise.all([
+        // Cargar cotizaciones y proyectos del cliente
+        const queries = await Promise.all([
           clienteId ? db.collection('cotizaciones').where('clienteId','==',clienteId).get() : Promise.resolve(null),
           empresaId ? db.collection('cotizaciones').where('empresaId','==',empresaId).get() : Promise.resolve(null),
           clienteId ? db.collection('proyectos').where('clienteId','==',clienteId).get() : Promise.resolve(null),
           empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null),
-          clienteId ? db.collection('documentos').where('clienteId','==',clienteId).where('estado','==','pendiente').get() : Promise.resolve(null),
-          empresaId ? db.collection('documentos').where('empresaId','==',empresaId).where('estado','==','pendiente').get() : Promise.resolve(null)
         ]);
-        const mergeCount = (a, b) => {
+
+        const merge = (a, b) => {
           const m = new Map();
-          (a?.docs || []).forEach((d) => m.set(d.id, true));
-          (b?.docs || []).forEach((d) => m.set(d.id, true));
-          return m.size;
+          (a?.docs||[]).forEach(d => m.set(d.id, {id:d.id,...d.data()}));
+          (b?.docs||[]).forEach(d => m.set(d.id, {id:d.id,...d.data()}));
+          return Array.from(m.values());
         };
-        document.getElementById('stat-cot').textContent  = mergeCount(cotCli, cotEmp);
-        document.getElementById('stat-proy').textContent = mergeCount(proyCli, proyEmp);
-        document.getElementById('stat-doc').textContent  = mergeCount(docCli, docEmp);
+
+        const cots  = merge(queries[0], queries[1]);
+        const proys = merge(queries[2], queries[3]);
+
+        // Stats
+        document.getElementById('stat-cot').textContent  = cots.length;
+        document.getElementById('stat-proy').textContent = proys.filter(p=>p.estado==='en_ejecucion').length;
+
+        // Badges módulos
+        const cotsPend = cots.filter(c=>c.estado==='pendiente').length;
+        if (cotsPend) {
+          const b = document.getElementById('badge-cot');
+          b.textContent = cotsPend + ' pendiente' + (cotsPend>1?'s':'');
+          b.style.display = 'inline-block';
+          b.classList.add('module-badge-warn');
+        }
+
+        const proyActivos = proys.filter(p=>p.estado==='en_ejecucion').length;
+        if (proyActivos) {
+          const b = document.getElementById('badge-proy');
+          b.textContent = proyActivos + ' activo' + (proyActivos>1?'s':'');
+          b.style.display = 'inline-block';
+        }
+
+        // Actividad reciente — últimas cots y proyectos ordenados por fecha
+        const actividad = [
+          ...cots.map(c=>({
+            tipo:'cotizacion', texto:`Cotización ${c.numero||''}`,
+            sub: `$${Number(c.total||0).toLocaleString('es-CO')} · ${c.estado||'pendiente'}`,
+            fecha: c.fecha, color:'#3b82f6'
+          })),
+          ...proys.map(p=>({
+            tipo:'proyecto', texto:`Proyecto ${p.numero||p.nombre||''}`,
+            sub: p.estado==='en_ejecucion'?'En ejecución':p.estado==='finalizado'?'Finalizado':'Pendiente',
+            fecha: p.creadoEn, color: p.estado==='en_ejecucion'?'#22c55e':p.estado==='finalizado'?'#1b7a51':'#9ca3af'
+          }))
+        ].sort((a,b)=>{
+          const ad = a.fecha?.toDate?a.fecha.toDate().getTime():new Date(a.fecha||0).getTime();
+          const bd = b.fecha?.toDate?b.fecha.toDate().getTime():new Date(b.fecha||0).getTime();
+          return bd - ad;
+        }).slice(0, 6);
+
+        const actEl = document.getElementById('actividad-reciente');
+        if (!actividad.length) {
+          actEl.innerHTML = '<p style="color:#9a9a9a;font-size:.88rem;padding:20px 0">Sin actividad reciente.</p>';
+        } else {
+          actEl.innerHTML = `<div class="reciente-list">${actividad.map(a=>`
+            <div class="reciente-item">
+              <div class="reciente-dot" style="background:${a.color}"></div>
+              <div style="flex:1;min-width:0">
+                <div class="reciente-texto">${a.texto}</div>
+                <div style="font-size:.75rem;color:#9a9a9a">${a.sub}</div>
+              </div>
+              <div class="reciente-fecha">${fmtDate(a.fecha)}</div>
+            </div>`).join('')}</div>`;
+        }
+
       } catch(e) {
-        console.error('Error cargando estadísticas:', e);
+        console.error('Error cargando portal:', e);
+        document.getElementById('actividad-reciente').innerHTML =
+          '<p style="color:#9a9a9a;font-size:.88rem">Error cargando información.</p>';
+        document.getElementById('stat-cot').textContent = '—';
+        document.getElementById('stat-proy').textContent = '—';
       }
     });
   });
