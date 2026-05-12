@@ -145,6 +145,25 @@
         <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Descripción</label>
         <textarea id="proy-descripcion" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Alcance y detalle del proyecto"></textarea>
       </div>
+      <!-- Usuarios asociados al proyecto -->
+      <div class="md:col-span-3">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">
+          <i class="fas fa-users mr-1 text-green-700"></i> Usuarios asociados al proyecto
+        </label>
+        <div id="proy-usuarios-wrap" class="border rounded-lg p-2 bg-gray-50 max-h-32 overflow-y-auto text-sm">
+          <p class="text-gray-400 text-xs italic px-1">Cargando usuarios…</p>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">Selecciona quiénes participan en este proyecto</p>
+      </div>
+      <div class="md:col-span-3">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">
+          <i class="fas fa-stamp mr-1 text-green-700"></i> Usuarios con rol de aprobador
+        </label>
+        <div id="proy-aprobadores-wrap" class="border rounded-lg p-2 bg-gray-50 max-h-32 overflow-y-auto text-sm">
+          <p class="text-gray-400 text-xs italic px-1">Primero selecciona usuarios asociados</p>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">Solo estos usuarios podrán aprobar documentos</p>
+      </div>
     </form>
   </div>
 
@@ -201,7 +220,7 @@
     </div>
 
     <!-- Info grid -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-xl">
       <div>
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Cliente</p>
         <p id="detalle-cliente" class="text-sm font-semibold">—</p>
@@ -218,6 +237,12 @@
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Descripción</p>
         <p id="detalle-descripcion" class="text-sm text-gray-600 line-clamp-2">—</p>
       </div>
+    </div>
+
+    <!-- Usuarios del proyecto -->
+    <div class="mb-4 p-3 border border-gray-200 rounded-xl bg-gray-50" id="detalle-usuarios-wrap">
+      <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">👥 Equipo del proyecto</p>
+      <div id="detalle-usuarios"><p class="text-gray-400 text-xs">Sin usuarios asignados.</p></div>
     </div>
 
     <!-- Tabs -->
@@ -312,14 +337,34 @@
       <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Nombre / descripción</label>
       <input id="add-doc-nombre" type="text" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Ej: Contrato firmado 2025">
     </div>
-    <div class="mb-5">
-      <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Link al documento (opcional)</label>
+    <!-- Tabs: archivo o link -->
+    <div class="flex gap-1 mb-3 bg-gray-100 rounded-lg p-1">
+      <button type="button" id="doc-tab-file" onclick="switchDocTab('file')"
+        class="flex-1 text-xs py-1.5 px-3 rounded-md font-semibold transition bg-white shadow text-green-700">
+        📁 Subir archivo
+      </button>
+      <button type="button" id="doc-tab-link" onclick="switchDocTab('link')"
+        class="flex-1 text-xs py-1.5 px-3 rounded-md font-semibold transition text-gray-500">
+        🔗 Pegar link
+      </button>
+      <button type="button" id="doc-tab-both" onclick="switchDocTab('both')"
+        class="flex-1 text-xs py-1.5 px-3 rounded-md font-semibold transition text-gray-500">
+        📎 Ambos
+      </button>
+    </div>
+    <div id="doc-panel-file" class="mb-4">
+      <label class="text-xs font-semibold text-gray-500 mb-1 block">Archivo (PDF, imagen, Word, etc.)</label>
+      <input id="add-doc-file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,image/*"
+        class="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+      <p class="text-xs text-gray-400 mt-1">Máx. 5 MB</p>
+    </div>
+    <div id="doc-panel-link" class="mb-4 hidden">
+      <label class="text-xs font-semibold text-gray-500 mb-1 block">Link externo (Drive, Dropbox, etc.)</label>
       <input id="add-doc-url" type="url" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="https://drive.google.com/...">
-      <p class="text-xs text-gray-400 mt-1">Puedes agregar el link ahora o después</p>
     </div>
     <div class="flex gap-3">
       <button onclick="closeAddDocModal()" class="flex-1 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>
-      <button onclick="confirmarAddDoc()" class="flex-1 py-2 bg-green-700 text-white rounded-lg text-sm font-semibold hover:bg-green-800">Guardar</button>
+      <button id="btn-confirmar-doc" onclick="confirmarAddDoc()" class="flex-1 py-2 bg-green-700 text-white rounded-lg text-sm font-semibold hover:bg-green-800">Guardar</button>
     </div>
   </div>
 </div>
@@ -332,6 +377,26 @@
 
 <script>
   let _addDocTipo = "";
+  let _docTab = "file";
+
+  function switchDocTab(tab) {
+    _docTab = tab;
+    ["file","link","both"].forEach(t => {
+      const btn = document.getElementById("doc-tab-"+t);
+      const panel = document.getElementById("doc-panel-"+t);
+      if (t === tab) {
+        btn.classList.add("bg-white","shadow","text-green-700");
+        btn.classList.remove("text-gray-500");
+      } else {
+        btn.classList.remove("bg-white","shadow","text-green-700");
+        btn.classList.add("text-gray-500");
+      }
+    });
+    // Show/hide panels
+    document.getElementById("doc-panel-file").classList.toggle("hidden", tab === "link");
+    document.getElementById("doc-panel-link").classList.toggle("hidden", tab === "file");
+  }
+
   function switchTab(tab) {
     document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active-tab","border-b-white","text-gray-500"));
@@ -345,6 +410,9 @@
     document.getElementById("add-doc-title").textContent = "Agregar: " + tipo;
     document.getElementById("add-doc-nombre").value = "";
     document.getElementById("add-doc-url").value = "";
+    const fileEl = document.getElementById("add-doc-file");
+    if (fileEl) fileEl.value = "";
+    switchDocTab("file");
     document.getElementById("modal-add-doc").classList.remove("hidden");
   }
   function closeAddDocModal() {
@@ -352,10 +420,36 @@
   }
   async function confirmarAddDoc() {
     const nombre = document.getElementById("add-doc-nombre").value.trim();
-    const url    = document.getElementById("add-doc-url").value.trim();
+    const url    = (_docTab !== "file") ? (document.getElementById("add-doc-url")?.value?.trim() || "") : "";
+    const fileEl = document.getElementById("add-doc-file");
+    const file   = (_docTab !== "link") ? (fileEl?.files?.[0] || null) : null;
     if (!nombre) { alert("Ingresa un nombre para el documento."); return; }
-    closeAddDocModal();
-    await agregarDocumentoProyecto(_addDocTipo, nombre, url || null);
+    if (_docTab === "file" && !file) { alert("Selecciona un archivo."); return; }
+    if (_docTab === "link" && !url)  { alert("Ingresa un link."); return; }
+
+    const btn = document.getElementById("btn-confirmar-doc");
+    btn.disabled = true; btn.textContent = "Guardando…";
+
+    try {
+      let base64 = null;
+      let contentType = null;
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) throw new Error("El archivo supera 5 MB.");
+        base64 = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        });
+        contentType = file.type;
+      }
+      closeAddDocModal();
+      await agregarDocumentoProyecto(_addDocTipo, nombre, url || null, base64, contentType, file?.name);
+    } catch(e) {
+      alert("Error: " + (e?.message || e));
+    } finally {
+      btn.disabled = false; btn.textContent = "Guardar";
+    }
   }
 </script>
 
