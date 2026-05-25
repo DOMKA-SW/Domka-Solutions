@@ -140,15 +140,17 @@
     .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 68px; opacity: 0; transform: translateY(22px); animation: fadeUp 0.8s var(--ease) forwards 0.95s; }
 
     /* Stats — responsive clamp, no overflow */
-    .hero-stats { display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,.12); padding-top: 32px; opacity: 0; animation: fadeIn 1s var(--ease) forwards 1.15s; flex-wrap: wrap; row-gap: 18px; }
-    .hero-stat { padding-right: 36px; margin-right: 36px; border-right: 1px solid rgba(255,255,255,.12); }
+    /* Stats desktop — sin wrap, separadas del indicador SCROLL */
+    .hero-stats { display: flex; gap: 0; border-top: 1px solid rgba(255,255,255,.15); padding-top: 28px; padding-bottom: 70px; opacity: 0; animation: fadeIn 1s var(--ease) forwards 1.15s; }
+    .hero-stat { padding-right: 48px; margin-right: 48px; border-right: 1px solid rgba(255,255,255,.15); flex-shrink: 0; }
     .hero-stat:last-child { border-right: none; margin-right: 0; padding-right: 0; }
-    .hero-stat-num { font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.8rem); font-weight: 500; color: var(--white); line-height: 1; margin-bottom: 7px; white-space: nowrap; }
+    .hero-stat-num { font-family: var(--font-display); font-size: clamp(2.4rem, 3.6vw, 3.2rem); font-weight: 500; color: var(--white); line-height: 1; margin-bottom: 8px; white-space: nowrap; letter-spacing: -0.01em; }
     .hero-stat-num span { color: var(--green-light); }
-    .hero-stat-lbl { font-size: 0.7rem; color: rgba(255,255,255,.5); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+    .hero-stat-lbl { font-size: 0.68rem; color: rgba(255,255,255,.48); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
 
-    .hero-scroll { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,.4); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; z-index: 2; animation: scrollBounce 2.5s ease infinite 2s; }
-    .hero-scroll-line { width: 1px; height: 36px; background: linear-gradient(to bottom, rgba(255,255,255,.45), transparent); }
+    /* SCROLL — movido a la derecha para NO tapar los números */
+    .hero-scroll { position: absolute; bottom: 28px; right: 48px; display: flex; flex-direction: column; align-items: center; gap: 7px; color: rgba(255,255,255,.32); font-size: 0.61rem; letter-spacing: 0.18em; text-transform: uppercase; z-index: 2; animation: scrollBounce 2.5s ease infinite 2s; }
+    .hero-scroll-line { width: 1px; height: 30px; background: linear-gradient(to bottom, rgba(255,255,255,.38), transparent); }
 
     /* TRUST BAR */
     .trust-bar { background: var(--green); padding: 18px 0; }
@@ -314,7 +316,8 @@
     /* ANIMATIONS */
     @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeIn { to { opacity: 1; } }
-    @keyframes scrollBounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(9px); } }
+    @keyframes scrollBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(9px); } }
+    @keyframes scrollBounceCentered { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(9px); } }
     .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.72s var(--ease), transform 0.72s var(--ease); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
     .reveal-delay-1 { transition-delay: 0.1s; }
@@ -345,8 +348,18 @@
       .nav-links, .nav-access { display: none; }
       .nav-menu-toggle { display: flex; }
       .nav-logo-sub { display: none; }
-      .hero-stats { flex-wrap: wrap; gap: 16px; row-gap: 12px; padding-top: 24px; }
-      .hero-stat { border-right: none; border-bottom: none; padding: 0; margin: 0; flex: 0 0 auto; }
+      /* Stats móvil: 3 en fila horizontal, pequeños */
+      .hero-stats { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 0; padding-bottom: 52px; padding-top: 22px; }
+      .hero-stat { border-right: 1px solid rgba(255,255,255,.15); border-bottom: none; padding: 0 22px 0 0; margin: 0 22px 0 0; }
+      .hero-stat:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+      .hero-stat-num { font-size: 2rem; margin-bottom: 5px; }
+      .hero-stat-lbl { font-size: 0.6rem; }
+      /* SCROLL móvil: centro */
+      .hero-scroll { right: auto; left: 50%; transform: translateX(-50%); bottom: 16px; }
+      .hero-scroll { animation: scrollBounceCentered 2.5s ease infinite 2s; }
+      /* Trust bar móvil: grid 2 columnas */
+      .trust-bar-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; justify-items: start; padding: 20px; }
+      .trust-item { font-size: 0.78rem; }
       .services-grid { grid-template-columns: 1fr; }
       .projects-grid { display: flex; flex-direction: column; }
       .project-card { aspect-ratio: 16/9 !important; }
@@ -358,7 +371,7 @@
       .cta-inner { flex-direction: column; align-items: flex-start; }
       .footer-main { grid-template-columns: 1fr; gap: 32px; padding-left: 20px; padding-right: 20px; }
       .footer-bottom { flex-direction: column; align-items: center; text-align: center; padding: 20px; }
-      .trust-bar-inner { justify-content: center; }
+      .trust-bar-inner { /* ya gestionado en el bloque de stats móvil */ }
     }
     @media (max-width: 480px) {
       .hero-actions { flex-direction: column; }
@@ -378,7 +391,7 @@
         <img src="img/logofondo.png" alt="DOMKA SOLUTIONS logo" class="nav-logo-img">
         <div class="nav-logo-text">
           <span class="nav-logo-name">DOMKA SOLUTIONS</span>
-          <span class="nav-logo-sub">Construcción &amp; Remodelación Colombia</span>
+         <!-- <span class="nav-logo-sub">Construcción &amp; Remodelación Colombia</span>       -   2 SPAM DEBAJO LOGO-->  
         </div>
       </a>
 
