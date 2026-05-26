@@ -380,6 +380,420 @@
       .cta-actions { flex-direction: column; width: 100%; }
       .cta-actions > * { width: 100%; justify-content: center; text-align: center; }
     }
+
+    /* ═══════════════════════════════════════════════
+       GABI — Asistente Virtual DOMKA
+    ═══════════════════════════════════════════════ */
+
+    /* Botón flotante con la imagen del asistente */
+    #gabiTrigger {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9000;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      filter: drop-shadow(0 8px 28px rgba(28,92,60,.35));
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      user-select: none;
+    }
+    #gabiTrigger:hover { transform: translateY(-6px) scale(1.03); }
+    #gabiTrigger.hidden { transform: translateY(120px) scale(0.8); opacity: 0; pointer-events: none; }
+
+    #gabiTrigger img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 50%;
+      border: 3px solid var(--green);
+      background: var(--green-pale);
+    }
+
+    .gabi-bubble {
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 18px 18px 4px 18px;
+      padding: 10px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      box-shadow: var(--shadow-md);
+      position: absolute;
+      bottom: 118px;
+      right: 0;
+      white-space: nowrap;
+      animation: gabiBubblePop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+      transform-origin: bottom right;
+    }
+    .gabi-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      right: 20px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 0px solid transparent;
+      border-top: 8px solid var(--white);
+    }
+    .gabi-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 14px;
+      height: 14px;
+      background: #22c55e;
+      border-radius: 50%;
+      border: 2px solid var(--white);
+    }
+
+    @keyframes gabiBubblePop {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* Ventana chat */
+    #gabiPanel {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9001;
+      width: 370px;
+      max-height: 580px;
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.18), 0 4px 16px rgba(28,92,60,.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transform: scale(0.85) translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.34,1.3,0.64,1), opacity 0.28s ease;
+      transform-origin: bottom right;
+    }
+    #gabiPanel.open {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* Header del panel */
+    .gabi-panel-header {
+      background: var(--green);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .gabi-header-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.35);
+      object-fit: cover;
+      object-position: top center;
+      flex-shrink: 0;
+    }
+    .gabi-header-info { flex: 1; }
+    .gabi-header-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+    }
+    .gabi-header-status {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,.72);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+    }
+    .gabi-header-status::before {
+      content: '';
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .gabi-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .gabi-close-btn:hover { background: rgba(255,255,255,.28); }
+
+    /* Área de mensajes */
+    .gabi-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f7f8f7;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray-200) transparent;
+    }
+    .gabi-msg-bot {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .gabi-msg-bot-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: top;
+      flex-shrink: 0;
+    }
+    .gabi-bubble-msg {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 16px 16px 16px 4px;
+      padding: 12px 15px;
+      font-size: 0.855rem;
+      color: var(--gray-900);
+      line-height: 1.55;
+      max-width: 260px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      animation: gabiMsgIn 0.3s cubic-bezier(0.34,1.3,0.64,1) forwards;
+    }
+    .gabi-bubble-msg strong { color: var(--green); }
+    @keyframes gabiMsgIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Opciones / menú */
+    .gabi-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .gabi-option-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      text-align: left;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .gabi-option-btn:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-pale);
+      transform: translateX(3px);
+    }
+    .gabi-option-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--green-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      color: var(--green);
+      transition: all 0.2s;
+    }
+    .gabi-option-btn:hover .gabi-option-icon {
+      background: var(--green);
+      color: var(--white);
+    }
+    .gabi-option-label { flex: 1; }
+    .gabi-option-label span { display: block; font-size: 0.7rem; color: var(--gray-400); font-weight: 400; margin-top: 1px; }
+    .gabi-option-arrow { color: var(--gray-400); font-size: 0.7rem; }
+
+    /* Área de respuesta expandida */
+    .gabi-response-area {
+      padding: 16px;
+      background: #f7f8f7;
+      border-top: 1px solid var(--gray-200);
+      flex: 1;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      scrollbar-width: thin;
+    }
+    .gabi-response-area.active { display: flex; }
+
+    /* Mini formulario en el chat */
+    .gabi-mini-form { display: flex; flex-direction: column; gap: 8px; }
+    .gabi-mini-form input,
+    .gabi-mini-form select,
+    .gabi-mini-form textarea {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      color: var(--gray-900);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .gabi-mini-form input:focus,
+    .gabi-mini-form select:focus,
+    .gabi-mini-form textarea:focus { border-color: var(--green); }
+    .gabi-mini-form textarea { resize: none; min-height: 70px; }
+    .gabi-mini-submit {
+      background: var(--green);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      padding: 11px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .gabi-mini-submit:hover { background: var(--green-mid); transform: translateY(-1px); }
+
+    /* Info card estilo quiénes somos */
+    .gabi-info-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .gabi-info-header {
+      background: var(--green);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .gabi-info-header i { color: rgba(255,255,255,.8); font-size: 1rem; }
+    .gabi-info-header span { color: var(--white); font-weight: 700; font-size: 0.88rem; }
+    .gabi-info-body { padding: 16px; }
+    .gabi-info-body p { font-size: 0.82rem; color: var(--gray-600,#4a4a4a); line-height: 1.6; margin-bottom: 12px; }
+    .gabi-info-pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .gabi-info-pillar {
+      background: var(--green-pale);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    /* Barra inferior del chat */
+    .gabi-footer {
+      padding: 12px 14px;
+      border-top: 1px solid var(--gray-200);
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .gabi-input {
+      flex: 1;
+      padding: 9px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 20px;
+      font-family: var(--font-body);
+      font-size: 0.83rem;
+      color: var(--gray-900);
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--gray-50);
+    }
+    .gabi-input:focus { border-color: var(--green); background: var(--white); }
+    .gabi-send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--green);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+    .gabi-send-btn:hover { background: var(--green-mid); transform: scale(1.08); }
+
+    /* Botón volver */
+    .gabi-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      color: var(--gray-500);
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 4px 0;
+      transition: color 0.2s;
+      font-family: var(--font-body);
+      margin-bottom: 4px;
+    }
+    .gabi-back-btn:hover { color: var(--green); }
+
+    /* Success mini */
+    .gabi-success {
+      background: var(--green-pale);
+      border: 1px solid rgba(28,92,60,.2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      color: var(--green);
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .gabi-success.show { display: flex; }
+
+    @media (max-width: 480px) {
+      #gabiPanel { width: calc(100vw - 24px); right: 12px; bottom: 12px; }
+      #gabiTrigger { right: 12px; bottom: 12px; }
+      #gabiTrigger img { width: 90px; height: 90px; }
+    }
   </style>
 </head>
 <body>
@@ -1009,6 +1423,272 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
   <script src="js/config.js"></script>
   <script src="js/firebase.js"></script>
+
+  <!-- ══════════════════════════════════════════
+       GABI — Asistente Virtual DOMKA SOLUTIONS
+  ══════════════════════════════════════════ -->
+
+  <!-- Botón flotante (imagen del asistente) -->
+  <div id="gabiTrigger" title="Hablar con GABI" onclick="gabiOpen()">
+    <div class="gabi-bubble" id="gabiBubble">¡Hola! Soy <strong>GABI</strong> 👋</div>
+    <div class="gabi-badge"></div>
+    <img src="img/asistente.png" alt="GABI Asistente DOMKA" onerror="this.style.display='none';document.getElementById('gabiFallback').style.display='flex'">
+    <!-- Fallback si no carga la imagen -->
+    <div id="gabiFallback" style="display:none;width:110px;height:110px;border-radius:50%;background:var(--green);border:3px solid #fff;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(28,92,60,.35)">
+      <i class="fas fa-robot" style="font-size:2.2rem;color:#fff"></i>
+    </div>
+  </div>
+
+  <!-- Panel de chat -->
+  <div id="gabiPanel">
+
+    <!-- Header -->
+    <div class="gabi-panel-header">
+      <img src="img/asistente.png" alt="GABI" class="gabi-header-avatar"
+           onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'35\' r=\'20\' fill=\'%23fff\'/><ellipse cx=\'50\' cy=\'80\' rx=\'30\' ry=\'20\' fill=\'%23fff\'/></svg>'">
+      <div class="gabi-header-info">
+        <div class="gabi-header-name">GABI · Asistente DOMKA</div>
+        <div class="gabi-header-status">En línea ahora</div>
+      </div>
+      <button class="gabi-close-btn" onclick="gabiClose()" aria-label="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Vista principal: saludo + opciones -->
+    <div class="gabi-messages" id="gabiMain">
+      <div class="gabi-msg-bot">
+        <img src="img/asistente.png" alt="" class="gabi-msg-bot-avatar"
+             onerror="this.style.background='var(--green)';this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+        <div class="gabi-bubble-msg">
+          ¡Hola! Soy <strong>GABI</strong>, tu asistente de confianza en <strong>DOMKA SOLUTIONS</strong>. 😊<br><br>
+          ¿En qué puedo ayudarte hoy?
+        </div>
+      </div>
+
+      <div class="gabi-options">
+        <button class="gabi-option-btn" onclick="gabiShowSection('quienes')">
+          <div class="gabi-option-icon"><i class="fas fa-building"></i></div>
+          <div class="gabi-option-label">
+            ¿Quiénes somos?
+            <span>Conoce a nuestro equipo y valores</span>
+          </div>
+          <i class="fas fa-chevron-right gabi-option-arrow"></i>
+        </button>
+        <button class="gabi-option-btn" onclick="gabiShowSection('cotizar')">
+          <div class="gabi-option-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+          <div class="gabi-option-label">
+            Cotizar un proyecto
+            <span>Cuéntanos sobre tu obra o remodelación</span>
+          </div>
+          <i class="fas fa-chevron-right gabi-option-arrow"></i>
+        </button>
+        <button class="gabi-option-btn" onclick="gabiShowSection('contacto')">
+          <div class="gabi-option-icon"><i class="fas fa-headset"></i></div>
+          <div class="gabi-option-label">
+            Hablar con un asesor
+            <span>Te conectamos con nuestro equipo</span>
+          </div>
+          <i class="fas fa-chevron-right gabi-option-arrow"></i>
+        </button>
+        <button class="gabi-option-btn" onclick="gabiWhatsApp()">
+          <div class="gabi-option-icon"><i class="fab fa-whatsapp"></i></div>
+          <div class="gabi-option-label">
+            Ir a WhatsApp
+            <span>Respuesta inmediata</span>
+          </div>
+          <i class="fas fa-external-link-alt gabi-option-arrow"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista: Quiénes somos -->
+    <div class="gabi-response-area" id="gabiQuienes">
+      <button class="gabi-back-btn" onclick="gabiBack()"><i class="fas fa-arrow-left"></i> Volver</button>
+      <div class="gabi-info-card">
+        <div class="gabi-info-header">
+          <i class="fas fa-hard-hat"></i>
+          <span>DOMKA SOLUTIONS</span>
+        </div>
+        <div class="gabi-info-body">
+          <p>Somos una empresa colombiana especializada en <strong>construcción, remodelación, adecuaciones y mantenimiento</strong> para hogares y empresas. Trabajamos con los más altos estándares de calidad en Bogotá y todo el país.</p>
+          <p>Nuestro equipo de profesionales lleva años transformando espacios con <strong>resultados que hablan por sí solos</strong>.</p>
+          <div class="gabi-info-pillars">
+            <div class="gabi-info-pillar"><i class="fas fa-award"></i> Calidad garantizada</div>
+            <div class="gabi-info-pillar"><i class="fas fa-clock"></i> Cumplimiento de plazos</div>
+            <div class="gabi-info-pillar"><i class="fas fa-shield-alt"></i> Materiales premium</div>
+            <div class="gabi-info-pillar"><i class="fas fa-handshake"></i> Atención personalizada</div>
+          </div>
+          <br>
+          <button class="gabi-mini-submit" onclick="gabiWhatsApp()">
+            <i class="fab fa-whatsapp"></i> Hablar con nosotros
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista: Cotizar -->
+    <div class="gabi-response-area" id="gabiCotizar">
+      <button class="gabi-back-btn" onclick="gabiBack()"><i class="fas fa-arrow-left"></i> Volver</button>
+      <div class="gabi-msg-bot" style="margin-bottom:6px">
+        <div class="gabi-bubble-msg">Cuéntame sobre tu proyecto y te contactamos enseguida 🏗️</div>
+      </div>
+      <div class="gabi-mini-form" id="gabiCotizarForm">
+        <input type="text" id="gabi-nombre" placeholder="Tu nombre *" required>
+        <input type="tel" id="gabi-telefono" placeholder="Teléfono / WhatsApp *" required>
+        <select id="gabi-tipo">
+          <option value="" disabled selected>Tipo de proyecto *</option>
+          <option>Construcción nueva</option>
+          <option>Remodelación</option>
+          <option>Adecuaciones</option>
+          <option>Mantenimiento</option>
+          <option>Acabados</option>
+          <option>Otro</option>
+        </select>
+        <textarea id="gabi-desc" placeholder="Cuéntanos más sobre tu proyecto..."></textarea>
+        <button class="gabi-mini-submit" onclick="gabiEnviarCotizacion()">
+          <i class="fas fa-paper-plane"></i> Enviar solicitud
+        </button>
+      </div>
+      <div class="gabi-success" id="gabiCotizarOk">
+        <i class="fas fa-check-circle" style="font-size:1.3rem"></i>
+        ¡Listo! Te contactamos pronto. También puedes escribirnos por WhatsApp.
+      </div>
+    </div>
+
+    <!-- Vista: Contacto / Asesor -->
+    <div class="gabi-response-area" id="gabiContacto">
+      <button class="gabi-back-btn" onclick="gabiBack()"><i class="fas fa-arrow-left"></i> Volver</button>
+      <div class="gabi-msg-bot" style="margin-bottom:6px">
+        <div class="gabi-bubble-msg">Elige cómo prefieres que te contactemos 😊</div>
+      </div>
+      <div class="gabi-options" style="gap:8px">
+        <button class="gabi-option-btn" onclick="gabiWhatsApp()">
+          <div class="gabi-option-icon" style="background:#dcfce7;color:#16a34a"><i class="fab fa-whatsapp"></i></div>
+          <div class="gabi-option-label">
+            WhatsApp directo
+            <span>+57 317 356 2747</span>
+          </div>
+          <i class="fas fa-external-link-alt gabi-option-arrow"></i>
+        </button>
+        <button class="gabi-option-btn" onclick="window.location.href='tel:+573173562747'">
+          <div class="gabi-option-icon"><i class="fas fa-phone"></i></div>
+          <div class="gabi-option-label">
+            Llamar ahora
+            <span>+57 317 356 2747</span>
+          </div>
+          <i class="fas fa-chevron-right gabi-option-arrow"></i>
+        </button>
+        <button class="gabi-option-btn" onclick="window.location.href='mailto:software.domka@gmail.com'">
+          <div class="gabi-option-icon"><i class="fas fa-envelope"></i></div>
+          <div class="gabi-option-label">
+            Enviar email
+            <span>software.domka@gmail.com</span>
+          </div>
+          <i class="fas fa-chevron-right gabi-option-arrow"></i>
+        </button>
+        <button class="gabi-option-btn" onclick="gabiBack();setTimeout(()=>document.querySelector('#contacto').scrollIntoView({behavior:'smooth'}),300);gabiClose()">
+          <div class="gabi-option-icon"><i class="fas fa-file-alt"></i></div>
+          <div class="gabi-option-label">
+            Formulario de contacto
+            <span>Ver en la página</span>
+          </div>
+          <i class="fas fa-chevron-right gabi-option-arrow"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer input -->
+    <div class="gabi-footer">
+      <input type="text" class="gabi-input" placeholder="Escribe tu mensaje..." id="gabiInput" onkeydown="if(event.key==='Enter')gabiSendMsg()">
+      <button class="gabi-send-btn" onclick="gabiSendMsg()"><i class="fas fa-paper-plane" style="font-size:.8rem"></i></button>
+    </div>
+
+  </div><!-- /gabiPanel -->
+
+  <script>
+    // ── GABI Logic ───────────────────────────────────────────────
+    let gabiIsOpen = false;
+    let gabiBubbleTimeout;
+
+    // Ocultar bubble después de 5s
+    gabiBubbleTimeout = setTimeout(() => {
+      const b = document.getElementById('gabiBubble');
+      if (b) { b.style.opacity='0'; b.style.transition='opacity 0.4s'; setTimeout(()=>b.style.display='none',400); }
+    }, 5000);
+
+    function gabiOpen() {
+      document.getElementById('gabiPanel').classList.add('open');
+      document.getElementById('gabiTrigger').classList.add('hidden');
+      gabiIsOpen = true;
+    }
+
+    function gabiClose() {
+      document.getElementById('gabiPanel').classList.remove('open');
+      document.getElementById('gabiTrigger').classList.remove('hidden');
+      gabiIsOpen = false;
+    }
+
+    function gabiBack() {
+      // Ocultar todas las secciones expandidas
+      ['gabiQuienes','gabiCotizar','gabiContacto'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('active');
+      });
+      document.getElementById('gabiMain').style.display = 'flex';
+    }
+
+    function gabiShowSection(section) {
+      document.getElementById('gabiMain').style.display = 'none';
+      ['gabiQuienes','gabiCotizar','gabiContacto'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      const map = { quienes:'gabiQuienes', cotizar:'gabiCotizar', contacto:'gabiContacto' };
+      document.getElementById(map[section]).classList.add('active');
+    }
+
+    function gabiWhatsApp() {
+      window.open('https://wa.link/54lg8f', '_blank');
+    }
+
+    function gabiEnviarCotizacion() {
+      const nombre   = document.getElementById('gabi-nombre').value.trim();
+      const telefono = document.getElementById('gabi-telefono').value.trim();
+      const tipo     = document.getElementById('gabi-tipo').value;
+      const desc     = document.getElementById('gabi-desc').value.trim();
+
+      if (!nombre || !telefono || !tipo) {
+        ['gabi-nombre','gabi-telefono','gabi-tipo'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el.value.trim()) { el.style.borderColor='#dc2626'; setTimeout(()=>el.style.borderColor='',2500); }
+        });
+        return;
+      }
+
+      // Guardar en Firebase si está disponible
+      if (window.db) {
+        window.db.collection('leads').add({
+          nombre, telefono, servicio: tipo, descripcion: desc,
+          estado: 'nuevo', origen: 'gabi-widget',
+          creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(console.error);
+      }
+
+      document.getElementById('gabiCotizarForm').style.display = 'none';
+      document.getElementById('gabiCotizarOk').classList.add('show');
+    }
+
+    function gabiSendMsg() {
+      const input = document.getElementById('gabiInput');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+
+      // Respuesta simple orientada a WhatsApp
+      const waUrl = `https://wa.me/573173562747?text=${encodeURIComponent('Hola DOMKA! ' + msg)}`;
+      window.open(waUrl, '_blank');
+    }
+  </script>
 
 </body>
 </html>
