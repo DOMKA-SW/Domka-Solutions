@@ -34,6 +34,7 @@
 
   async function protect() {
     if (isPublicPage()) return;
+    document.documentElement.style.visibility = 'hidden';
     if (!window.auth || !window.auth.onAuthStateChanged) return;
 
     window.auth.onAuthStateChanged(async (user) => {
