@@ -64,6 +64,8 @@
 
       if (typeof window.aplicarRestriccionesUI === "function") {
         window.aplicarRestriccionesUI(perfil);
+        
+      document.documentElement.style.visibility = 'visible';
       }
     });
   }
