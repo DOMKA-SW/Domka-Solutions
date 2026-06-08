@@ -1,0 +1,203 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function userExists() {
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function isActive() {
+      return userExists() && userDoc().activo == true;
+    }
+    function isStaff() {
+      return isActive() && userDoc().role != "client";
+    }
+    function roleIs(roles) {
+      return isActive() && userDoc().role in roles;
+    }
+    function isClient() {
+      return isActive() && userDoc().role == "client";
+    }
+    function myClientId() {
+      return userDoc().clienteId;
+    }
+    function myEmpresaId() {
+      return userDoc().empresaId;
+    }
+    function clienteOwns(resource) {
+      return isClient() && (
+        resource.data.clienteId == myClientId() ||
+        (myEmpresaId() != null && resource.data.empresaId == myEmpresaId())
+      );
+    }
+
+    // ── Validaciones de esquema ──────────────────────────────
+    function validLead(data) {
+      return data.keys().hasAll(['nombre', 'email', 'servicio', 'createdAt'])
+          && data.keys().hasOnly(['nombre', 'apellido', 'email', 'telefono',
+                                  'empresa', 'servicio', 'descripcion', 'createdAt', 'origen'])
+          && data.nombre is string && data.nombre.size() > 0 && data.nombre.size() < 120
+          && data.email is string && data.email.size() > 5 && data.email.size() < 200
+          && data.servicio is string
+          && data.createdAt == request.time;
+    }
+    function validUserUpdate(data) {
+      return data.keys().hasOnly(['nombre', 'apellido', 'telefono', 'foto',
+                                  'activo', 'role', 'clienteId', 'empresaId',
+                                  'updatedAt', 'lastLogin']);
+    }
+    function validCotizacion(data) {
+      return data.keys().hasOnly(['clienteId', 'empresaId', 'servicio', 'descripcion',
+                                  'monto', 'moneda', 'estado', 'validoHasta',
+                                  'creadoPor', 'createdAt', 'updatedAt', 'notas',
+                                  'items', 'titulo', 'numero'])
+          && data.clienteId is string
+          && data.estado in ['borrador', 'enviada', 'aceptada', 'rechazada', 'vencida'];
+    }
+    function validProyecto(data) {
+      return data.keys().hasOnly(['clienteId', 'empresaId', 'nombre', 'descripcion',
+                                  'estado', 'fechaInicio', 'fechaFin', 'presupuesto',
+                                  'moneda', 'responsable', 'createdAt', 'updatedAt',
+                                  'etapa', 'avance', 'notas', 'numero'])
+          && data.clienteId is string
+          && data.estado in ['activo', 'pausado', 'completado', 'cancelado', 'planificacion'];
+    }
+    function validDocumento(data) {
+      return data.keys().hasOnly(['clienteId', 'empresaId', 'tipo', 'titulo',
+                                  'url', 'estado', 'proyectoId', 'creadoPor',
+                                  'createdAt', 'updatedAt', 'fechaRespuesta',
+                                  'descripcion', 'version'])
+          && data.clienteId is string
+          && data.tipo in ['contrato', 'acta', 'factura', 'cotizacion', 'informe',
+                           'permiso', 'garantia', 'otro']
+          && data.estado in ['pendiente', 'revisado', 'aprobado', 'rechazado', 'firmado'];
+    }
+
+    // ── users ────────────────────────────────────────────────
+    match /users/{uid} {
+      allow get:    if isAuth() && (request.auth.uid == uid || roleIs(["admin"]));
+      allow list:   if roleIs(["admin"]);
+      allow create: if roleIs(["admin"]);
+      allow update: if (roleIs(["admin"]) || (isAuth() && request.auth.uid == uid))
+                    && validUserUpdate(request.resource.data);
+      allow delete: if roleIs(["admin"]);
+    }
+
+    // ── clientes ─────────────────────────────────────────────
+    match /clientes/{id} {
+      allow get:    if isStaff() || (isClient() && myClientId() == id);
+      allow list:   if isStaff();
+      allow create: if roleIs(["admin", "comercial"]);
+      allow update: if roleIs(["admin", "comercial"]);
+      allow delete: if roleIs(["admin"]);
+    }
+
+    // ── clientInvites — CORREGIDO (antes: read if true) ──────
+    match /clientInvites/{code} {
+      allow get:    if isAuth();
+      allow list:   if roleIs(["admin", "comercial"]);
+      allow create: if roleIs(["admin", "comercial"])
+                    && request.resource.data.enabled == true
+                    && request.resource.data.claimedByUid == null;
+      allow update: if roleIs(["admin", "comercial"])
+                    || (isAuth()
+                        && resource.data.enabled == true
+                        && resource.data.claimedByUid == null
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['claimedByUid', 'claimedAt'])
+                        && request.resource.data.claimedByUid == request.auth.uid);
+      allow delete: if roleIs(["admin"]);
+    }
+
+    // ── cotizaciones ─────────────────────────────────────────
+    match /cotizaciones/{id} {
+      allow get:    if isStaff() || clienteOwns(resource);
+      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
+      allow create: if roleIs(["admin", "comercial"]) && validCotizacion(request.resource.data);
+      allow update: if roleIs(["admin", "comercial"]) && validCotizacion(request.resource.data);
+      allow delete: if roleIs(["admin"]);
+    }
+
+    // ── publicQuotes — CORREGIDO (list bloqueado) ────────────
+    match /publicQuotes/{id} {
+      allow get:    if resource.data.enabled == true;
+      allow list:   if false;
+      allow create: if roleIs(["admin", "comercial"]);
+      allow update: if roleIs(["admin", "comercial"]);
+      allow delete: if roleIs(["admin"]);
+    }
+
+    // ── proyectos ────────────────────────────────────────────
+    match /proyectos/{id} {
+      allow get:    if isStaff() || clienteOwns(resource);
+      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
+      allow create: if roleIs(["admin", "comercial", "tecnico"]) && validProyecto(request.resource.data);
+      allow update: if roleIs(["admin", "comercial", "tecnico"]) && validProyecto(request.resource.data);
+      allow delete: if roleIs(["admin"]);
+    }
+
+    // ── documentos ───────────────────────────────────────────
+    match /documentos/{id} {
+      allow get:    if isStaff() || clienteOwns(resource);
+      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
+      allow create: if roleIs(["admin", "comercial", "tecnico"]) && validDocumento(request.resource.data);
+      allow update: if (roleIs(["admin", "comercial", "tecnico"]) && validDocumento(request.resource.data))
+                    || (clienteOwns(resource)
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['estado', 'fechaRespuesta'])
+                        && request.resource.data.estado in ['aprobado', 'rechazado']);
+      allow delete: if roleIs(["admin", "comercial"]);
+    }
+
+    // ── leads — CORREGIDO (validación estricta) ──────────────
+    match /leads/{id} {
+      allow create: if validLead(request.resource.data);
+      allow get:    if roleIs(["admin", "comercial"]);
+      allow list:   if roleIs(["admin", "comercial"]);
+      allow update: if roleIs(["admin", "comercial"]);
+      allow delete: if roleIs(["admin"]);
+    }
+
+    // ── contabilidad / financiero ────────────────────────────
+    match /contabilidad/{id} {
+      allow read, write: if roleIs(["admin", "contador", "finanzas"]);
+    }
+    match /financiero/{id} {
+      allow read, write: if roleIs(["admin", "contador", "finanzas"]);
+    }
+
+    // ── empleados / nomina ───────────────────────────────────
+    match /empleados/{id} {
+      allow read, write: if roleIs(["admin", "rrhh"]);
+    }
+    match /nomina/{id} {
+      allow read, write: if roleIs(["admin", "rrhh"]);
+    }
+
+    // ── cuentas ──────────────────────────────────────────────
+    match /cuentas/{id} {
+      allow get:   if isStaff() || (isClient() && resource.data.clienteId == myClientId());
+      allow list:  if isStaff();
+      allow write: if roleIs(["admin", "comercial", "contador", "finanzas"]);
+    }
+
+    // ── evidencias ───────────────────────────────────────────
+    match /evidencias/{id} {
+      allow get:    if isStaff() || clienteOwns(resource);
+      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
+      allow create: if roleIs(["admin", "comercial", "tecnico"]);
+      allow update: if roleIs(["admin", "comercial", "tecnico"]);
+      allow delete: if roleIs(["admin", "tecnico"]);
+    }
+
+    // ── BLOQUEO TOTAL — cualquier colección no declarada ─────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
