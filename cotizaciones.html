@@ -262,17 +262,27 @@
     <!-- Lista cotizaciones -->
     <div>
       <div class="form-container p-5">
-        <h2 class="text-xl mb-5 pb-3" style="border-bottom:1px solid var(--line)">
+        <h2 class="text-xl mb-3 pb-3" style="border-bottom:1px solid var(--line)">
           Cotizaciones Guardadas
         </h2>
+        <!-- Búsqueda -->
+        <div class="mb-3">
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input id="cot-search" type="text" placeholder="Buscar por cliente, número o estado…"
+              class="w-full pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-600 bg-white">
+          </div>
+        </div>
         <div class="scrollable-table">
           <table class="w-full border-collapse" id="tabla-cotizaciones">
             <thead>
-              <tr>
-                <th class="p-3 text-left">Cliente</th>
-                <th class="p-3 text-left">Total</th>
-                <th class="p-3 text-left">Tipo</th>
-                <th class="p-3 text-left">Acciones</th>
+              <tr class="border-b bg-gray-50">
+                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">N°</th>
+                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cliente</th>
+                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
+                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
+                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody></tbody>
