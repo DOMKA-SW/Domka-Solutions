@@ -136,6 +136,7 @@
       const evCount  = (p.evidencias || []).length;
       const docCount = (p.documentos || []).length;
       const usrCount = (p.usuariosAsociados || []).length;
+      const aproCount = (p.aprobadores || []).length;
       const empresa  = p.empresaNombre || "";
       return `
         <tr class="border-b hover:bg-gray-50 cursor-pointer" onclick="verDetalle('${p.id}')">
@@ -153,7 +154,8 @@
           <td class="p-3 text-xs text-gray-500 space-x-1">
             ${evCount  ? `<span title="Evidencias">📷 ${evCount}</span>` : ""}
             ${docCount ? `<span title="Documentos">📄 ${docCount}</span>` : ""}
-            ${usrCount ? `<span title="Usuarios asignados">👥 ${usrCount}</span>` : ""}
+            ${usrCount ? `<span title="Usuarios">👥 ${usrCount}</span>` : ""}
+            ${aproCount ? `<span title="Aprobadores">✅ ${aproCount}</span>` : ""}
             ${(!evCount && !docCount && !usrCount) ? "—" : ""}
           </td>
           <td class="p-3 text-xs text-gray-400">${fmtDate(p.creadoEn || p.createdAt)}</td>
@@ -224,7 +226,9 @@
           nombre: d.data().nombre || d.data().displayName || d.data().email || d.id,
           role:   d.data().role || "—"
         }))
-        .filter(u => u.role !== "client"); // solo usuarios internos
+        .filter(u =>  
+          ["admin","comercial","tecnico"].includes(u.role)
+               ); // solo usuarios internos
 
       renderUsuariosPicker();
       renderTecnicoSelect();
@@ -409,7 +413,9 @@ clienteSelect?.addEventListener("change", (e) => {
       planPagos:        cotizacionData?.planPagos || [],
       cotizacionEstado: cotizacionData?.estado || null,
       usuariosAsociados: asociados,
-      contactosCliente: contactosCliente,
+      usuariosAsociados: asociados, 
+      aprobadores: aprobadores,
+      evidencias: [],
       aprobadores: aprobadores,
       evidencias:       [],
       documentos:      (cotizacionData?.anexos || []) .map(a => ({tipo: "anexo-cotizacion", nombre: a.nombre, base64: a.base64, contentType: a.tipo, estado: "aprobado",creadoEn: new Date().toISOString() })),
