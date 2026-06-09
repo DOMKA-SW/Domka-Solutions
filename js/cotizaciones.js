@@ -484,47 +484,151 @@ form.addEventListener("submit", async (e) => {
 });
 
 // ============================
-// 🔹 Listar cotizaciones
+// 🔹 Listar cotizaciones — v2
+// Cambios: .limit(100), búsqueda en memoria, columnas estado/fecha/número,
+//          botones Aprobar / Rechazar, badge de estado visual.
 // ============================
-async function cargarCotizaciones() {
-  tablaCotizaciones.innerHTML = "";
-  const snap = await db.collection("cotizaciones").orderBy("fecha", "desc").get();
-  snap.forEach(doc => {
-    const c = doc.data();
-    const nombreCliente = c.nombreCliente || c.clienteId;
-    
-    let tipoTexto = "";
-    switch(c.tipo) {
-      case "mano-obra": tipoTexto = "Mano de obra"; break;
-      case "materiales": tipoTexto = "Materiales"; break;
-      case "ambos": tipoTexto = "Mano de obra y materiales"; break;
-      default: tipoTexto = c.tipo || "No especificado";
-    }
+let _todasCotizaciones = [];   // caché en memoria para búsqueda sin queries extra
 
-    const tieneAnexos = c.anexos && c.anexos.length > 0;
+const ESTADO_BADGE = {
+  pendiente:    "bg-yellow-100 text-yellow-800",
+  borrador:     "bg-gray-100 text-gray-600",
+  enviada:      "bg-blue-100 text-blue-800",
+  en_revision:  "bg-purple-100 text-purple-800",
+  aceptada:     "bg-green-100 text-green-800",
+  aprobada:     "bg-green-100 text-green-800",
+  rechazada:    "bg-red-100 text-red-800",
+  vencida:      "bg-orange-100 text-orange-800"
+};
+
+function estadoBadge(estado) {
+  const cls = ESTADO_BADGE[estado] || "bg-gray-100 text-gray-600";
+  const label = {
+    pendiente:"Pendiente", borrador:"Borrador", enviada:"Enviada",
+    en_revision:"En revisión", aceptada:"Aceptada", aprobada:"Aprobada",
+    rechazada:"Rechazada", vencida:"Vencida"
+  }[estado] || estado || "—";
+  return `<span class="text-xs font-semibold px-2 py-1 rounded-full ${cls}">${label}</span>`;
+}
+
+function renderCotizaciones(lista) {
+  if (!tablaCotizaciones) return;
+  if (!lista.length) {
+    tablaCotizaciones.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400">Sin cotizaciones.</td></tr>`;
+    return;
+  }
+
+  tablaCotizaciones.innerHTML = "";
+  lista.forEach(({ id, c }) => {
+    const nombreCliente = c.nombreCliente || c.clienteId || "—";
+    const tieneAnexos   = c.anexos?.length > 0;
+    const numero        = c.numero || id.slice(0, 6).toUpperCase();
+    const fechaStr      = c.fecha?.toDate
+      ? c.fecha.toDate().toLocaleDateString("es-CO")
+      : c.fecha ? new Date(c.fecha).toLocaleDateString("es-CO") : "—";
+
+    let tipoTexto = { "mano-obra":"Mano de obra", "materiales":"Materiales", "ambos":"MO + Mat." }[c.tipo] || c.tipo || "—";
+
+    const estado = c.estado || "pendiente";
+    const puedeAprobar = estado !== "aceptada" && estado !== "aprobada";
+    const puedeRechazar = estado !== "rechazada";
 
     const tr = document.createElement("tr");
+    tr.className = "border-b hover:bg-gray-50";
     tr.innerHTML = `
+      <td class="p-2 text-xs text-gray-500 font-mono">${numero}</td>
       <td class="p-2">
-        ${nombreCliente}
-        ${tieneAnexos ? '<span class="bg-blue-500 text-white text-xs px-2 py-1 rounded ml-2">📎</span>' : ''}
+        <div class="font-medium text-sm">${nombreCliente}</div>
+        <div class="text-xs text-gray-400">${tipoTexto}</div>
+        ${tieneAnexos ? '<span class="text-xs text-blue-500">📎 anexos</span>' : ''}
       </td>
-      <td class="p-2">$${Number(c.total || 0).toLocaleString("es-CO")}</td>
-      <td class="p-2">${tipoTexto}</td>
-      <td class="p-2 flex gap-2">
-        <button class="bg-orange-600 text-white px-2 py-1 rounded hover:bg-orange-700 btn-pdf">PDF</button>
-        <a class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700" target="_blank"
-          href="https://wa.me/${c.telefono}?text=${encodeURIComponent(`Hola ${nombreCliente} , aquí tienes tu cotización: ${c.linkPublico || ''}`)}">WhatsApp</a>
+      <td class="p-2 font-medium">$${Number(c.total || 0).toLocaleString("es-CO")}</td>
+      <td class="p-2">${estadoBadge(estado)}</td>
+      <td class="p-2 text-xs text-gray-500">${fechaStr}</td>
+      <td class="p-2">
+        <div class="flex flex-wrap gap-1">
+          <button class="text-xs bg-orange-600 text-white px-2 py-1 rounded hover:bg-orange-700 btn-pdf">PDF</button>
+          <a class="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 no-underline" target="_blank"
+            href="https://wa.me/${c.telefono || ''}?text=${encodeURIComponent(`Hola ${nombreCliente}, aquí tienes tu cotización: ${c.linkPublico || ''}`)}">WA</a>
+          ${puedeAprobar ? `<button class="text-xs bg-green-100 text-green-700 border border-green-300 px-2 py-1 rounded hover:bg-green-200 btn-aprobar">✔ Aprobar</button>` : ""}
+          ${puedeRechazar ? `<button class="text-xs bg-red-100 text-red-700 border border-red-300 px-2 py-1 rounded hover:bg-red-200 btn-rechazar">✘ Rechazar</button>` : ""}
+        </div>
       </td>
     `;
 
     tr.querySelector(".btn-pdf").addEventListener("click", () => {
-      generarPDFCotizacion({...c, id: doc.id}, nombreCliente);
+      generarPDFCotizacion({ ...c, id }, nombreCliente);
     });
+
+    if (puedeAprobar) {
+      tr.querySelector(".btn-aprobar").addEventListener("click", async () => {
+        if (!confirm(`¿Aprobar la cotización de ${nombreCliente}?`)) return;
+        try {
+          await db.collection("cotizaciones").doc(id).update({
+            estado: "aceptada",
+            aprobadoPor: window.auth?.currentUser?.uid || null,
+            aprobadoEn: new Date().toISOString()
+          });
+          await db.collection("publicQuotes").doc(id).update({ estado: "aceptada" }).catch(() => {});
+          await cargarCotizaciones();
+        } catch (err) {
+          alert("Error al aprobar: " + (err?.message || err));
+        }
+      });
+    }
+
+    if (puedeRechazar) {
+      tr.querySelector(".btn-rechazar").addEventListener("click", async () => {
+        const motivo = prompt("Motivo del rechazo (opcional):");
+        if (motivo === null) return; // cancelado
+        try {
+          await db.collection("cotizaciones").doc(id).update({
+            estado: "rechazada",
+            rechazadoPor: window.auth?.currentUser?.uid || null,
+            rechazadoEn: new Date().toISOString(),
+            comentarioAprobacion: motivo || ""
+          });
+          await db.collection("publicQuotes").doc(id).update({ estado: "rechazada" }).catch(() => {});
+          await cargarCotizaciones();
+        } catch (err) {
+          alert("Error al rechazar: " + (err?.message || err));
+        }
+      });
+    }
 
     tablaCotizaciones.appendChild(tr);
   });
 }
+
+async function cargarCotizaciones() {
+  if (tablaCotizaciones) tablaCotizaciones.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400">Cargando…</td></tr>`;
+  try {
+    const snap = await db.collection("cotizaciones").orderBy("fecha", "desc").limit(100).get();
+    _todasCotizaciones = snap.docs.map(doc => ({ id: doc.id, c: doc.data() }));
+    aplicarBusquedaCotizaciones();
+  } catch {
+    if (tablaCotizaciones) tablaCotizaciones.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500">Error cargando cotizaciones.</td></tr>`;
+  }
+}
+
+function aplicarBusquedaCotizaciones() {
+  const searchEl = document.getElementById("cot-search");
+  const q = (searchEl?.value || "").toLowerCase().trim();
+  const lista = q
+    ? _todasCotizaciones.filter(({ c }) =>
+        (c.nombreCliente || "").toLowerCase().includes(q) ||
+        (c.numero || "").toLowerCase().includes(q) ||
+        (c.estado || "").toLowerCase().includes(q)
+      )
+    : _todasCotizaciones;
+  renderCotizaciones(lista);
+}
+
+// Buscar al escribir
+document.addEventListener("DOMContentLoaded", () => {
+  const searchEl = document.getElementById("cot-search");
+  if (searchEl) searchEl.addEventListener("input", aplicarBusquedaCotizaciones);
+});
 
 document.addEventListener("DOMContentLoaded", async function() {
   try {
