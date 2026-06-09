@@ -371,7 +371,7 @@ function estadoBadge(e){
 async function cargar(){
   try{
     const snap = await db.collection('leads').orderBy('createdAt','desc').get();
-    _leads = snap.docs.map(d=>({id:d.id,...d.data()}));
+    _leads = snap.docs.map(d=>({estado:'nuevo', ...d.data(), id:d.id}));
     renderMetricas();
     aplicarFiltros();
   }catch(e){
