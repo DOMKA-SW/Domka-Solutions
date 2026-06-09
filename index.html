@@ -1399,10 +1399,14 @@
         if (window.__domkaFirebaseReady) await Promise.resolve(window.__domkaFirebaseReady);
         if (window.db) {
           await window.db.collection('leads').add({
-            nombre, empresa, telefono, email, servicio, descripcion,
-            estado: 'nuevo', origen: 'web',
-            creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
-            actividades: []
+            nombre,
+            email,
+            telefono,
+            empresa,
+            servicio,
+            descripcion,
+            origen: 'web',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
         notice.style.display = 'block';
