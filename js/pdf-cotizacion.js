@@ -514,7 +514,7 @@ const bloquePago = [
           {
             stack: [
               sLabel("CONTÁCTANOS"),
-              { text: "piter030509@gmail.com",            fontSize: 9, color: P.gray, font: "Roboto", margin: [0,0,0,2] },
+              { text: "domka.solutions@gmail.com",            fontSize: 9, color: P.gray, font: "Roboto", margin: [0,0,0,2] },
               { text: "Cel: +57 305 811 4595",            fontSize: 9, color: P.gray, font: "Roboto", margin: [0,0,0,2] },
               { text: "RUT: 79.597.683-1",                fontSize: 9, color: P.gray, font: "Roboto" }
             ],
