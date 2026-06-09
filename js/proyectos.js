@@ -488,6 +488,11 @@ window.filtrarContactosCliente = function(q) {
       cotizacionEstado: cotizacionData?.estado || null,
       usuariosAsociados: asociados,
       aprobadores: aprobadores,
+      // Array plano de UIDs para queries en portal cliente
+      uidsAsociados: [
+        ...asociados.map(u => u.uid),
+        ...aprobadores.map(u => u.uid)
+      ].filter((v, i, a) => v && a.indexOf(v) === i),
       evidencias: [],
       documentos:      (cotizacionData?.anexos || []) .map(a => ({tipo: "anexo-cotizacion", nombre: a.nombre, base64: a.base64, contentType: a.tipo, estado: "aprobado",creadoEn: new Date().toISOString() })),
       creadoPor:        window.auth?.currentUser?.uid || null,
