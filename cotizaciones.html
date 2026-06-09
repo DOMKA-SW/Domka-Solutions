@@ -43,6 +43,160 @@
     /* Scrollbar */
     .scrollable-table::-webkit-scrollbar { height: 5px; }
     .scrollable-table::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }
+
+    /* === PANEL COTIZACIONES GUARDADAS === */
+.cot-saved-panel {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: sticky;
+  top: 24px;
+}
+
+.cot-panel-header {
+  padding: 18px 20px 15px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cot-panel-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 3px;
+  letter-spacing: -.01em;
+}
+
+.cot-panel-subtitle {
+  font-size: .7rem;
+  color: var(--gray-lt);
+  letter-spacing: .03em;
+}
+
+.cot-panel-badge {
+  width: 34px; height: 34px;
+  background: var(--green-lt);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+  font-size: .85rem;
+  flex-shrink: 0;
+}
+
+.cot-search-wrap {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-alt);
+}
+
+.cot-search-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cot-search-inner i {
+  position: absolute;
+  left: 10px;
+  color: var(--gray-lt);
+  font-size: .75rem;
+  pointer-events: none;
+}
+
+#cot-search {
+  width: 100%;
+  padding: 7px 12px 7px 30px !important;
+  background: var(--white) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  font-size: .82rem !important;
+  color: var(--text) !important;
+  outline: none !important;
+  transition: border-color .15s, box-shadow .15s !important;
+}
+
+#cot-search:focus {
+  border-color: var(--green) !important;
+  box-shadow: 0 0 0 3px rgba(27,122,81,.08) !important;
+}
+
+#cot-search::placeholder { color: var(--gray-lt) !important; }
+
+.cot-table-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 480px;
+}
+
+.cot-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
+.cot-table-wrap::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }
+
+#tabla-cotizaciones {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .8rem;
+}
+
+#tabla-cotizaciones thead tr {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-alt);
+}
+
+#tabla-cotizaciones thead th {
+  padding: 9px 10px;
+  text-align: left;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gray);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+#tabla-cotizaciones tbody tr {
+  border-bottom: 1px solid var(--line);
+  transition: background .12s;
+}
+
+#tabla-cotizaciones tbody tr:last-child { border-bottom: none; }
+#tabla-cotizaciones tbody tr:hover { background: var(--green-lt); }
+
+#tabla-cotizaciones tbody td {
+  padding: 10px 10px;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+#tabla-cotizaciones tbody td:first-child {
+  font-weight: 700;
+  font-size: .72rem;
+  color: var(--green);
+}
+
+/* Empty state cuando JS inserta sin cotizaciones */
+#tabla-cotizaciones tbody td[colspan] {
+  padding: 52px 20px !important;
+  text-align: center !important;
+  color: var(--gray-lt) !important;
+  font-size: .83rem !important;
+}
+
+/* Badges de estado (el JS los genera — cubrimos los nombres más comunes) */
+.badge-pendiente, .estado-pendiente { display:inline-flex;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:#FEF3C7;color:#92400E; }
+.badge-enviada,   .estado-enviada   { display:inline-flex;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:#DBEAFE;color:#1E40AF; }
+.badge-aprobada,  .estado-aprobada  { display:inline-flex;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:#D1FAE5;color:#065F46; }
+.badge-rechazada, .estado-rechazada { display:inline-flex;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:#FEE2E2;color:#991B1B; }
+.badge-borrador,  .estado-borrador  { display:inline-flex;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--bg-alt);color:var(--gray); }
+    
   </style>
 </head>
 <body>
@@ -59,7 +213,7 @@
     <a href="clientes.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-users"></i> Clientes</a>
     <a href="proyectos.html" class="sidebar-link"><i class="fas fa-hard-hat"></i> Proyectos</a>
     <a href="comercial.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-funnel-dollar"></i> Comercial</a>
-    <a href="documentos.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-folder-open"></i> Documentos</a>
+    <!-- <a href="documentos.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-folder-open"></i> Documentos</a> -->
     <a href="contabilidad.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-chart-bar"></i> Contabilidad</a>
     <a href="usuarios.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-user-cog"></i> Usuarios</a>
   </nav>
@@ -258,39 +412,46 @@
       </div>
     </div>
 
-    <!-- Lista cotizaciones -->
-    <div>
-      <div class="form-container p-5">
-        <h2 class="text-xl mb-3 pb-3" style="border-bottom:1px solid var(--line)">
-          Cotizaciones Guardadas
-        </h2>
-        <!-- Búsqueda -->
-        <div class="mb-3">
-          <div class="relative">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input id="cot-search" type="text" placeholder="Buscar por cliente, número o estado…"
-              class="w-full pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-600 bg-white">
-          </div>
-        </div>
-        <div class="scrollable-table">
-          <table class="w-full border-collapse" id="tabla-cotizaciones">
-            <thead>
-              <tr class="border-b bg-gray-50">
-                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">N°</th>
-                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cliente</th>
-                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
-                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
-                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
-                <th class="p-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+<!-- Lista cotizaciones -->
+<div>
+  <div class="cot-saved-panel">
+
+    <!-- Header -->
+    <div class="cot-panel-header">
+      <div>
+        <h2 class="cot-panel-title">Cotizaciones Guardadas</h2>
+        <span class="cot-panel-subtitle">Historial y gestión</span>
+      </div>
+      <div class="cot-panel-badge">
+        <i class="fas fa-file-alt"></i>
       </div>
     </div>
-  </div>
 
+    <!-- Búsqueda -->
+    <div class="cot-search-wrap">
+      <div class="cot-search-inner">
+        <i class="fas fa-search"></i>
+        <input id="cot-search" type="text" placeholder="Buscar cliente, número o estado…">
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="cot-table-wrap">
+      <table id="tabla-cotizaciones">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Cliente</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- Scripts -->
