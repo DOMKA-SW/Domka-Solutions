@@ -274,6 +274,106 @@
     console.error('❌ ERROR proyectos empresa', e);
   }
 
+  // Unificar resultados sin duplicados
+const cotizacionesMap = new Map();
+[q1, q2].forEach(snapshot => {
+  snapshot?.docs?.forEach(doc => {
+    cotizacionesMap.set(doc.id, {
+      id: doc.id,
+      tipo: 'cotizacion',
+      ...doc.data()
+    });
+  });
+});
+
+const proyectosMap = new Map();
+[q3, q4].forEach(snapshot => {
+  snapshot?.docs?.forEach(doc => {
+    proyectosMap.set(doc.id, {
+      id: doc.id,
+      tipo: 'proyecto',
+      ...doc.data()
+    });
+  });
+});
+
+const cotizaciones = Array.from(cotizacionesMap.values());
+const proyectos = Array.from(proyectosMap.values());
+
+// Estadísticas
+document.getElementById('stat-cot').textContent = cotizaciones.length;
+document.getElementById('stat-proy').textContent = proyectos.length;
+
+// Badges
+if (cotizaciones.length) {
+  const badgeCot = document.getElementById('badge-cot');
+  badgeCot.style.display = 'inline-block';
+  badgeCot.textContent = cotizaciones.length;
+}
+
+if (proyectos.length) {
+  const badgeProy = document.getElementById('badge-proy');
+  badgeProy.style.display = 'inline-block';
+  badgeProy.textContent = proyectos.length;
+}
+
+// Actividad reciente
+const actividad = [
+  ...cotizaciones.map(c => ({
+    tipo: 'cotización',
+    nombre: c.nombre || c.titulo || 'Cotización',
+    fecha: c.fechaCreacion || c.createdAt || c.fecha
+  })),
+  ...proyectos.map(p => ({
+    tipo: 'proyecto',
+    nombre: p.nombre || p.titulo || 'Proyecto',
+    fecha: p.fechaCreacion || p.createdAt || p.fecha
+  }))
+];
+
+actividad.sort((a,b)=>{
+  const fa = a.fecha?.toDate ? a.fecha.toDate() : new Date(a.fecha || 0);
+  const fb = b.fecha?.toDate ? b.fecha.toDate() : new Date(b.fecha || 0);
+  return fb - fa;
+});
+
+const recientes = actividad.slice(0,5);
+
+const actividadEl = document.getElementById('actividad-reciente');
+
+if (!recientes.length) {
+
+  actividadEl.innerHTML = `
+    <div class="reciente-item">
+      <div class="reciente-texto">
+        No hay actividad reciente.
+      </div>
+    </div>
+  `;
+
+} else {
+
+  actividadEl.innerHTML = `
+    <div class="reciente-list">
+      ${recientes.map(item => `
+        <div class="reciente-item">
+          <div class="reciente-dot"
+               style="background:${item.tipo === 'cotización' ? '#1b7a51' : '#2563eb'}">
+          </div>
+
+          <div class="reciente-texto">
+            ${item.nombre}
+          </div>
+
+          <div class="reciente-fecha">
+            ${fmtDate(item.fecha)}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 } catch(e) {
   console.error('Error cargando portal:', e);
 }
