@@ -219,16 +219,12 @@
   async function cargarUsuariosSistema() {
     try {
       const snap = await db.collection("users").get();
-      _usuarios = snap.docs
-        .map(d => ({
-          uid:    d.id,
-          email:  d.data().email || d.data().correo || d.id,
-          nombre: d.data().nombre || d.data().displayName || d.data().email || d.id,
-          role:   d.data().role || "—"
-        }))
-        .filter(u =>  
-          ["admin","comercial","tecnico"].includes(u.role)
-               ); // solo usuarios internos
+      _usuarios = snap.docs.map(d => ({
+        uid: d.id,
+        email: d.data().email || d.data().correo || d.id,
+        nombre: d.data().nombre || d.data().displayName || d.data().email || d.id,
+        role: d.data().role || "—"
+      })); // solo usuarios internos
 
       renderUsuariosPicker();
       renderTecnicoSelect();
