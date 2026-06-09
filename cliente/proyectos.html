@@ -111,6 +111,10 @@
   const badgeCls = {pendiente:'badge-pendiente',en_ejecucion:'badge-en_ejecucion',finalizado:'badge-finalizado',suspendido:'badge-suspendido'};
   const badgeLbl = {pendiente:'⏳ Pendiente',en_ejecucion:'🔧 En ejecución',finalizado:'✅ Finalizado',suspendido:'⏸ Suspendido'};
 
+  let _perfil = null;
+  let _proyectosLista = []; // lista ligera para las cards
+  let _proyectosCache = {}; // cache de docs completos con base64
+
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
   function fmtDate(ts){try{const d=ts?.toDate?ts.toDate():(ts?new Date(ts):null);return d?d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—'}catch{return'—'}}
 
@@ -135,6 +139,12 @@
     return'📎';
   }
 
+  function canApprove(p) {
+    const uid = window.auth?.currentUser?.uid;
+    if (!uid) return false;
+    return (p.aprobadores || []).some(a => a.uid === uid);
+  }
+
   function switchTab(proyId, tab){
     document.querySelectorAll('[data-proy="'+proyId+'"].tab-body').forEach(el=>el.classList.remove('active'));
     document.querySelectorAll('[data-proy="'+proyId+'"].tab-pill').forEach(el=>el.classList.remove('active'));
@@ -142,15 +152,132 @@
     document.getElementById('pill-'+proyId+'-'+tab)?.classList.add('active');
   }
 
+  // Carga el doc completo (con base64) y refresca las tabs del proyecto
+  async function cargarProyectoCompleto(pid) {
+    const tabDocs = document.getElementById('tab-'+pid+'-docs');
+    const tabEvid = document.getElementById('tab-'+pid+'-evid');
+    if (tabDocs) tabDocs.innerHTML = '<p style="color:var(--gray-lt);font-size:.85rem;padding:16px 0"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</p>';
+    if (tabEvid) tabEvid.innerHTML = '';
+
+    try {
+      const snap = await db.collection('proyectos').doc(pid).get();
+      if (!snap.exists) return;
+      const p = { id: pid, ...snap.data() };
+      _proyectosCache[pid] = p;
+
+      // Actualizar contador en pills
+      const docs = p.documentos || [];
+      const evs  = p.evidencias  || [];
+      const pillDocs = document.getElementById('pill-'+pid+'-docs');
+      const pillEvid = document.getElementById('pill-'+pid+'-evid');
+      if (pillDocs) pillDocs.innerHTML = `<i class="fas fa-file-alt" style="margin-right:5px"></i>Documentos ${docs.length?'('+docs.length+')':''}`;
+      if (pillEvid) pillEvid.innerHTML = `<i class="fas fa-images" style="margin-right:5px"></i>Evidencias ${evs.length?'('+evs.length+')':''}`;
+
+      if (tabDocs) tabDocs.innerHTML = renderDocumentos(p);
+      if (tabEvid) tabEvid.innerHTML = renderEvidencias(p);
+    } catch(e) {
+      console.error('Error cargando proyecto completo:', e);
+      if (tabDocs) tabDocs.innerHTML = '<p style="color:#991b1b;font-size:.85rem;padding:12px 0">Error cargando el proyecto.</p>';
+    }
+  }
+
+  function renderDocumentos(p) {
+    const docs = p.documentos || [];
+    if (!docs.length) return '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin documentos aún.</p>';
+
+    const tiposOrden = ['Acta de Inicio','Contrato','Acta de Cierre','Informe','Otro'];
+    const agrupados = {};
+    docs.forEach(d => { const t = d.tipo||'Otro'; if (!agrupados[t]) agrupados[t]=[]; agrupados[t].push(d); });
+
+    return tiposOrden
+      .filter(t => agrupados[t])
+      .concat(Object.keys(agrupados).filter(t => !tiposOrden.includes(t)))
+      .map(tipo => `
+        <div style="margin-bottom:14px">
+          <p style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:6px">${esc(tipo)}</p>
+          ${agrupados[tipo].map(d => {
+            const bc = d.estado==='aprobado'?'badge-doc-aprobado':d.estado==='rechazado'?'badge-doc-rechazado':'badge-doc-pendiente';
+            const bl = d.estado==='aprobado'?'Aprobado ✓':d.estado==='rechazado'?'Rechazado':'Pendiente';
+            const puedeAprobar = canApprove(p) && d.estado !== 'aprobado';
+            return `
+              <div class="doc-row">
+                <div class="doc-icon">📄</div>
+                <div class="doc-info">
+                  <div class="doc-name">${esc(d.nombre||d.tipo)}</div>
+                  <div class="doc-meta">${esc(d.tipo||'')} · ${fmtDate(d.creadoEn)}</div>
+                </div>
+                <span class="${bc}">${bl}</span>
+                ${d.base64?`<a href="${d.base64}" download="${esc(d.fileName||d.nombre||'documento')}" class="btn-ver">⬇ Descargar</a>`:''}
+                ${d.url?`<a href="${esc(d.url)}" target="_blank" class="btn-ver">🔗 Ver</a>`:''}
+                ${puedeAprobar?`<button onclick="aprobarDocPortal('${p.id}','${esc(d.nombre||d.tipo)}')"
+                  style="font-size:.75rem;background:var(--green);color:#fff;padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600">
+                  ✅ Aprobar
+                </button>`:''}
+              </div>`;
+          }).join('')}
+        </div>`).join('');
+  }
+
+  function renderEvidencias(p) {
+    const evs = p.evidencias || [];
+    if (!evs.length) return '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin evidencias aún.</p>';
+
+    const semanas = {};
+    evs.slice().reverse().forEach(ev => {
+      const sk = semanaLabel(ev.uploadedAt||ev.fecha);
+      if (!semanas[sk]) semanas[sk]=[];
+      semanas[sk].push(ev);
+    });
+
+    return Object.entries(semanas).map(([sem, items]) => `
+      <span class="semana-label">${esc(sem)}</span>
+      <div class="evidence-grid">
+        ${items.map(ev => {
+          const isImg  = (ev.contentType||ev.tipo||'').startsWith('image/');
+          const isVid  = (ev.contentType||ev.tipo||'').startsWith('video/');
+          const isLink = ev.tipo==='link';
+          const label  = esc(ev.name||ev.nombre||ev.url||'Archivo');
+          const icon   = tipoIcon(ev);
+          if (isLink) return `<a href="${esc(ev.url)}" target="_blank" class="ev-link">${icon} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></a>`;
+          if (isImg && ev.base64) return `<div><img class="ev-img" src="${ev.base64}" alt="${label}" onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').style.display='flex'"></div>`;
+          if (isVid && ev.base64) return `<video style="width:100%;height:95px;object-fit:cover;border-radius:10px" controls><source src="${ev.base64}" type="${esc(ev.contentType)}"></video>`;
+          if (ev.base64) return `<a href="${ev.base64}" download="${label}" class="ev-file">${icon} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></a>`;
+          return '';
+        }).join('')}
+      </div>`).join('');
+  }
+
+  window.aprobarDocPortal = async function(proyId, docNombre) {
+    if (!confirm('¿Aprobar el documento "'+docNombre+'"?')) return;
+    try {
+      const snap = await db.collection('proyectos').doc(proyId).get();
+      const data = snap.data() || {};
+      const docs = (data.documentos || []).map(d =>
+        (d.nombre === docNombre || d.tipo === docNombre)
+          ? { ...d, estado:'aprobado', aprobadoPor: window.auth?.currentUser?.uid, aprobadoEn: new Date().toISOString() }
+          : d
+      );
+      await db.collection('proyectos').doc(proyId).update({ documentos: docs });
+      // Actualizar cache y re-renderizar
+      if (_proyectosCache[proyId]) {
+        _proyectosCache[proyId].documentos = docs;
+        const tabDocs = document.getElementById('tab-'+proyId+'-docs');
+        if (tabDocs) tabDocs.innerHTML = renderDocumentos(_proyectosCache[proyId]);
+      }
+    } catch(e) {
+      alert('Error al aprobar: ' + (e?.message || e));
+    }
+  };
+
   document.addEventListener('DOMContentLoaded', async () => {
     await Promise.resolve(window.__domkaFirebaseReady);
     if (!window.auth || !window.db) return;
     const unsub = window.auth.onAuthStateChanged(async (user) => {
       if (!user) return;
       unsub();
-      const perfil = await cargarPerfil(user);
-      const clienteId = perfil?.clienteId;
-      const empresaId = perfil?.empresaId;
+      _perfil = await cargarPerfil(user);
+      const clienteId = _perfil?.clienteId;
+      const empresaId = _perfil?.empresaId;
       if (!clienteId && !empresaId) {
         document.getElementById('lista-proyectos').innerHTML =
           '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Cuenta no vinculada.<br>Contacta a DOMKA.</p></div>';
@@ -158,7 +285,6 @@
       }
       try {
         const uid = user.uid;
-        // Busca por clienteId, empresaId Y por uid en el array uidsAsociados
         const [snapCli, snapEmp, snapUid] = await Promise.all([
           clienteId ? db.collection('proyectos').where('clienteId','==',clienteId).get() : Promise.resolve(null),
           empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null),
@@ -168,13 +294,13 @@
         (snapCli?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
         (snapEmp?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
         (snapUid?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-        const proyectos = Array.from(map.values())
+        _proyectosLista = Array.from(map.values())
           .sort((a,b)=>{
             const ad=a.creadoEn?.toDate?a.creadoEn.toDate().getTime():new Date(a.creadoEn||0).getTime();
             const bd=b.creadoEn?.toDate?b.creadoEn.toDate().getTime():new Date(b.creadoEn||0).getTime();
             return bd-ad;
           });
-        renderProyectos(proyectos);
+        renderProyectos(_proyectosLista);
       } catch(e) {
         console.error(e);
         document.getElementById('lista-proyectos').innerHTML =
@@ -193,91 +319,60 @@
     c.innerHTML = list.map(p => {
       const pid    = p.id;
       const estado = p.estado || 'pendiente';
-      const docs   = p.documentos || [];
-      const evs    = p.evidencias || [];
-
-      // ── Documentos ────────────────────────────────
-      const docsHTML = docs.length ? docs.map(d => {
-        const bc = d.estado==='aprobado'?'badge-doc-aprobado':d.estado==='rechazado'?'badge-doc-rechazado':'badge-doc-pendiente';
-        const bl = d.estado==='aprobado'?'Aprobado ✓':d.estado==='rechazado'?'Rechazado':'Pendiente';
-        return `
-          <div class="doc-row">
-            <div class="doc-icon">📄</div>
-            <div class="doc-info">
-              <div class="doc-name">${esc(d.nombre||d.tipo)}</div>
-              <div class="doc-meta">${esc(d.tipo||'')} · ${fmtDate(d.creadoEn)}</div>
-            </div>
-            <span class="${bc}">${bl}</span>
-            ${d.url?`<a href="${esc(d.url)}" target="_blank" class="btn-ver">Ver</a>`:''}
-          </div>`;
-      }).join('') : '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin documentos aún.</p>';
-
-      // ── Evidencias agrupadas por semana ───────────
-      let evidHTML = '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin evidencias aún.</p>';
-      if (evs.length) {
-        const semanas = {};
-        evs.slice().reverse().forEach(ev => {
-          const sk = semanaLabel(ev.uploadedAt || ev.fecha);
-          if (!semanas[sk]) semanas[sk] = [];
-          semanas[sk].push(ev);
-        });
-        evidHTML = Object.entries(semanas).map(([sem, items]) => `
-          <span class="semana-label">${esc(sem)}</span>
-          <div class="evidence-grid">
-            ${items.map(ev => {
-              const isImg  = (ev.contentType||ev.tipo||'').startsWith('image/');
-              const isVid  = (ev.contentType||ev.tipo||'').startsWith('video/');
-              const isLink = ev.tipo === 'link';
-              const label  = esc(ev.name||ev.nombre||ev.url||'Archivo');
-              const icon   = tipoIcon(ev);
-              if (isLink) return `<a href="${esc(ev.url)}" target="_blank" class="ev-link">${icon} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></a>`;
-              if (isImg && ev.base64) return `<div><img class="ev-img" src="${ev.base64}" alt="${label}" onclick="document.getElementById('lb-img').src=this.src;document.getElementById('lightbox').style.display='flex'"></div>`;
-              if (isVid && ev.base64) return `<video style="width:100%;height:95px;object-fit:cover;border-radius:10px" controls><source src="${ev.base64}" type="${esc(ev.contentType)}"></video>`;
-              if (ev.base64) return `<a href="${ev.base64}" download="${label}" class="ev-file">${icon} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span></a>`;
-              return '';
-            }).join('')}
-          </div>`).join('');
-      }
-
-      const docCount = docs.length;
-      const evCount  = evs.length;
+      const docCount = (p.documentos||[]).length;
+      const evCount  = (p.evidencias||[]).length;
 
       return `
         <div class="proy-card">
-          <div class="proy-card-header" onclick="switchTab('${pid}', document.getElementById('tab-${pid}-docs')?.classList.contains('active')?'docs':'docs')">
+          <div class="proy-card-header" onclick="toggleProy('${pid}')">
             <div>
               <div class="proy-num">${esc(p.numero||p.id.slice(0,8).toUpperCase())}</div>
               ${p.nombre?`<div class="proy-nombre">${esc(p.nombre)}</div>`:''}
               <div style="font-size:.8rem;color:var(--gray-lt);margin-top:4px">${fmtDate(p.creadoEn)}</div>
             </div>
             <div style="text-align:right">
-              <span class="badge ${badgeCls[estado]}">${badgeLbl[estado]||estado}</span>
+              <span class="badge ${badgeCls[estado]||'badge-pendiente'}">${badgeLbl[estado]||estado}</span>
               <div style="font-size:.75rem;color:var(--gray-lt);margin-top:6px">
                 ${docCount?`📄 ${docCount} doc${docCount!==1?'s':''}`:''} ${evCount?`📷 ${evCount} evidencia${evCount!==1?'s':''}` : ''}
+              </div>
+              <div style="font-size:.72rem;color:var(--green);margin-top:4px;font-weight:600">
+                <i class="fas fa-chevron-down" id="chevron-${pid}"></i> Ver detalle
               </div>
             </div>
           </div>
 
           ${p.descripcion?`<div style="padding:14px 26px;font-size:.88rem;color:var(--gray);border-bottom:1px solid var(--line)">${esc(p.descripcion)}</div>`:''}
 
-          <div class="tabs-bar">
-            <button id="pill-${pid}-docs" class="tab-pill active" data-proy="${pid}" onclick="switchTab('${pid}','docs')">
-              <i class="fas fa-file-alt" style="margin-right:5px"></i>Documentos ${docCount?`(${docCount})`:''}
-            </button>
-            <button id="pill-${pid}-evid" class="tab-pill" data-proy="${pid}" onclick="switchTab('${pid}','evid')">
-              <i class="fas fa-images" style="margin-right:5px"></i>Evidencias ${evCount?`(${evCount})`:''}
-            </button>
-          </div>
-
-          <div id="tab-${pid}-docs" class="tab-body active" data-proy="${pid}">
-            ${docsHTML}
-          </div>
-          <div id="tab-${pid}-evid" class="tab-body" data-proy="${pid}">
-            ${evidHTML}
+          <div id="detalle-${pid}" style="display:none">
+            <div class="tabs-bar">
+              <button id="pill-${pid}-docs" class="tab-pill active" data-proy="${pid}" onclick="switchTab('${pid}','docs')">
+                <i class="fas fa-file-alt" style="margin-right:5px"></i>Documentos ${docCount?'('+docCount+')':''}
+              </button>
+              <button id="pill-${pid}-evid" class="tab-pill" data-proy="${pid}" onclick="switchTab('${pid}','evid')">
+                <i class="fas fa-images" style="margin-right:5px"></i>Evidencias ${evCount?'('+evCount+')':''}
+              </button>
+            </div>
+            <div id="tab-${pid}-docs" class="tab-body active" data-proy="${pid}">
+              <p style="color:var(--gray-lt);font-size:.85rem;padding:16px 0"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</p>
+            </div>
+            <div id="tab-${pid}-evid" class="tab-body" data-proy="${pid}"></div>
           </div>
         </div>`;
     }).join('');
   }
+
+  window.toggleProy = function(pid) {
+    const detalle = document.getElementById('detalle-'+pid);
+    const chevron = document.getElementById('chevron-'+pid);
+    if (!detalle) return;
+    const abriendo = detalle.style.display === 'none';
+    detalle.style.display = abriendo ? 'block' : 'none';
+    if (chevron) chevron.className = abriendo ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+    // Solo carga desde Firestore la primera vez
+    if (abriendo && !_proyectosCache[pid]) {
+      cargarProyectoCompleto(pid);
+    }
+  };
 </script>
 </body>
 </html>
