@@ -27,7 +27,8 @@
   let _busqueda = "";
   let _current  = null;   // proyecto abierto en modal (con base64 cargado)
   let _perfil   = null;
-  let _usuarios = [];     // usuarios internos del sistema
+  let _usuarios = [];        // usuarios internos del sistema
+  let _contactosCliente = []; // contactos del cliente seleccionado
 
   /* ── Helpers ─────────────────────────────────────── */
   function esc(s) {
@@ -249,12 +250,15 @@
     const wrapA = document.getElementById("proy-aprobadores-wrap");
     if (!wrapU) return;
 
-    if (!_usuarios.length) {
+    // Solo usuarios internos (sin clientes)
+    const internos = _usuarios.filter(u => u.role !== "client");
+
+    if (!internos.length) {
       wrapU.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Sin usuarios disponibles</p>`;
       return;
     }
 
-    wrapU.innerHTML = _usuarios.map(u => `
+    wrapU.innerHTML = internos.map(u => `
       <label class="flex items-center gap-2 px-1 py-1 hover:bg-green-50 rounded cursor-pointer">
         <input type="checkbox" class="proy-user-chk accent-green-700" value="${esc(u.uid)}"
           data-email="${esc(u.email)}" data-nombre="${esc(u.nombre)}"
@@ -263,23 +267,27 @@
         <span class="ml-auto text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">${esc(u.role)}</span>
       </label>`).join("");
 
-    if (wrapA) wrapA.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Primero selecciona usuarios asociados</p>`;
+    if (wrapA) wrapA.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Primero selecciona contactos cliente</p>`;
   }
 
-  window.sincronizarAprobadores = function() {
+  // sincronizarAprobadores: solo para compatibilidad, no hace nada (aprobadores vienen de clientes)
+  window.sincronizarAprobadores = function() { /* aprobadores se sincronizan desde contactos cliente */ };
+
+  // sincronizarAprobadoresCliente: llena el panel de aprobadores con los contactos cliente seleccionados
+  window.sincronizarAprobadoresCliente = function() {
     const wrapA = document.getElementById("proy-aprobadores-wrap");
     if (!wrapA) return;
-    const sel = Array.from(document.querySelectorAll(".proy-user-chk:checked"));
-    if (!sel.length) {
-      wrapA.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Primero selecciona usuarios asociados</p>`;
+    const clientes = Array.from(document.querySelectorAll(".proy-cliente-chk:checked"));
+    if (!clientes.length) {
+      wrapA.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Selecciona contactos cliente primero</p>`;
       return;
     }
-    wrapA.innerHTML = sel.map(chk => `
+    wrapA.innerHTML = clientes.map(chk => `
       <label class="flex items-center gap-2 px-1 py-1 hover:bg-green-50 rounded cursor-pointer">
         <input type="checkbox" class="proy-apro-chk accent-green-700" value="${esc(chk.value)}"
           data-email="${esc(chk.dataset.email)}" data-nombre="${esc(chk.dataset.nombre)}">
         <span class="text-xs"><b>${esc(chk.dataset.nombre)}</b> <span class="text-gray-400">${esc(chk.dataset.email)}</span></span>
-        <span class="ml-auto text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">✓ Aprobador</span>
+        <span class="ml-auto text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">⭐ Aprobador</span>
       </label>`).join("");
   };
 
@@ -362,7 +370,68 @@ async function cargarCotizacionesCliente(clienteId) {
 clienteSelect?.addEventListener("change", (e) => {
   const clienteId = e.target.value;
   cargarCotizacionesCliente(clienteId);
+  cargarContactosCliente(clienteId);
 });
+
+/* ── Cargar contactos del cliente ─────────────────── */
+async function cargarContactosCliente(clienteId) {
+  const wrap = document.getElementById("proy-clientes-wrap");
+  const wrapA = document.getElementById("proy-aprobadores-wrap");
+  if (!wrap) return;
+
+  _contactosCliente = [];
+
+  if (!clienteId) {
+    wrap.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Selecciona un cliente</p>`;
+    if (wrapA) wrapA.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Selecciona contactos cliente primero</p>`;
+    return;
+  }
+
+  wrap.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Cargando contactos…</p>`;
+
+  try {
+    const snap = await db.collection("users")
+      .where("clienteId", "==", clienteId)
+      .get();
+
+    // También intentar por empresaId si no hay resultados directos
+    let docs = snap.docs;
+    if (!docs.length) {
+      const clienteDoc = await db.collection("clientes").doc(clienteId).get();
+      const empresaId = clienteDoc.data()?.empresaId;
+      if (empresaId) {
+        const snap2 = await db.collection("users")
+          .where("empresaId", "==", empresaId)
+          .where("role", "==", "client")
+          .get();
+        docs = snap2.docs;
+      }
+    }
+
+    _contactosCliente = docs.map(d => ({ uid: d.id, ...d.data() }));
+
+    if (!_contactosCliente.length) {
+      wrap.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Sin contactos asociados a este cliente</p>`;
+      if (wrapA) wrapA.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Sin contactos disponibles</p>`;
+      return;
+    }
+
+    wrap.innerHTML = _contactosCliente.map(c => `
+      <label class="flex items-center gap-2 px-1 py-1 hover:bg-green-50 rounded cursor-pointer">
+        <input type="checkbox" class="proy-cliente-chk accent-green-700" value="${esc(c.uid)}"
+          data-email="${esc(c.email || c.correo || '')}" data-nombre="${esc(c.nombre || c.displayName || c.email || c.uid)}"
+          onchange="sincronizarAprobadoresCliente()">
+        <span class="text-xs"><b>${esc(c.nombre || c.displayName || c.email || c.uid)}</b> <span class="text-gray-400">${esc(c.email || c.correo || '')}</span></span>
+        <span class="ml-auto text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">cliente</span>
+      </label>`).join("");
+
+    if (wrapA) wrapA.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Selecciona contactos cliente primero</p>`;
+
+  } catch(err) {
+    console.error("Error cargando contactos cliente:", err);
+    wrap.innerHTML = `<p class="text-red-400 text-xs italic px-1">Error cargando contactos</p>`;
+  }
+}
   
   /* ── Crear proyecto ──────────────────────────────── */
   async function crearProyecto(e) {
@@ -409,11 +478,8 @@ clienteSelect?.addEventListener("change", (e) => {
       planPagos:        cotizacionData?.planPagos || [],
       cotizacionEstado: cotizacionData?.estado || null,
       usuariosAsociados: asociados,
-      usuariosAsociados: asociados, 
       aprobadores: aprobadores,
       evidencias: [],
-      aprobadores: aprobadores,
-      evidencias:       [],
       documentos:      (cotizacionData?.anexos || []) .map(a => ({tipo: "anexo-cotizacion", nombre: a.nombre, base64: a.base64, contentType: a.tipo, estado: "aprobado",creadoEn: new Date().toISOString() })),
       creadoPor:        window.auth?.currentUser?.uid || null,
       creadoEn:         firebase.firestore.FieldValue.serverTimestamp()
@@ -424,6 +490,11 @@ clienteSelect?.addEventListener("change", (e) => {
     try {
       await db.collection("proyectos").add(payload);
       formProyecto.reset();
+      _contactosCliente = [];
+      const clWrap = document.getElementById("proy-clientes-wrap");
+      if (clWrap) clWrap.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Selecciona un cliente</p>`;
+      const apWrap = document.getElementById("proy-aprobadores-wrap");
+      if (apWrap) apWrap.innerHTML = `<p class="text-gray-400 text-xs italic px-1">Selecciona contactos cliente primero</p>`;
       renderUsuariosPicker();
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fas fa-plus mr-1"></i> Crear`; }
