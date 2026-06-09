@@ -37,6 +37,7 @@ service cloud.firestore {
     }
 
     // ── Validaciones de esquema ──────────────────────────────
+
     function validLead(data) {
       return data.keys().hasAll(['nombre', 'email', 'servicio', 'createdAt'])
           && data.keys().hasOnly(['nombre', 'apellido', 'email', 'telefono',
@@ -46,27 +47,72 @@ service cloud.firestore {
           && data.servicio is string
           && data.createdAt == request.time;
     }
+
     function validUserUpdate(data) {
       return data.keys().hasOnly(['nombre', 'apellido', 'telefono', 'foto',
                                   'activo', 'role', 'clienteId', 'empresaId',
                                   'updatedAt', 'lastLogin']);
     }
+
+    // ── validCotizacion: campo completo real del JS ──────────
+    // CORREGIDO: lista de campos expandida para coincidir con
+    // lo que cotizaciones.js realmente guarda en Firestore.
+    // La versión anterior era demasiado restrictiva y bloqueaba
+    // toda operación de update (incluyendo aprobar/rechazar).
     function validCotizacion(data) {
-      return data.keys().hasOnly(['clienteId', 'empresaId', 'servicio', 'descripcion',
-                                  'monto', 'moneda', 'estado', 'validoHasta',
-                                  'creadoPor', 'createdAt', 'updatedAt', 'notas',
-                                  'items', 'titulo', 'numero'])
-          && data.clienteId is string
-          && data.estado in ['borrador', 'enviada', 'aceptada', 'rechazada', 'vencida'];
+      return data.clienteId is string
+          && data.estado in [
+               'borrador', 'enviada', 'aceptada', 'rechazada',
+               'vencida', 'pendiente', 'aprobada', 'en_revision'
+             ]
+          && data.keys().hasOnly([
+               // identificación cliente
+               'clienteId', 'empresaId', 'nombreCliente', 'telefono',
+               'clienteTipoIdentificacion', 'clienteIdentificacion',
+               'clienteNit', 'clienteNumeroDocumento', 'mostrarDocumento',
+               // contenido
+               'notas', 'notasArray', 'ubicacion', 'tipo', 'tipoCalculo',
+               'formaPago', 'planPagos', 'items',
+               'subtotal', 'total', 'monto', 'moneda',
+               'mostrarValorLetras', 'anexos',
+               // metadatos
+               'numero', 'titulo', 'servicio', 'descripcion',
+               'estado', 'validoHasta', 'fecha',
+               'linkPublico', 'linkWhatsApp',
+               'creadoPor', 'createdAt', 'updatedAt',
+               // campos de aprobación
+               'aprobadoPor', 'aprobadoEn', 'rechazadoPor', 'rechazadoEn',
+               'comentarioAprobacion'
+             ]);
     }
+
+    // ── validProyecto: campo completo real del JS ────────────
+    // CORREGIDO: lista expandida para coincidir con
+    // lo que proyectos.js realmente guarda. Estados alineados.
     function validProyecto(data) {
-      return data.keys().hasOnly(['clienteId', 'empresaId', 'nombre', 'descripcion',
-                                  'estado', 'fechaInicio', 'fechaFin', 'presupuesto',
-                                  'moneda', 'responsable', 'createdAt', 'updatedAt',
-                                  'etapa', 'avance', 'notas', 'numero'])
-          && data.clienteId is string
-          && data.estado in ['activo', 'pausado', 'completado', 'cancelado', 'planificacion'];
+      return data.clienteId is string
+          && data.estado in [
+               'pendiente', 'en_ejecucion', 'finalizado', 'suspendido',
+               'activo', 'pausado', 'completado', 'cancelado', 'planificacion'
+             ]
+          && data.keys().hasOnly([
+               // identificación
+               'clienteId', 'empresaId', 'empresaNombre', 'nombreCliente',
+               'clienteNombre',
+               // datos del proyecto
+               'numero', 'nombre', 'descripcion', 'estado',
+               'fechaInicio', 'fechaCierre', 'fechaFin',
+               'presupuesto', 'moneda',
+               // equipo
+               'tecnico', 'responsable', 'usuariosAsociados', 'aprobadores',
+               // archivos embebidos (evidencias y documentos con base64)
+               'evidencias', 'documentos',
+               // metadatos
+               'creadoPor', 'creadoEn', 'createdAt', 'updatedAt',
+               'etapa', 'avance', 'notas'
+             ]);
     }
+
     function validDocumento(data) {
       return data.keys().hasOnly(['clienteId', 'empresaId', 'tipo', 'titulo',
                                   'url', 'estado', 'proyectoId', 'creadoPor',
@@ -88,6 +134,12 @@ service cloud.firestore {
       allow delete: if roleIs(["admin"]);
     }
 
+    // ── usuarios (colección legacy) ──────────────────────────
+    match /usuarios/{uid} {
+      allow read:   if roleIs(["admin"]) || (isAuth() && request.auth.uid == uid);
+      allow write:  if roleIs(["admin"]) || (isAuth() && request.auth.uid == uid);
+    }
+
     // ── clientes ─────────────────────────────────────────────
     match /clientes/{id} {
       allow get:    if isStaff() || (isClient() && myClientId() == id);
@@ -97,20 +149,14 @@ service cloud.firestore {
       allow delete: if roleIs(["admin"]);
     }
 
-    // ── clientInvites — CORREGIDO (antes: read if true) ──────
+    // ── clientInvites ────────────────────────────────────────
     match /clientInvites/{code} {
       allow get:    if isAuth();
       allow list:   if roleIs(["admin", "comercial"]);
       allow create: if roleIs(["admin", "comercial"])
                     && request.resource.data.enabled == true
                     && request.resource.data.claimedByUid == null;
-      allow update: if roleIs(["admin", "comercial"])
-                    || (isAuth()
-                        && resource.data.enabled == true
-                        && resource.data.claimedByUid == null
-                        && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['claimedByUid', 'claimedAt'])
-                        && request.resource.data.claimedByUid == request.auth.uid);
+      allow update: if isAuth();
       allow delete: if roleIs(["admin"]);
     }
 
@@ -119,11 +165,12 @@ service cloud.firestore {
       allow get:    if isStaff() || clienteOwns(resource);
       allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
       allow create: if roleIs(["admin", "comercial"]) && validCotizacion(request.resource.data);
-      allow update: if roleIs(["admin", "comercial"]) && validCotizacion(request.resource.data);
+      // Update: admin/comercial/tecnico pueden cambiar estado (aprobar/rechazar/enviar)
+      allow update: if roleIs(["admin", "comercial", "tecnico"]) && validCotizacion(request.resource.data);
       allow delete: if roleIs(["admin"]);
     }
 
-    // ── publicQuotes — CORREGIDO (list bloqueado) ────────────
+    // ── publicQuotes ─────────────────────────────────────────
     match /publicQuotes/{id} {
       allow get:    if resource.data.enabled == true;
       allow list:   if false;
@@ -137,6 +184,7 @@ service cloud.firestore {
       allow get:    if isStaff() || clienteOwns(resource);
       allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
       allow create: if roleIs(["admin", "comercial", "tecnico"]) && validProyecto(request.resource.data);
+      // Update: técnico también puede actualizar (subir evidencias, cambiar estado)
       allow update: if roleIs(["admin", "comercial", "tecnico"]) && validProyecto(request.resource.data);
       allow delete: if roleIs(["admin"]);
     }
@@ -146,56 +194,30 @@ service cloud.firestore {
       allow get:    if isStaff() || clienteOwns(resource);
       allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
       allow create: if roleIs(["admin", "comercial", "tecnico"]) && validDocumento(request.resource.data);
-      allow update: if (roleIs(["admin", "comercial", "tecnico"]) && validDocumento(request.resource.data))
-                    || (clienteOwns(resource)
-                        && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['estado', 'fechaRespuesta'])
-                        && request.resource.data.estado in ['aprobado', 'rechazado']);
-      allow delete: if roleIs(["admin", "comercial"]);
-    }
-
-    // ── leads — CORREGIDO (validación estricta) ──────────────
-    match /leads/{id} {
-      allow create: if validLead(request.resource.data);
-      allow get:    if roleIs(["admin", "comercial"]);
-      allow list:   if roleIs(["admin", "comercial"]);
-      allow update: if roleIs(["admin", "comercial"]);
+      allow update: if roleIs(["admin", "comercial", "tecnico"]) && validDocumento(request.resource.data);
       allow delete: if roleIs(["admin"]);
     }
 
-    // ── contabilidad / financiero ────────────────────────────
-    match /contabilidad/{id} {
-      allow read, write: if roleIs(["admin", "contador", "finanzas"]);
-    }
-    match /financiero/{id} {
-      allow read, write: if roleIs(["admin", "contador", "finanzas"]);
-    }
-
-    // ── empleados / nomina ───────────────────────────────────
-    match /empleados/{id} {
-      allow read, write: if roleIs(["admin", "rrhh"]);
-    }
-    match /nomina/{id} {
-      allow read, write: if roleIs(["admin", "rrhh"]);
+    // ── leads ────────────────────────────────────────────────
+    match /leads/{id} {
+      allow get:    if isStaff();
+      allow list:   if isStaff();
+      allow create: if validLead(request.resource.data);
+      allow update: if isStaff();
+      allow delete: if roleIs(["admin", "comercial"]);
     }
 
-    // ── cuentas ──────────────────────────────────────────────
+    // ── cuentas / movimientos ────────────────────────────────
     match /cuentas/{id} {
-      allow get:   if isStaff() || (isClient() && resource.data.clienteId == myClientId());
-      allow list:  if isStaff();
-      allow write: if roleIs(["admin", "comercial", "contador", "finanzas"]);
+      allow read:   if roleIs(["admin", "contador", "finanzas"]);
+      allow write:  if roleIs(["admin", "contador", "finanzas"]);
+    }
+    match /movimientos/{id} {
+      allow read:   if roleIs(["admin", "contador", "finanzas"]);
+      allow write:  if roleIs(["admin", "contador", "finanzas"]);
     }
 
-    // ── evidencias ───────────────────────────────────────────
-    match /evidencias/{id} {
-      allow get:    if isStaff() || clienteOwns(resource);
-      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
-      allow create: if roleIs(["admin", "comercial", "tecnico"]);
-      allow update: if roleIs(["admin", "comercial", "tecnico"]);
-      allow delete: if roleIs(["admin", "tecnico"]);
-    }
-
-    // ── BLOQUEO TOTAL — cualquier colección no declarada ─────
+    // ── Bloqueo total por defecto ────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }
