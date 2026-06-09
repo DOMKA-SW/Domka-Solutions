@@ -156,17 +156,16 @@
         <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Fecha cierre</label>
         <input id="proy-fecha-fin" type="date" class="w-full border rounded-lg px-3 py-2 text-sm">
       </div>
-      <div>
-        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Presupuesto</label>
-        <input id="proy-presupuesto" type="number" min="0" step="1000" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="0">
-      </div>
-      <div>
-        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Moneda</label>
-        <select id="proy-moneda" class="w-full border rounded-lg px-3 py-2 text-sm">
-          <option value="COP">COP</option>
-          <option value="USD">USD</option>
+
+      <div class="md:col-span-2">
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Cotización asociada</label>
+        <select id="proy-cotizacion"
+           class="w-full border rounded-lg px-3 py-2 text-sm">
+             <option value="">Selecciona una cotización</option>
         </select>
+        <p class="text-xs text-gray-400 mt-1">El presupuesto será tomado automáticamente.</p>
       </div>
+      
       <!-- Usuarios asociados al proyecto -->
       <div class="md:col-span-3">
         <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">
