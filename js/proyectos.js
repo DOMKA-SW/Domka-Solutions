@@ -235,7 +235,7 @@
     if (!tecnicoSelect) return;
     const current = tecnicoSelect.value;
     tecnicoSelect.innerHTML = `<option value="">— Sin asignar —</option>`;
-    _usuarios.forEach(u => {
+    _usuarios.filter(u => u.role !== "client").forEach(u => {
       const opt = document.createElement("option");
       opt.value = u.nombre || u.email;
       opt.textContent = `${u.nombre} (${u.role})`;
