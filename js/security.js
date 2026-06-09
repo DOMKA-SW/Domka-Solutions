@@ -33,6 +33,9 @@
   }
 
   async function protect() {
+
+    await window.__domkaFirebaseReady;
+    
     if (isPublicPage()) return;
     document.documentElement.style.visibility = 'hidden';
     if (!window.auth || !window.auth.onAuthStateChanged) return;
