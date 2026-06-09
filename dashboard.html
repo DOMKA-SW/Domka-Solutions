@@ -391,11 +391,11 @@
       if (!window.db) return;
 
       const [cotSnap, clientesSnap, proySnap, cuentasSnap, movSnap] = await Promise.all([
-        db.collection("cotizaciones").get(),
-        db.collection("clientes").get(),
-        db.collection("proyectos").get(),
-        db.collection("cuentas").get().catch(()=>({docs:[]})),
-        db.collection("movimientos").get().catch(()=>({docs:[]}))
+        db.collection("cotizaciones").orderBy("fecha","desc").limit(200).get(),
+        db.collection("clientes").limit(200).get(),
+        db.collection("proyectos").orderBy("creadoEn","desc").limit(200).get(),
+        db.collection("cuentas").limit(50).get().catch(()=>({docs:[]})),
+        db.collection("movimientos").orderBy("fecha","desc").limit(200).get().catch(()=>({docs:[]}))
       ]);
 
       const now = new Date();
@@ -529,9 +529,9 @@
     try {
       await Promise.resolve(window.__domkaFirebaseReady);
       if (!window.db) return;
-      const cotSnap = await db.collection("cotizaciones").get();
-      const clientesSnap = await db.collection("clientes").get();
-      const proyectosSnap = await db.collection("proyectos").get();
+      const cotSnap      = await db.collection("cotizaciones").limit(500).get();
+      const clientesSnap = await db.collection("clientes").limit(500).get();
+      const proyectosSnap= await db.collection("proyectos").limit(500).get();
 
       document.getElementById("count-cot").textContent = cotSnap.size.toLocaleString("es-CO");
       document.getElementById("count-clientes").textContent = clientesSnap.size.toLocaleString("es-CO");
