@@ -83,9 +83,14 @@
               <option value="admin">Administrador</option>
             </select>
           </div>
-          <div class="mb-5">
-            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">ID cliente (solo rol cliente)</label>
-            <input id="nuevo-clienteId" type="text" placeholder="ID del documento en clientes" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+          <div id="nuevo-clienteId-wrap" class="mb-5 hidden">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+              Cliente vinculado <span class="text-red-500">*</span>
+            </label>
+            <select id="nuevo-clienteId" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+              <option value="">— Selecciona el cliente —</option>
+            </select>
+            <p class="text-xs text-gray-400 mt-1">El usuario verá solo los proyectos y cotizaciones de este cliente.</p>
           </div>
           <button type="submit" class="w-full py-2.5 bg-green-700 text-white text-sm font-semibold rounded-lg hover:bg-green-800 transition">Crear usuario</button>
         </form>
