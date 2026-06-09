@@ -563,7 +563,7 @@ const bloquePago = [
     table: {
       widths: ["*", "auto"],
       body: [[
-        { text: `DOMKA Construcción  ·  +57 305 811 4595  ·  piter030509@gmail.com`, fontSize: 7, color: P.grayLight, font: "Roboto", border: [false,false,false,false], margin: [45,0,0,0] },
+        { text: `DOMKA Construcción  ·  +57 305 811 4595  ·  domka.solutions@gmail.com`, fontSize: 7, color: P.grayLight, font: "Roboto", border: [false,false,false,false], margin: [45,0,0,0] },
         { text: `Página ${pg} de ${total}`, fontSize: 7, color: P.grayLight, font: "Roboto", alignment: "right", border: [false,false,false,false], margin: [0,0,45,0] }
       ]]
     },
