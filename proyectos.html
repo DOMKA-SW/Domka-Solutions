@@ -125,7 +125,9 @@
       </div>
       <div>
         <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Técnico</label>
-        <input id="proy-tecnico" type="text" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Responsable">
+        <select id="proy-tecnico" class="w-full border rounded-lg px-3 py-2 text-sm">
+          <option value="">— Sin asignar —</option>
+        </select>
       </div>
       <div>
         <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Estado</label>
@@ -144,6 +146,26 @@
       <div class="md:col-span-6">
         <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Descripción</label>
         <textarea id="proy-descripcion" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Alcance y detalle del proyecto"></textarea>
+      </div>
+      <!-- Fechas y presupuesto -->
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Fecha inicio</label>
+        <input id="proy-fecha-inicio" type="date" class="w-full border rounded-lg px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Fecha cierre</label>
+        <input id="proy-fecha-fin" type="date" class="w-full border rounded-lg px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Presupuesto</label>
+        <input id="proy-presupuesto" type="number" min="0" step="1000" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="0">
+      </div>
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Moneda</label>
+        <select id="proy-moneda" class="w-full border rounded-lg px-3 py-2 text-sm">
+          <option value="COP">COP</option>
+          <option value="USD">USD</option>
+        </select>
       </div>
       <!-- Usuarios asociados al proyecto -->
       <div class="md:col-span-3">
@@ -165,6 +187,15 @@
         <p class="text-xs text-gray-400 mt-1">Solo estos usuarios podrán aprobar documentos</p>
       </div>
     </form>
+  </div>
+
+  <!-- Búsqueda -->
+  <div class="mb-3">
+    <div class="relative">
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+      <input id="proy-search" type="text" placeholder="Buscar por nombre, número, cliente o técnico…"
+        class="w-full pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-600 bg-white">
+    </div>
   </div>
 
   <!-- Filtros -->
