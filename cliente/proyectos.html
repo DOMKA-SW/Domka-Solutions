@@ -157,13 +157,17 @@
         return;
       }
       try {
-        const [snapCli, snapEmp] = await Promise.all([
+        const uid = user.uid;
+        // Busca por clienteId, empresaId Y por uid en el array uidsAsociados
+        const [snapCli, snapEmp, snapUid] = await Promise.all([
           clienteId ? db.collection('proyectos').where('clienteId','==',clienteId).get() : Promise.resolve(null),
-          empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null)
+          empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null),
+          db.collection('proyectos').where('uidsAsociados','array-contains',uid).get()
         ]);
         const map = new Map();
         (snapCli?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
         (snapEmp?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+        (snapUid?.docs||[]).forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
         const proyectos = Array.from(map.values())
           .sort((a,b)=>{
             const ad=a.creadoEn?.toDate?a.creadoEn.toDate().getTime():new Date(a.creadoEn||0).getTime();
