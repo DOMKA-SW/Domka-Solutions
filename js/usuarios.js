@@ -61,6 +61,25 @@
     }
   }
 
+  // Carga la lista de clientes en el select cuando se elige rol "client"
+  async function cargarClientesSelect() {
+    const sel = document.getElementById("nuevo-clienteId");
+    if (!sel || sel.tagName !== "SELECT") return;
+    if (sel.options.length > 1) return; // ya cargado
+    sel.innerHTML = `<option value="">— Selecciona el cliente —</option>`;
+    try {
+      const snap = await window.db.collection("clientes").orderBy("nombre").get()
+        .catch(() => window.db.collection("clientes").get());
+      snap.forEach(doc => {
+        const d = doc.data() || {};
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = [d.nombre, d.empresa].filter(Boolean).join(" — ") || doc.id;
+        sel.appendChild(opt);
+      });
+    } catch (_) { /* sin acceso, dejar vacío */ }
+  }
+
   async function cargarUsuarios() {
     const snap = await window.db.collection("users").orderBy("createdAt", "desc").get();
     if (snap.empty) {
@@ -188,6 +207,20 @@
       await requireAdmin();
       formNuevo?.addEventListener("submit", crearUsuario);
       formEdit?.addEventListener("submit", guardarEdicion);
+
+      // Mostrar/ocultar campo clienteId según rol y cargar select
+      const rolSelect = document.getElementById("nuevo-rol");
+      const clienteWrap = document.getElementById("nuevo-clienteId-wrap");
+      if (rolSelect && clienteWrap) {
+        rolSelect.addEventListener("change", async () => {
+          const esCliente = rolSelect.value === "client";
+          clienteWrap.classList.toggle("hidden", !esCliente);
+          if (esCliente) await cargarClientesSelect();
+        });
+        // Estado inicial
+        clienteWrap.classList.toggle("hidden", rolSelect.value !== "client");
+      }
+
       await cargarUsuarios();
     } catch (err) {
       console.error(err);
