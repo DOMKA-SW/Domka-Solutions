@@ -66,9 +66,21 @@
     .ev-link{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;font-size:.82rem;color:#1d4ed8;transition:all .18s;grid-column:1/-1}
     .ev-link:hover{background:#dbeafe}
 
-    /* Lightbox */
+    /* Lightbox imágenes */
     #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;display:flex;align-items:center;justify-content:center;cursor:pointer}
     #lightbox img{max-width:90vw;max-height:90vh;border-radius:10px}
+
+    /* Preview documentos */
+    #doc-preview-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:700;display:flex;align-items:center;justify-content:center;padding:20px}
+    #doc-preview-box{background:#fff;border-radius:16px;width:100%;max-width:860px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+    #doc-preview-header{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line);flex-shrink:0}
+    #doc-preview-title{font-weight:700;font-size:.95rem;color:var(--text);max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #doc-preview-body{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;background:#f0f0f0;min-height:300px}
+    #doc-preview-body iframe{width:100%;height:75vh;border:none}
+    #doc-preview-body img{max-width:100%;max-height:75vh;object-fit:contain;border-radius:0}
+    #doc-preview-body video{max-width:100%;max-height:75vh}
+    .btn-preview-close{background:none;border:none;font-size:1.4rem;color:var(--gray-lt);cursor:pointer;padding:4px 8px;border-radius:6px;transition:all .15s}
+    .btn-preview-close:hover{background:var(--bg);color:var(--text)}
 
     .empty{text-align:center;padding:48px 20px;color:var(--gray-lt)}
     .empty i{font-size:2.2rem;color:var(--line);display:block;margin-bottom:12px}
@@ -90,6 +102,20 @@
 
   <div id="lista-proyectos">
     <div class="spinner"><i class="fas fa-circle-notch fa-spin"></i></div>
+  </div>
+</div>
+
+<!-- Preview documento -->
+<div id="doc-preview-overlay" style="display:none" onclick="if(event.target===this)cerrarPreview()">
+  <div id="doc-preview-box">
+    <div id="doc-preview-header">
+      <span id="doc-preview-title">Documento</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="doc-preview-download" href="#" download class="btn-ver" style="font-size:.78rem">⬇ Descargar</a>
+        <button class="btn-preview-close" onclick="cerrarPreview()">✕</button>
+      </div>
+    </div>
+    <div id="doc-preview-body"></div>
   </div>
 </div>
 
@@ -207,8 +233,9 @@
                   <div class="doc-meta">${esc(d.tipo||'')} · ${fmtDate(d.creadoEn)}</div>
                 </div>
                 <span class="${bc}">${bl}</span>
-                ${d.base64?`<a href="${d.base64}" download="${esc(d.fileName||d.nombre||'documento')}" class="btn-ver">⬇ Descargar</a>`:''}
-                ${d.url?`<a href="${esc(d.url)}" target="_blank" class="btn-ver">🔗 Ver</a>`:''}
+                ${d.base64?`<button onclick="abrirPreview('${esc(d.fileName||d.nombre||'documento')}','${d.contentType||''}','${d.base64}')" class="btn-ver">👁 Ver</button>`:''}
+                ${d.base64?`<a href="${d.base64}" download="${esc(d.fileName||d.nombre||'documento')}" class="btn-ver">⬇</a>`:''}
+                ${d.url?`<button onclick="abrirPreviewUrl('${esc(d.nombre||d.tipo)}','${esc(d.url)}')" class="btn-ver">👁 Ver</button>`:''}
                 ${puedeAprobar?`<button onclick="aprobarDocPortal('${p.id}','${esc(d.nombre||d.tipo)}')"
                   style="font-size:.75rem;background:var(--green);color:#fff;padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600">
                   ✅ Aprobar
@@ -250,6 +277,7 @@
   window.aprobarDocPortal = async function(proyId, docNombre) {
     if (!confirm('¿Aprobar el documento "'+docNombre+'"?')) return;
     try {
+      // Leer doc fresco para no pisar otros cambios concurrentes
       const snap = await db.collection('proyectos').doc(proyId).get();
       const data = snap.data() || {};
       const docs = (data.documentos || []).map(d =>
@@ -257,16 +285,74 @@
           ? { ...d, estado:'aprobado', aprobadoPor: window.auth?.currentUser?.uid, aprobadoEn: new Date().toISOString() }
           : d
       );
-      await db.collection('proyectos').doc(proyId).update({ documentos: docs });
+      // set con merge:true para no requerir validProyecto completo en reglas
+      await db.collection('proyectos').doc(proyId).set({ documentos: docs }, { merge: true });
       // Actualizar cache y re-renderizar
       if (_proyectosCache[proyId]) {
         _proyectosCache[proyId].documentos = docs;
         const tabDocs = document.getElementById('tab-'+proyId+'-docs');
         if (tabDocs) tabDocs.innerHTML = renderDocumentos(_proyectosCache[proyId]);
       }
+      // Feedback visual breve
+      const btn = event?.target;
+      if (btn) { btn.textContent = '✓ Aprobado'; btn.disabled = true; btn.style.background = '#166534'; }
     } catch(e) {
       alert('Error al aprobar: ' + (e?.message || e));
     }
+  };
+
+  window.abrirPreview = function(nombre, contentType, base64) {
+    const overlay = document.getElementById('doc-preview-overlay');
+    const body    = document.getElementById('doc-preview-body');
+    const title   = document.getElementById('doc-preview-title');
+    const dlBtn   = document.getElementById('doc-preview-download');
+    if (!overlay || !body) return;
+
+    title.textContent = nombre;
+    dlBtn.href = base64;
+    dlBtn.download = nombre;
+
+    const ct = (contentType || '').toLowerCase();
+    if (ct.startsWith('image/')) {
+      body.innerHTML = `<img src="${base64}" alt="${nombre}">`;
+    } else if (ct === 'application/pdf') {
+      body.innerHTML = `<iframe src="${base64}" title="${nombre}"></iframe>`;
+    } else if (ct.startsWith('video/')) {
+      body.innerHTML = `<video controls><source src="${base64}" type="${ct}"></video>`;
+    } else {
+      // Para Word, Excel, ZIP: no hay preview nativo, mostrar botón de descarga
+      body.innerHTML = `
+        <div style="text-align:center;padding:48px 24px;color:var(--gray-lt)">
+          <div style="font-size:3rem;margin-bottom:16px">📎</div>
+          <p style="font-weight:600;color:var(--text);margin-bottom:8px">${nombre}</p>
+          <p style="font-size:.85rem;margin-bottom:20px">Este tipo de archivo no tiene vista previa disponible.</p>
+          <a href="${base64}" download="${nombre}" class="btn-ver" style="display:inline-block;padding:10px 24px;font-size:.9rem">⬇ Descargar archivo</a>
+        </div>`;
+    }
+
+    overlay.style.display = 'flex';
+  };
+
+  window.abrirPreviewUrl = function(nombre, url) {
+    const overlay = document.getElementById('doc-preview-overlay');
+    const body    = document.getElementById('doc-preview-body');
+    const title   = document.getElementById('doc-preview-title');
+    const dlBtn   = document.getElementById('doc-preview-download');
+    if (!overlay || !body) return;
+
+    title.textContent = nombre;
+    dlBtn.href = url;
+    dlBtn.download = nombre;
+
+    body.innerHTML = `<iframe src="${url}" title="${nombre}"></iframe>`;
+    overlay.style.display = 'flex';
+  };
+
+  window.cerrarPreview = function() {
+    const overlay = document.getElementById('doc-preview-overlay');
+    const body    = document.getElementById('doc-preview-body');
+    if (overlay) overlay.style.display = 'none';
+    if (body)    body.innerHTML = ''; // liberar memoria base64
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
