@@ -12,8 +12,7 @@
   const nombreInput    = document.getElementById("proy-nombre");
   const fechaInicioInput = document.getElementById("proy-fecha-inicio");
   const fechaFinInput  = document.getElementById("proy-fecha-fin");
-  const presupuestoInput = document.getElementById("proy-presupuesto");
-  const monedaSelect   = document.getElementById("proy-moneda");
+  const cotizacionSelect = document.getElementById("proy-cotizacion");
   const searchInput    = document.getElementById("proy-search");
 
   /* ── Modal detalle ───────────────────────────────── */
@@ -280,7 +279,7 @@
         <input type="checkbox" class="proy-apro-chk accent-green-700" value="${esc(chk.value)}"
           data-email="${esc(chk.dataset.email)}" data-nombre="${esc(chk.dataset.nombre)}">
         <span class="text-xs"><b>${esc(chk.dataset.nombre)}</b> <span class="text-gray-400">${esc(chk.dataset.email)}</span></span>
-        <span class="ml-auto text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">aprobador?</span>
+        <span class="ml-auto text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">✓ Aprobador</span>
       </label>`).join("");
   };
 
@@ -294,22 +293,77 @@
     return { asociados, aprobadores };
   }
 
-  /* ── Clientes para el form ───────────────────────── */
-  async function cargarClientesForm() {
-    if (!clienteSelect) return;
-    clienteSelect.innerHTML = `<option value="">Selecciona cliente</option>`;
-    const snap = await db.collection("clientes").orderBy("nombre").get()
-      .catch(() => db.collection("clientes").get());
-    snap.forEach(doc => {
-      const c   = doc.data() || {};
-      const opt = document.createElement("option");
-      opt.value = doc.id;
-      opt.textContent = c.nombre || c.empresa || c.email || doc.id;
-      opt.dataset.empresa = c.empresa || "";
-      clienteSelect.appendChild(opt);
-    });
-  }
+/* ── Clientes para el form ───────────────────────── */
+async function cargarClientesForm() {
+  if (!clienteSelect) return;
+  clienteSelect.innerHTML =
+    `<option value="">Selecciona cliente</option>`;
+  const snap = await db
+    .collection("clientes")
+    .orderBy("nombre")
+    .get()
+    .catch(() => db.collection("clientes").get());
+  snap.forEach(doc => {
+    const c = doc.data() || {};
+    const opt = document.createElement("option");
+    opt.value = doc.id;
+    opt.textContent =
+      c.nombre ||
+      c.empresa ||
+      c.email ||
+      doc.id;
 
+    opt.dataset.empresa =
+      c.empresa || "";
+    clienteSelect.appendChild(opt);
+  });
+}
+
+/* ── Cargar Cotizaciones del Cliente ───────────────── */
+async function cargarCotizacionesCliente(clienteId) {
+  if (!cotizacionSelect) return;
+  cotizacionSelect.innerHTML = `
+    <option value="">
+      Selecciona una cotización
+    </option>
+  `;
+  if (!clienteId) return;
+  try {
+    const snap = await db
+      .collection("cotizaciones")
+      .where("clienteId", "==", clienteId)
+      .get();
+    snap.forEach(doc => {
+      const c = doc.data() || {};
+      const option =
+        document.createElement("option");
+      option.value = doc.id;
+      option.dataset.total =
+        c.total || 0;
+      option.dataset.estado =
+        c.estado || "pendiente";
+      option.dataset.planPagos =
+        JSON.stringify(c.planPagos || []);
+      option.dataset.anexos =
+        JSON.stringify(c.anexos || []);
+      option.textContent =
+        `${(c.total || 0).toLocaleString("es-CO")} COP - ${c.estado || "pendiente"}`;
+      cotizacionSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error(
+      "Error cargando cotizaciones:",
+      error
+    );
+  }
+}
+
+/* ── Cambio de cliente ─────────────────────────────── */
+clienteSelect?.addEventListener("change", (e) => {
+  const clienteId = e.target.value;
+  cargarCotizacionesCliente(clienteId);
+});
+  
   /* ── Crear proyecto ──────────────────────────────── */
   async function crearProyecto(e) {
     e.preventDefault();
@@ -325,6 +379,18 @@
     const numero      = `PRY-${Date.now().toString().slice(-6)}`;
     const { asociados, aprobadores } = getSelectedUsers();
 
+    const cotizacionId =
+    cotizacionSelect?.value || null;
+     let cotizacionData = null;
+     if(cotizacionId){
+    const cotizacionDoc =
+        await db.collection("cotizaciones")
+        .doc(cotizacionId)
+        .get();
+    cotizacionData =
+        cotizacionDoc.data() || null;
+    }
+    
     const payload = {
       numero,
       nombre:           (nombreInput?.value || "").trim(),
@@ -337,12 +403,15 @@
       descripcion:      (descripcionInput?.value || "").trim(),
       fechaInicio:      fechaInicioInput?.value  || null,
       fechaCierre:      fechaFinInput?.value      || null,
-      presupuesto:      presupuestoInput?.value ? Number(presupuestoInput.value) : null,
-      moneda:           monedaSelect?.value || "COP",
+      cotizacionId,
+      presupuesto:      cotizacionData?.total || null,
+      totalCotizado:    cotizacionData?.total || null,
+      planPagos:        cotizacionData?.planPagos || [],
+      cotizacionEstado: cotizacionData?.estado || null,
       usuariosAsociados: asociados,
       aprobadores:      aprobadores,
       evidencias:       [],
-      documentos:       [],
+      documentos:      (cotizacionData?.anexos || []) .map(a => ({tipo: "anexo-cotizacion", nombre: a.nombre, base64: a.base64, contentType: a.tipo, estado: "aprobado",creadoEn: new Date().toISOString() })),
       creadoPor:        window.auth?.currentUser?.uid || null,
       creadoEn:         firebase.firestore.FieldValue.serverTimestamp()
     };
