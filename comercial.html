@@ -370,7 +370,7 @@ function estadoBadge(e){
 // ── Cargar leads ─────────────────────────────────────────
 async function cargar(){
   try{
-    const snap = await db.collection('leads').orderBy('creadoEn','desc').get();
+    const snap = await db.collection('leads').orderBy('createdAt','desc').get();
     _leads = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderMetricas();
     aplicarFiltros();
@@ -448,7 +448,7 @@ function renderKanban(lista){
             ${l.empresa?`<div class="lead-card-empresa">${esc(l.empresa)}</div>`:''}
             ${l.servicio?`<div class="lead-card-servicio"><i class="fas fa-tag" style="margin-right:4px;font-size:.65rem"></i>${esc(l.servicio)}</div>`:''}
             ${t?`<div class="lead-card-task"><i class="fas fa-calendar-check"></i>${esc(t.texto)}${t.fecha?` · ${t.fecha}`:''}</div>`:''}
-            <div class="lead-card-date"><i class="fas fa-clock" style="margin-right:3px"></i>${fmtDate(l.creadoEn)}</div>
+            <div class="lead-card-date"><i class="fas fa-clock" style="margin-right:3px"></i>${fmtDate(l.createdAt)}</div>
           </div>`}).join('')
         : `<p style="font-size:.75rem;color:#b0a898;text-align:center;padding:16px 0">Sin leads</p>`}
       </div>`;
@@ -476,7 +476,7 @@ function renderTabla(lista){
       <td class="p-3 text-xs text-gray-600">${esc(l.servicio||'—')}</td>
       <td class="p-3">${estadoBadge(l.estado)}</td>
       <td class="p-3 text-xs text-blue-700">${proxTarea?esc(proxTarea.texto):'<span class="text-gray-300">—</span>'}</td>
-      <td class="p-3 text-xs text-gray-400">${fmtDate(l.creadoEn)}</td>
+      <td class="p-3 text-xs text-gray-400">${fmtDate(l.createdAt)}</td>
     </tr>`;
   }).join('');
 }
@@ -627,7 +627,7 @@ function renderInfoTab(l){
   document.getElementById('tab-inf-content').innerHTML = `
     <div class="grid grid-cols-2 gap-3 text-sm">
       <div><p class="section-lbl">ID</p><p class="font-mono text-xs text-gray-500">${l.id}</p></div>
-      <div><p class="section-lbl">Creado</p><p>${fmtDate(l.creadoEn)}</p></div>
+      <div><p class="section-lbl">Creado</p><p>${fmtDate(l.createdAt)}</p></div>
       <div><p class="section-lbl">Actividades</p><p>${(l.actividades||[]).length}</p></div>
       <div><p class="section-lbl">Tareas pendientes</p><p>${(l.tareas||[]).filter(t=>!t.done).length}</p></div>
     </div>`;
@@ -668,7 +668,7 @@ async function guardarNuevoLead(){
     origen: 'manual',
     actividades: [],
     tareas: [],
-    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   try{
