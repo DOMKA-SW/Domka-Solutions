@@ -177,6 +177,9 @@
   }
 
   async function login() {
+
+    await window.__domkaFirebaseReady;
+    
     const emailEl = document.getElementById("email");
     const passEl = document.getElementById("password");
     const errorEl = document.getElementById("error-msg");
