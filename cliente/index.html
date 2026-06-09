@@ -223,85 +223,60 @@
         empEl.style.display = 'inline-block';
       }
 
-      try {
-        // Cargar cotizaciones y proyectos del cliente
-        const queries = await Promise.all([
-          clienteId ? db.collection('cotizaciones').where('clienteId','==',clienteId).get() : Promise.resolve(null),
-          empresaId ? db.collection('cotizaciones').where('empresaId','==',empresaId).get() : Promise.resolve(null),
-          clienteId ? db.collection('proyectos').where('clienteId','==',clienteId).get() : Promise.resolve(null),
-          empresaId ? db.collection('proyectos').where('empresaId','==',empresaId).get() : Promise.resolve(null),
-        ]);
+     try {
+  let q1 = null, q2 = null, q3 = null, q4 = null;
 
-        const merge = (a, b) => {
-          const m = new Map();
-          (a?.docs||[]).forEach(d => m.set(d.id, {id:d.id,...d.data()}));
-          (b?.docs||[]).forEach(d => m.set(d.id, {id:d.id,...d.data()}));
-          return Array.from(m.values());
-        };
+  try {
+    q1 = clienteId
+      ? await db.collection('cotizaciones')
+          .where('clienteId', '==', clienteId)
+          .get()
+      : null;
 
-        const cots  = merge(queries[0], queries[1]);
-        const proys = merge(queries[2], queries[3]);
+    console.log('✅ cotizaciones cliente', q1?.size || 0);
+  } catch (e) {
+    console.error('❌ ERROR cotizaciones cliente', e);
+  }
 
-        // Stats
-        document.getElementById('stat-cot').textContent  = cots.length;
-        document.getElementById('stat-proy').textContent = proys.filter(p=>p.estado==='en_ejecucion').length;
+  try {
+    q2 = empresaId
+      ? await db.collection('cotizaciones')
+          .where('empresaId', '==', empresaId)
+          .get()
+      : null;
 
-        // Badges módulos
-        const cotsPend = cots.filter(c=>c.estado==='pendiente').length;
-        if (cotsPend) {
-          const b = document.getElementById('badge-cot');
-          b.textContent = cotsPend + ' pendiente' + (cotsPend>1?'s':'');
-          b.style.display = 'inline-block';
-          b.classList.add('module-badge-warn');
-        }
+    console.log('✅ cotizaciones empresa', q2?.size || 0);
+  } catch (e) {
+    console.error('❌ ERROR cotizaciones empresa', e);
+  }
 
-        const proyActivos = proys.filter(p=>p.estado==='en_ejecucion').length;
-        if (proyActivos) {
-          const b = document.getElementById('badge-proy');
-          b.textContent = proyActivos + ' activo' + (proyActivos>1?'s':'');
-          b.style.display = 'inline-block';
-        }
+  try {
+    q3 = clienteId
+      ? await db.collection('proyectos')
+          .where('clienteId', '==', clienteId)
+          .get()
+      : null;
 
-        // Actividad reciente — últimas cots y proyectos ordenados por fecha
-        const actividad = [
-          ...cots.map(c=>({
-            tipo:'cotizacion', texto:`Cotización ${c.numero||''}`,
-            sub: `$${Number(c.total||0).toLocaleString('es-CO')} · ${c.estado||'pendiente'}`,
-            fecha: c.fecha, color:'#3b82f6'
-          })),
-          ...proys.map(p=>({
-            tipo:'proyecto', texto:`Proyecto ${p.numero||p.nombre||''}`,
-            sub: p.estado==='en_ejecucion'?'En ejecución':p.estado==='finalizado'?'Finalizado':'Pendiente',
-            fecha: p.creadoEn, color: p.estado==='en_ejecucion'?'#22c55e':p.estado==='finalizado'?'#1b7a51':'#9ca3af'
-          }))
-        ].sort((a,b)=>{
-          const ad = a.fecha?.toDate?a.fecha.toDate().getTime():new Date(a.fecha||0).getTime();
-          const bd = b.fecha?.toDate?b.fecha.toDate().getTime():new Date(b.fecha||0).getTime();
-          return bd - ad;
-        }).slice(0, 6);
+    console.log('✅ proyectos cliente', q3?.size || 0);
+  } catch (e) {
+    console.error('❌ ERROR proyectos cliente', e);
+  }
 
-        const actEl = document.getElementById('actividad-reciente');
-        if (!actividad.length) {
-          actEl.innerHTML = '<p style="color:#9a9a9a;font-size:.88rem;padding:20px 0">Sin actividad reciente.</p>';
-        } else {
-          actEl.innerHTML = `<div class="reciente-list">${actividad.map(a=>`
-            <div class="reciente-item">
-              <div class="reciente-dot" style="background:${a.color}"></div>
-              <div style="flex:1;min-width:0">
-                <div class="reciente-texto">${a.texto}</div>
-                <div style="font-size:.75rem;color:#9a9a9a">${a.sub}</div>
-              </div>
-              <div class="reciente-fecha">${fmtDate(a.fecha)}</div>
-            </div>`).join('')}</div>`;
-        }
+  try {
+    q4 = empresaId
+      ? await db.collection('proyectos')
+          .where('empresaId', '==', empresaId)
+          .get()
+      : null;
 
-      } catch(e) {
-        console.error('Error cargando portal:', e);
-        document.getElementById('actividad-reciente').innerHTML =
-          '<p style="color:#9a9a9a;font-size:.88rem">Error cargando información.</p>';
-        document.getElementById('stat-cot').textContent = '—';
-        document.getElementById('stat-proy').textContent = '—';
-      }
+    console.log('✅ proyectos empresa', q4?.size || 0);
+  } catch (e) {
+    console.error('❌ ERROR proyectos empresa', e);
+  }
+
+} catch(e) {
+  console.error('Error cargando portal:', e);
+}
     });
   });
 </script>
