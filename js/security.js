@@ -97,4 +97,8 @@
   }
 
   window.DOMKA_SECURITY = { protect, routeAfterLogin, PAGE_ROLES };
+
+  // ── Auto-ejecutar en cada página al cargar el script ─────────────────────
+  // protect() ya maneja páginas públicas (sale inmediato) y páginas protegidas.
+  protect();
 })();
