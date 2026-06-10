@@ -418,6 +418,7 @@ form.addEventListener("submit", async (e) => {
     total,
     fecha: new Date(),
     estado: "pendiente",
+    creadoPor: window.auth?.currentUser?.uid || null,
     mostrarValorLetras,
     tipoCalculo,
     anexos
@@ -603,7 +604,18 @@ function renderCotizaciones(lista) {
 async function cargarCotizaciones() {
   if (tablaCotizaciones) tablaCotizaciones.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400">Cargando…</td></tr>`;
   try {
-    const snap = await db.collection("cotizaciones").orderBy("fecha", "desc").limit(100).get();
+    // Filtrar cotizaciones segun rol del usuario
+    const user = window.auth?.currentUser;
+    let perfil = null;
+    if (user && typeof window.cargarPerfil === "function") {
+      perfil = await window.cargarPerfil(user).catch(() => null);
+    }
+    let query = db.collection("cotizaciones").orderBy("fecha", "desc").limit(100);
+    if (perfil?.role === "comercial") {
+      // Comercial solo ve sus propias cotizaciones
+      query = db.collection("cotizaciones").where("creadoPor", "==", user.uid).orderBy("fecha", "desc").limit(100);
+    }
+    const snap = await query.get();
     _todasCotizaciones = snap.docs.map(doc => ({ id: doc.id, c: doc.data() }));
     aplicarBusquedaCotizaciones();
   } catch {
