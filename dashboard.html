@@ -180,12 +180,12 @@
 
     <!-- STATS -->
     <div class="stat-cards">
-      <div class="stat-card">
+      <div class="stat-card" data-rol-min="comercial">
         <div class="stat-label">Cotizaciones</div>
         <div class="stat-value" id="count-cot">—</div>
         <div class="stat-sub">Total registradas</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" data-rol-min="comercial">
         <div class="stat-label">Clientes</div>
         <div class="stat-value" id="count-clientes">—</div>
         <div class="stat-sub">Total registrados</div>
@@ -195,12 +195,12 @@
         <div class="stat-value" id="count-proyectos" style="font-size:1.4rem">—</div>
         <div class="stat-sub">En ejecución</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" data-rol-min="admin">
         <div class="stat-label">Ingresos mes</div>
         <div class="stat-value" id="count-ingresos" style="font-size:1.1rem;color:var(--green)">—</div>
         <div class="stat-sub">Cuentas de cobro</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" data-rol-min="comercial">
         <div class="stat-label">Cots. aprobadas</div>
         <div class="stat-value" id="count-aprobadas" style="font-size:1.4rem;color:#16a34a">—</div>
         <div class="stat-sub">Este mes</div>
@@ -253,12 +253,12 @@
       <div>
         <p style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:16px">Accesos rápidos</p>
         <div class="quick-actions">
-          <a href="cotizaciones.html" class="quick-action">
+          <a href="cotizaciones.html" class="quick-action" data-rol-min="comercial">
             <div class="qa-icon"><i class="fas fa-file-alt"></i></div>
             <div class="qa-name">Cotizaciones</div>
             <div class="qa-desc">Crear y gestionar</div>
           </a>
-          <a href="clientes.html" class="quick-action">
+          <a href="clientes.html" class="quick-action" data-rol-min="comercial">
             <div class="qa-icon"><i class="fas fa-users"></i></div>
             <div class="qa-name">Clientes</div>
             <div class="qa-desc">Administrar directorio</div>
@@ -268,17 +268,17 @@
             <div class="qa-name">Proyectos</div>
             <div class="qa-desc">Obras y avances</div>
           </a>
-          <a href="contabilidad.html" class="quick-action">
+          <a href="contabilidad.html" class="quick-action" data-rol-min="admin">
             <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
             <div class="qa-name">Contabilidad</div>
             <div class="qa-desc">Reportes y finanzas</div>
           </a>
-          <a href="documentos.html" class="quick-action">
+          <a href="documentos.html" class="quick-action" data-rol-min="comercial">
             <div class="qa-icon"><i class="fas fa-folder-open"></i></div>
             <div class="qa-name">Documentos</div>
             <div class="qa-desc">Actas y contratos</div>
           </a>
-          <a href="comercial.html" class="quick-action">
+          <a href="comercial.html" class="quick-action" data-rol-min="comercial">
             <div class="qa-icon"><i class="fas fa-funnel-dollar"></i></div>
             <div class="qa-name">Comercial</div>
             <div class="qa-desc">Pipeline y ventas</div>
@@ -287,7 +287,7 @@
       </div>
 
       <!-- Resumen financiero -->
-      <div class="card">
+      <div class="card" data-rol-min="admin">
         <div class="card-header">
           <span class="card-title">💰 Resumen financiero</span>
         </div>
@@ -333,7 +333,7 @@
       </div>
 
       <!-- Pipeline de cotizaciones -->
-      <div class="card">
+      <div class="card" data-rol-min="comercial">
         <div class="card-header">
           <span class="card-title">📊 Pipeline comercial</span>
           <a href="cotizaciones.html" style="font-size:.78rem;color:var(--green);font-weight:600">Ver todas →</a>
@@ -370,160 +370,146 @@
     return Number(n||0).toLocaleString("es-CO", {style:"currency",currency:"COP",maximumFractionDigits:0});
   }
 
+  // Dashboard con datos filtrados por rol
   (async function () {
     try {
       await Promise.resolve(window.__domkaFirebaseReady);
-      if (!window.db) return;
+      if (!window.db || !window.auth) return;
 
-      const [cotSnap, clientesSnap, proySnap, cuentasSnap, movSnap] = await Promise.all([
-        db.collection("cotizaciones").orderBy("fecha","desc").limit(200).get(),
-        db.collection("clientes").limit(200).get(),
-        db.collection("proyectos").orderBy("creadoEn","desc").limit(200).get(),
-        db.collection("cuentas").limit(50).get().catch(()=>({docs:[]})),
-        db.collection("movimientos").orderBy("fecha","desc").limit(200).get().catch(()=>({docs:[]}))
-      ]);
+      // Esperar usuario autenticado y cargar perfil
+      const user = await new Promise(res => {
+        const unsub = window.auth.onAuthStateChanged(u => { unsub(); res(u); });
+      });
+      if (!user) return;
+      const perfil = typeof window.cargarPerfil === "function"
+        ? await window.cargarPerfil(user).catch(() => null)
+        : null;
+      const role = perfil?.role || "tecnico";
+      const uid  = user.uid;
 
-      const now = new Date();
-      const mesActual = now.getMonth();
+      const now        = new Date();
+      const mesActual  = now.getMonth();
       const anioActual = now.getFullYear();
 
-      // ── Básicos ───────────────────────────────────
-      document.getElementById("count-clientes").textContent = clientesSnap.size.toLocaleString("es-CO");
+      // ── Proyectos (filtrados según rol) ──────────────────────────────────
+      let proyQuery = db.collection("proyectos").orderBy("creadoEn", "desc").limit(200);
+      if (role === "tecnico" || role === "comercial") {
+        proyQuery = db.collection("proyectos")
+          .where("uidsAsociados", "array-contains", uid)
+          .orderBy("creadoEn", "desc").limit(200);
+      }
+      const proySnap = await proyQuery.get();
+      const proyData = proySnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Proyectos semáforo
-      const proyData = proySnap.docs.map(d => d.data());
-      const semCounts = { pendiente:0, en_ejecucion:0, finalizado:0, suspendido:0 };
-      proyData.forEach(p => { const e = p.estado || "pendiente"; if (semCounts[e] !== undefined) semCounts[e]++; });
+      // Semáforo proyectos
+      const semCounts = { pendiente: 0, en_ejecucion: 0, finalizado: 0, suspendido: 0 };
+      proyData.forEach(p => {
+        const e = p.estado || "pendiente";
+        if (semCounts[e] !== undefined) semCounts[e]++;
+      });
       document.getElementById("sem-pendiente").textContent  = semCounts.pendiente;
       document.getElementById("sem-ejecucion").textContent  = semCounts.en_ejecucion;
       document.getElementById("sem-finalizado").textContent = semCounts.finalizado;
       document.getElementById("sem-suspendido").textContent = semCounts.suspendido;
       document.getElementById("count-proyectos").textContent = semCounts.en_ejecucion;
 
-      // Barra de progreso: % proyectos finalizados
       const total = proyData.length;
-      const pct = total ? Math.round((semCounts.finalizado / total) * 100) : 0;
+      const pct   = total ? Math.round((semCounts.finalizado / total) * 100) : 0;
       document.getElementById("barra-progreso").style.width = pct + "%";
-      document.getElementById("barra-pct").textContent = pct + "%";
-      document.getElementById("barra-label").textContent =
+      document.getElementById("barra-pct").textContent      = pct + "%";
+      document.getElementById("barra-label").textContent    =
         total ? `${semCounts.finalizado} de ${total} proyectos finalizados` : "Sin proyectos registrados";
 
-      // ── Cotizaciones ─────────────────────────────
-      const cotData = cotSnap.docs.map(d => ({id:d.id,...d.data()}));
-      document.getElementById("count-cot").textContent = cotData.length.toLocaleString("es-CO");
-
-      const estadosCot = {};
-      let aprobMes = 0;
-      cotData.forEach(c => {
-        const e = c.estado || "pendiente";
-        estadosCot[e] = (estadosCot[e]||0) + 1;
-        if (e === "aprobada") {
-          const f = c.fecha?.toDate ? c.fecha.toDate() : c.fecha ? new Date(c.fecha) : null;
-          if (f && f.getMonth()===mesActual && f.getFullYear()===anioActual) aprobMes++;
-        }
-      });
-      document.getElementById("count-aprobadas").textContent = aprobMes;
-
-      // Pipeline
-      const pipeline = document.getElementById("pipeline-cots");
-      const estadoColors = {
-        pendiente:"#f59e0b", aprobada:"#22c55e", rechazada:"#ef4444",
-        enviada:"#3b82f6", revision:"#8b5cf6"
-      };
-      const estadoEmojis = {
-        pendiente:"⏳", aprobada:"✅", rechazada:"❌", enviada:"📤", revision:"🔍"
-      };
-      const totalCot = cotData.length || 1;
-      pipeline.innerHTML = Object.entries(estadosCot).map(([est, cnt]) => `
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:.8rem;font-weight:600;color:var(--text)">${estadoEmojis[est]||"📋"} ${est.charAt(0).toUpperCase()+est.slice(1)}</span>
-            <span style="font-size:.8rem;font-weight:700;color:${estadoColors[est]||"var(--green)"}">${cnt}</span>
-          </div>
-          <div style="background:#f3f4f6;border-radius:999px;height:6px;overflow:hidden">
-            <div style="height:100%;background:${estadoColors[est]||"var(--green)"};border-radius:999px;width:${Math.round((cnt/totalCot)*100)}%"></div>
-          </div>
-        </div>`).join("") || '<p style="color:var(--gray-lt);font-size:.82rem">Sin cotizaciones.</p>';
-
-      // ── Contabilidad / Finanzas ───────────────────
-      const cuentas = cuentasSnap.docs.map(d => d.data());
-      const movs    = movSnap.docs.map(d => d.data());
-
-      const totalCobrado = cuentas
-        .filter(c => c.estado === "pagada" || c.estado === "cobrada")
-        .reduce((s,c) => s + Number(c.total||c.valor||0), 0);
-      const totalPorCobrar = cuentas
-        .filter(c => c.estado !== "pagada" && c.estado !== "cobrada")
-        .reduce((s,c) => s + Number(c.total||c.valor||0), 0);
-      const totalGastos = movs
-        .filter(m => {
-          const f = m.fecha?.toDate ? m.fecha.toDate() : m.fecha ? new Date(m.fecha) : null;
-          return f && f.getMonth()===mesActual && f.getFullYear()===anioActual
-            && (m.tipo === "egreso" || m.tipo === "gasto");
-        })
-        .reduce((s,m) => s + Number(m.valor||m.monto||0), 0);
-      const utilidad = totalCobrado - totalGastos;
-
-      document.getElementById("fin-cobrado").textContent   = fmt(totalCobrado);
-      document.getElementById("fin-porcobrar").textContent = fmt(totalPorCobrar);
-      document.getElementById("fin-gastos").textContent    = fmt(totalGastos);
-      document.getElementById("fin-utilidad").textContent  = fmt(utilidad);
-      document.getElementById("count-ingresos").textContent = fmt(totalCobrado);
-
-      // ── Proyectos recientes ───────────────────────
+      // Proyectos recientes
       const badge = (e) => {
-        const m = {pendiente:"#f59e0b",en_ejecucion:"#3b82f6",finalizado:"#22c55e",suspendido:"#ef4444"};
-        const l = {pendiente:"Pendiente",en_ejecucion:"En ejecución",finalizado:"Finalizado",suspendido:"Suspendido"};
+        const m = { pendiente:"#f59e0b", en_ejecucion:"#3b82f6", finalizado:"#22c55e", suspendido:"#ef4444" };
+        const l = { pendiente:"Pendiente", en_ejecucion:"En ejecución", finalizado:"Finalizado", suspendido:"Suspendido" };
         return `<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;background:${m[e]||"#ccc"}20;color:${m[e]||"#ccc"}">${l[e]||e}</span>`;
       };
-      const recientes = proySnap.docs
-        .map(d=>({id:d.id,...d.data()}))
-        .sort((a,b)=>{ const ta=a.creadoEn?.toMillis?.()||0; const tb=b.creadoEn?.toMillis?.()||0; return tb-ta; })
-        .slice(0,5);
+      const recientes = proyData.slice(0, 5);
       const listaEl = document.getElementById("lista-proy-recientes");
-      listaEl.innerHTML = recientes.length ? recientes.map(p => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+      listaEl.innerHTML = recientes.length
+        ? recientes.map(p => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+            <div>
+              <div style="font-size:.85rem;font-weight:600">${p.nombre || p.numero || p.id.slice(0,8)}</div>
+              <div style="font-size:.72rem;color:var(--gray-lt)">${p.nombreCliente||"Cliente"}</div>
+            </div>
+            ${badge(p.estado||"pendiente")}
+          </div>`).join("")
+        : '<p style="color:var(--gray-lt);font-size:.82rem;padding:12px 0">Sin proyectos asignados.</p>';
+
+      // ── Cotizaciones (solo comercial y admin) ─────────────────────────────
+      if (role === "comercial" || role === "admin") {
+        let cotQuery = db.collection("cotizaciones").orderBy("fecha", "desc").limit(200);
+        if (role === "comercial") {
+          cotQuery = db.collection("cotizaciones").where("creadoPor", "==", uid).orderBy("fecha", "desc").limit(200);
+        }
+        const cotSnap = await cotQuery.get();
+        const cotData = cotSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        document.getElementById("count-cot").textContent = cotData.length.toLocaleString("es-CO");
+
+        const estadosCot = {};
+        let aprobMes = 0;
+        cotData.forEach(c => {
+          const e = c.estado || "pendiente";
+          estadosCot[e] = (estadosCot[e] || 0) + 1;
+          if (e === "aprobada") {
+            const f = c.fecha?.toDate ? c.fecha.toDate() : c.fecha ? new Date(c.fecha) : null;
+            if (f && f.getMonth() === mesActual && f.getFullYear() === anioActual) aprobMes++;
+          }
+        });
+        document.getElementById("count-aprobadas").textContent = aprobMes;
+
+        // Pipeline
+        const pipeline = document.getElementById("pipeline-cots");
+        const estadoColors = { pendiente:"#f59e0b", aprobada:"#22c55e", rechazada:"#ef4444", enviada:"#3b82f6", revision:"#8b5cf6" };
+        const estadoEmojis = { pendiente:"⏳", aprobada:"✅", rechazada:"❌", enviada:"📤", revision:"🔍" };
+        const totalCot = cotData.length || 1;
+        pipeline.innerHTML = Object.entries(estadosCot).map(([est, cnt]) => `
           <div>
-            <div style="font-size:.85rem;font-weight:600">${p.nombre || p.numero || p.id.slice(0,8)}</div>
-            <div style="font-size:.72rem;color:var(--gray-lt)">${p.nombreCliente||"Cliente"}</div>
-          </div>
-          ${badge(p.estado||"pendiente")}
-        </div>`).join("") :
-        '<p style="color:var(--gray-lt);font-size:.82rem;padding:12px 0">Sin proyectos registrados.</p>';
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:.8rem;font-weight:600;color:var(--text)">${estadoEmojis[est]||"📋"} ${est.charAt(0).toUpperCase()+est.slice(1)}</span>
+              <span style="font-size:.8rem;font-weight:700;color:${estadoColors[est]||"var(--green)"}">${cnt}</span>
+            </div>
+            <div style="background:#f3f4f6;border-radius:999px;height:6px;overflow:hidden">
+              <div style="height:100%;background:${estadoColors[est]||"var(--green)"};border-radius:999px;width:${Math.round((cnt/totalCot)*100)}%"></div>
+            </div>
+          </div>`).join("") || '<p style="color:var(--gray-lt);font-size:.82rem">Sin cotizaciones.</p>';
+      }
+
+      // ── Clientes (solo comercial y admin) ─────────────────────────────────
+      if (role === "comercial" || role === "admin") {
+        const clientesSnap = await db.collection("clientes").limit(200).get();
+        document.getElementById("count-clientes").textContent = clientesSnap.size.toLocaleString("es-CO");
+      }
+
+      // ── Contabilidad (solo admin, contador, finanzas) ─────────────────────
+      if (["admin", "contador", "finanzas"].includes(role)) {
+        const [cuentasSnap, movSnap] = await Promise.all([
+          db.collection("cuentas").limit(50).get().catch(() => ({ docs: [] })),
+          db.collection("movimientos").orderBy("fecha", "desc").limit(200).get().catch(() => ({ docs: [] }))
+        ]);
+        const cuentas = cuentasSnap.docs.map(d => d.data());
+        const movs    = movSnap.docs.map(d => d.data());
+
+        const totalCobrado   = cuentas.filter(c => c.estado === "pagada" || c.estado === "cobrada").reduce((s,c) => s + Number(c.total||c.valor||0), 0);
+        const totalPorCobrar = cuentas.filter(c => c.estado !== "pagada" && c.estado !== "cobrada").reduce((s,c) => s + Number(c.total||c.valor||0), 0);
+        const totalGastos    = movs.filter(m => {
+          const f = m.fecha?.toDate ? m.fecha.toDate() : m.fecha ? new Date(m.fecha) : null;
+          return f && f.getMonth() === mesActual && f.getFullYear() === anioActual && (m.tipo === "egreso" || m.tipo === "gasto");
+        }).reduce((s,m) => s + Number(m.valor||m.monto||0), 0);
+
+        document.getElementById("fin-cobrado").textContent   = fmt(totalCobrado);
+        document.getElementById("fin-porcobrar").textContent = fmt(totalPorCobrar);
+        document.getElementById("fin-gastos").textContent    = fmt(totalGastos);
+        document.getElementById("fin-utilidad").textContent  = fmt(totalCobrado - totalGastos);
+        document.getElementById("count-ingresos").textContent = fmt(totalCobrado);
+      }
 
     } catch (e) {
-      console.error(e);
-    }
-  })();
-</script>
-</body>
-</html>
-
-<!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-<script src="js/config.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/security.js"></script>
-<script src="js/roles.js"></script>
-<script src="js/auth.js"></script>
-
-<script>
-  (async function () {
-    try {
-      await Promise.resolve(window.__domkaFirebaseReady);
-      if (!window.db) return;
-      const cotSnap      = await db.collection("cotizaciones").limit(500).get();
-      const clientesSnap = await db.collection("clientes").limit(500).get();
-      const proyectosSnap= await db.collection("proyectos").limit(500).get();
-
-      document.getElementById("count-cot").textContent = cotSnap.size.toLocaleString("es-CO");
-      document.getElementById("count-clientes").textContent = clientesSnap.size.toLocaleString("es-CO");
-      document.getElementById("count-proyectos").textContent = proyectosSnap.size.toLocaleString("es-CO");
-    } catch (e) {
-      console.error(e);
+      console.error("[dashboard]", e);
     }
   })();
 </script>
