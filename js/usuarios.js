@@ -5,6 +5,9 @@
   const modal = document.getElementById("modal-edit-usuario");
   const formEdit = document.getElementById("form-edit-usuario");
 
+  // Rol del usuario actual en sesión (se establece en DOMContentLoaded)
+  let _myRole = null;
+
   const ROLE_LABEL = {
     admin: "Administrador",
     comercial: "Comercial",
@@ -28,7 +31,11 @@
     return d.toLocaleDateString("es-CO");
   }
 
-  async function requireAdmin() {
+  // Devuelve el rol del usuario en sesión.
+  // Admin → acceso completo.
+  // Comercial → acceso de solo lectura (clientes y comerciales).
+  // Otros → redirige a dashboard.
+  async function requireAccess() {
     const user = window.auth?.currentUser || await new Promise((resolve) => {
       if (!window.auth?.onAuthStateChanged) return resolve(null);
       const unsub = window.auth.onAuthStateChanged((u) => {
@@ -39,11 +46,12 @@
     if (!user) throw new Error("Sin sesion.");
     const snap = await window.db.collection("users").doc(user.uid).get();
     const me = snap.exists ? snap.data() : null;
-    if (!me || normalizeRole(me.role) !== "admin") {
-      alert("Solo admin puede gestionar usuarios.");
+    const role = normalizeRole(me?.role || "");
+    if (!["admin", "comercial"].includes(role)) {
       window.location.href = "/dashboard.html";
       throw new Error("No autorizado");
     }
+    return role;
   }
 
   async function crearUsuarioAuth(email, password) {
@@ -81,17 +89,40 @@
   }
 
   async function cargarUsuarios() {
-    const snap = await window.db.collection("users").orderBy("createdAt", "desc").get();
-    if (snap.empty) {
+    let snap;
+    if (_myRole === "comercial") {
+      // Comercial solo ve usuarios tipo cliente y comercial
+      const [snapClient, snapCom] = await Promise.all([
+        window.db.collection("users").where("role", "in", ["client", "cliente"]).get(),
+        window.db.collection("users").where("role", "==", "comercial").get()
+      ]);
+      // Merge y deduplicar
+      const docsMap = new Map();
+      [...snapClient.docs, ...snapCom.docs].forEach(d => docsMap.set(d.id, d));
+      snap = { docs: [...docsMap.values()] };
+    } else {
+      snap = await window.db.collection("users").orderBy("createdAt", "desc").get();
+    }
+
+    if (!snap.docs.length) {
       tabla.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Sin usuarios</td></tr>`;
       return;
     }
 
     let html = "";
-    snap.forEach((doc) => {
+    snap.docs.forEach((doc) => {
       const u = doc.data() || {};
       const role = normalizeRole(u.role || "client");
       const active = u.activo !== false;
+
+      // Comercial no puede editar ni activar/desactivar
+      const acciones = _myRole === "admin"
+        ? `<button class="text-xs px-2 py-1 border rounded mr-2" onclick="editarUsuario('${doc.id}')">Editar</button>
+           <button class="text-xs px-2 py-1 border rounded" onclick="toggleUsuarioActivo('${doc.id}', ${active ? "false" : "true"})">
+             ${active ? "Desactivar" : "Activar"}
+           </button>`
+        : `<span class="text-xs text-gray-400 italic">Solo lectura</span>`;
+
       html += `
         <tr class="border-b">
           <td class="p-3">
@@ -105,12 +136,7 @@
             </span>
           </td>
           <td class="p-3 text-gray-500">${fmtDate(u.createdAt)}</td>
-          <td class="p-3">
-            <button class="text-xs px-2 py-1 border rounded mr-2" onclick="editarUsuario('${doc.id}')">Editar</button>
-            <button class="text-xs px-2 py-1 border rounded" onclick="toggleUsuarioActivo('${doc.id}', ${active ? "false" : "true"})">
-              ${active ? "Desactivar" : "Activar"}
-            </button>
-          </td>
+          <td class="p-3">${acciones}</td>
         </tr>
       `;
     });
@@ -204,7 +230,24 @@
     try {
       await Promise.resolve(window.__domkaFirebaseReady);
       if (!window.auth || !window.db) throw new Error("Firebase no inicializado.");
-      await requireAdmin();
+
+      _myRole = await requireAccess();
+
+      // Ocultar formulario de creación si no es admin
+      if (_myRole !== "admin") {
+        const cardNuevo = document.getElementById("card-nuevo-usuario") || formNuevo?.closest("section, div.card, div[class*='card']");
+        if (formNuevo) formNuevo.closest("section, .card, [id*='nuevo']")?.remove();
+        if (formNuevo) formNuevo.style.display = "none";
+        // Mostrar aviso de modo lectura
+        const titulo = document.querySelector(".page-heading, h1, h2");
+        if (titulo) {
+          const aviso = document.createElement("p");
+          aviso.className = "text-xs text-amber-600 mt-1";
+          aviso.textContent = "Modo lectura — solo ves usuarios tipo Cliente y Comercial.";
+          titulo.insertAdjacentElement("afterend", aviso);
+        }
+      }
+
       formNuevo?.addEventListener("submit", crearUsuario);
       formEdit?.addEventListener("submit", guardarEdicion);
 
@@ -217,7 +260,6 @@
           clienteWrap.classList.toggle("hidden", !esCliente);
           if (esCliente) await cargarClientesSelect();
         });
-        // Estado inicial
         clienteWrap.classList.toggle("hidden", rolSelect.value !== "client");
       }
 
