@@ -608,7 +608,7 @@ const bloqueTotales = {
       hr([0, 10, 0, 0]),
       bloqueTotales,
       ...bloquePagos,
-      ...bloquePago,
+      // ...bloquePago,
       ...bloqueNotas,
       ...bloqueTerminos,
       //...bloqueAprobacion,
