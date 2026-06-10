@@ -32,18 +32,20 @@ service cloud.firestore {
     function clienteOwns(resource) {
       return isClient() && (
         resource.data.clienteId == myClientId() ||
-        (myEmpresaId() != null && resource.data.empresaId == myEmpresaId())
+        (myEmpresaId() != null && resource.data.empresaId == myEmpresaId()) ||
+        request.auth.uid in resource.data.uidsAsociados
       );
     }
 
     // ── Validaciones de esquema ──────────────────────────────
 
+    // CAMBIO 1: email ya no es obligatorio (GABI no lo recolecta)
+    // Se quitó 'email' de hasAll y se eliminó la validación de tamaño de email
     function validLead(data) {
-      return data.keys().hasAll(['nombre', 'email', 'servicio', 'createdAt'])
+      return data.keys().hasAll(['nombre', 'servicio', 'createdAt'])
           && data.keys().hasOnly(['nombre', 'apellido', 'email', 'telefono',
                                   'empresa', 'servicio', 'descripcion', 'createdAt', 'origen'])
           && data.nombre is string && data.nombre.size() > 0 && data.nombre.size() < 120
-          && data.email is string && data.email.size() > 5 && data.email.size() < 200
           && data.servicio is string
           && data.createdAt == request.time;
     }
@@ -54,11 +56,6 @@ service cloud.firestore {
                                   'updatedAt', 'lastLogin']);
     }
 
-    // ── validCotizacion: campo completo real del JS ──────────
-    // CORREGIDO: lista de campos expandida para coincidir con
-    // lo que cotizaciones.js realmente guarda en Firestore.
-    // La versión anterior era demasiado restrictiva y bloqueaba
-    // toda operación de update (incluyendo aprobar/rechazar).
     function validCotizacion(data) {
       return data.clienteId is string
           && data.estado in [
@@ -66,29 +63,22 @@ service cloud.firestore {
                'vencida', 'pendiente', 'aprobada', 'en_revision'
              ]
           && data.keys().hasOnly([
-               // identificación cliente
                'clienteId', 'empresaId', 'nombreCliente', 'telefono',
                'clienteTipoIdentificacion', 'clienteIdentificacion',
                'clienteNit', 'clienteNumeroDocumento', 'mostrarDocumento',
-               // contenido
                'notas', 'notasArray', 'ubicacion', 'tipo', 'tipoCalculo',
                'formaPago', 'planPagos', 'items',
                'subtotal', 'total', 'monto', 'moneda',
                'mostrarValorLetras', 'anexos',
-               // metadatos
                'numero', 'titulo', 'servicio', 'descripcion',
                'estado', 'validoHasta', 'fecha',
                'linkPublico', 'linkWhatsApp',
                'creadoPor', 'createdAt', 'updatedAt',
-               // campos de aprobación
                'aprobadoPor', 'aprobadoEn', 'rechazadoPor', 'rechazadoEn',
                'comentarioAprobacion'
              ]);
     }
 
-    // ── validProyecto: campo completo real del JS ────────────
-    // CORREGIDO: lista expandida para coincidir con
-    // lo que proyectos.js realmente guarda. Estados alineados.
     function validProyecto(data) {
       return data.clienteId is string
           && data.estado in [
@@ -96,18 +86,15 @@ service cloud.firestore {
                'activo', 'pausado', 'completado', 'cancelado', 'planificacion'
              ]
           && data.keys().hasOnly([
-               // identificación
                'clienteId', 'empresaId', 'empresaNombre', 'nombreCliente',
                'clienteNombre',
-               // datos del proyecto
                'numero', 'nombre', 'descripcion', 'estado',
                'fechaInicio', 'fechaCierre', 'fechaFin',
                'presupuesto', 'moneda',
-               // equipo
                'tecnico', 'responsable', 'usuariosAsociados', 'aprobadores',
-               // archivos embebidos (evidencias y documentos con base64)
+               'uidsAsociados',
                'evidencias', 'documentos',
-               // metadatos
+               'cotizacionId', 'totalCotizado', 'planPagos', 'cotizacionEstado',
                'creadoPor', 'creadoEn', 'createdAt', 'updatedAt',
                'etapa', 'avance', 'notas'
              ]);
@@ -163,10 +150,11 @@ service cloud.firestore {
     // ── cotizaciones ─────────────────────────────────────────
     match /cotizaciones/{id} {
       allow get:    if isStaff() || clienteOwns(resource);
-      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
-      allow create: if roleIs(["admin", "comercial"]) && validCotizacion(request.resource.data);
-      // Update: admin/comercial/tecnico pueden cambiar estado (aprobar/rechazar/enviar)
-      allow update: if roleIs(["admin", "comercial", "tecnico"]) && validCotizacion(request.resource.data);
+      allow list:   if isStaff() || isClient();
+      allow create: if roleIs(["admin", "comercial"])
+                    && validCotizacion(request.resource.data);
+      allow update: if roleIs(["admin", "comercial", "tecnico"])
+                    && validCotizacion(request.resource.data);
       allow delete: if roleIs(["admin"]);
     }
 
@@ -182,19 +170,22 @@ service cloud.firestore {
     // ── proyectos ────────────────────────────────────────────
     match /proyectos/{id} {
       allow get:    if isStaff() || clienteOwns(resource);
-      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
-      allow create: if roleIs(["admin", "comercial", "tecnico"]) && validProyecto(request.resource.data);
-      // Update: técnico también puede actualizar (subir evidencias, cambiar estado)
-      allow update: if roleIs(["admin", "comercial", "tecnico"]) && validProyecto(request.resource.data);
+      allow list:   if isStaff() || isClient();
+      allow create: if roleIs(["admin", "comercial", "tecnico"])
+                    && validProyecto(request.resource.data);
+      allow update: if (roleIs(["admin","comercial","tecnico"]) || clienteOwns(resource))
+                    && validProyecto(request.resource.data);
       allow delete: if roleIs(["admin"]);
     }
 
     // ── documentos ───────────────────────────────────────────
     match /documentos/{id} {
       allow get:    if isStaff() || clienteOwns(resource);
-      allow list:   if isStaff() || (isClient() && request.query.filters.size() > 0);
-      allow create: if roleIs(["admin", "comercial", "tecnico"]) && validDocumento(request.resource.data);
-      allow update: if roleIs(["admin", "comercial", "tecnico"]) && validDocumento(request.resource.data);
+      allow list:   if isStaff() || isClient();
+      allow create: if roleIs(["admin", "comercial", "tecnico"])
+                    && validDocumento(request.resource.data);
+      allow update: if roleIs(["admin", "comercial", "tecnico"])
+                    && validDocumento(request.resource.data);
       allow delete: if roleIs(["admin"]);
     }
 
@@ -202,19 +193,35 @@ service cloud.firestore {
     match /leads/{id} {
       allow get:    if isStaff();
       allow list:   if isStaff();
-      allow create: if validLead(request.resource.data);
+      // CAMBIO 2: staff puede crear leads manuales sin pasar validLead
+      // El validLead protege solo los creates del sitio público (sin auth)
+      allow create: if isStaff() || validLead(request.resource.data);
       allow update: if isStaff();
       allow delete: if roleIs(["admin", "comercial"]);
     }
 
-    // ── cuentas / movimientos ────────────────────────────────
+    // ── cuentas ──────────────────────────────────────────────
     match /cuentas/{id} {
-      allow read:   if roleIs(["admin", "contador", "finanzas"]);
-      allow write:  if roleIs(["admin", "contador", "finanzas"]);
+      allow read: if roleIs(["admin", "contador", "finanzas"]);
+      allow write: if roleIs(["admin", "contador", "finanzas"]);
     }
+
+    // ── movimientos ──────────────────────────────────────────
     match /movimientos/{id} {
-      allow read:   if roleIs(["admin", "contador", "finanzas"]);
-      allow write:  if roleIs(["admin", "contador", "finanzas"]);
+      allow read: if roleIs(["admin", "contador", "finanzas"]);
+      allow write: if roleIs(["admin", "contador", "finanzas"]);
+    }
+
+    // ── cuentas bancarias ────────────────────────────────────
+    match /cuentasBancarias/{id} {
+      allow read: if roleIs(["admin", "contador", "finanzas"]);
+      allow write: if roleIs(["admin", "contador", "finanzas"]);
+    }
+
+    // ── logs ─────────────────────────────────────────────────
+    match /logs/{id} {
+      allow read: if roleIs(["admin", "contador", "finanzas"]);
+      allow write: if roleIs(["admin"]);
     }
 
     // ── Bloqueo total por defecto ────────────────────────────
