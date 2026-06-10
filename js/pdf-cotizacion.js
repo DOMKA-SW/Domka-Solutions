@@ -397,33 +397,33 @@ const bloqueTotales = {
 // ════════════════════════════════════════════════════════════
 // BLOQUE 7 · MÉTODOS DE PAGO (versión compacta)
 // ════════════════════════════════════════════════════════════
-const bancoCeldas = BANCOS.map(b => ({
-  stack: [
-    { text: b.banco,                fontSize: 10, bold: true, color: P.black, font: "Roboto", margin: [0,0,0,1] },
-    { text: b.tipo,                  fontSize: 7,  color: P.grayLight,       font: "Roboto", margin: [0,0,0,4] },
-    { text: b.numero,                fontSize: 10, bold: true, color: P.green, font: "Roboto", margin: [0,0,0,2] },
-    { text: `Titular: ${b.titular}`, fontSize: 7, color: P.gray,              font: "Roboto" }
-  ],
-  fillColor: P.bgRow,
-  border: [false,false,false,false],
-  margin: [8, 8, 8, 8]  // márgenes reducidos
-}));
+// const bancoCeldas = BANCOS.map(b => ({
+//  stack: [
+ //   { text: b.banco,                fontSize: 10, bold: true, color: P.black, font: "Roboto", margin: [0,0,0,1] },
+  //  { text: b.tipo,                  fontSize: 7,  color: P.grayLight,       font: "Roboto", margin: [0,0,0,4] },
+ //   { text: b.numero,                fontSize: 10, bold: true, color: P.green, font: "Roboto", margin: [0,0,0,2] },
+ //   { text: `Titular: ${b.titular}`, fontSize: 7, color: P.gray,              font: "Roboto" }
+ // ],
+//  fillColor: P.bgRow,
+//  border: [false,false,false,false],
+//  margin: [8, 8, 8, 8]  // márgenes reducidos
+//}));
 
-const bloquePago = [
-  hr(),
-  sLabel("MÉTODO DE PAGO", { fontSize: 10 }),  // si tu sLabel permite pasar fontSize
-  {
-    table: {
-      widths: BANCOS.map(() => "*"),
-      body: [bancoCeldas]
-    },
-    layout: {
-      hLineWidth: () => 0,
-      vLineWidth: (i) => (i > 0 && i < BANCOS.length) ? 0.4 : 0,
-      vLineColor: () => P.line
-    }
-  }
-];
+// const bloquePago = [
+ // hr(),
+//  sLabel("MÉTODO DE PAGO", { fontSize: 10 }),  // si tu sLabel permite pasar fontSize
+//  {
+//    table: {
+//      widths: BANCOS.map(() => "*"),
+//      body: [bancoCeldas]
+//    },
+//    layout: {
+//      hLineWidth: () => 0,
+ //     vLineWidth: (i) => (i > 0 && i < BANCOS.length) ? 0.4 : 0,
+//      vLineColor: () => P.line
+//    }
+//  }
+//];
 
   // ════════════════════════════════════════════════════════════
   // BLOQUE 8 · NOTAS
