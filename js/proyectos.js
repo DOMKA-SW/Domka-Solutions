@@ -172,6 +172,9 @@
       if (_perfil?.role === "client") {
         if (_perfil?.empresaId)   query = query.where("empresaId", "==", _perfil.empresaId);
         else if (_perfil?.clienteId) query = query.where("clienteId", "==", _perfil.clienteId);
+      } else if (_perfil?.role === "tecnico" || _perfil?.role === "comercial") {
+        // Solo proyectos donde el usuario está en la lista de asociados
+        query = query.where("uidsAsociados", "array-contains", _perfil.uid);
       }
       // Límite de 100 para evitar leer toda la colección en una sola llamada
       const snap = await query.orderBy("creadoEn", "desc").limit(100).get();
@@ -488,8 +491,9 @@ window.filtrarContactosCliente = function(q) {
       cotizacionEstado: cotizacionData?.estado || null,
       usuariosAsociados: asociados,
       aprobadores: aprobadores,
-      // Array plano de UIDs para queries en portal cliente
+      // Array plano de UIDs para queries (el creador siempre queda asociado)
       uidsAsociados: [
+        window.auth?.currentUser?.uid || null,
         ...asociados.map(u => u.uid),
         ...aprobadores.map(u => u.uid)
       ].filter((v, i, a) => v && a.indexOf(v) === i),
