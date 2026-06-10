@@ -1,6 +1,19 @@
 // js/security.js
 // Proteccion de paginas basada en sesion + perfil (roles.js).
 (() => {
+  // ── Mapa de roles permitidos por página ──────────────────────────────────
+  // Si la página no aparece aquí, cualquier rol de empresa puede acceder.
+  const PAGE_ROLES = {
+    "dashboard.html":    ["admin","comercial","tecnico","contador","rrhh","finanzas"],
+    "proyectos.html":    ["admin","comercial","tecnico"],
+    "cotizaciones.html": ["admin","comercial"],
+    "clientes.html":     ["admin","comercial"],
+    "comercial.html":    ["admin","comercial"],
+    "documentos.html":   ["admin","comercial"],
+    "contabilidad.html": ["admin","contador","finanzas"],
+    "usuarios.html":     ["admin","comercial"],
+  };
+
   function pageName() {
     return window.location.pathname.split("/").pop() || "index.html";
   }
@@ -37,7 +50,7 @@
     await window.__domkaFirebaseReady;
     
     if (isPublicPage()) return;
-    document.documentElement.style.visibility = 'hidden';
+    document.documentElement.style.visibility = "hidden";
     if (!window.auth || !window.auth.onAuthStateChanged) return;
 
     window.auth.onAuthStateChanged(async (user) => {
@@ -51,6 +64,7 @@
           ? await window.cargarPerfil(user).catch(() => null)
           : null;
 
+      // ── Portal cliente ───────────────────────────────────────────────────
       if (isInFolder("cliente")) {
         if (!perfil || !requireRole(perfil, ["client"]) || !perfil.clienteId) {
           window.location.href = "/cliente/login.html";
@@ -58,6 +72,7 @@
         }
       }
 
+      // ── Portal empresa: un cliente no puede entrar nunca ─────────────────
       if (!isInFolder("cliente") && !isInFolder("public")) {
         if (perfil && perfil.role === "client") {
           window.location.href = window.DOMKA_CONFIG?.ROUTES?.clienteHome || "/cliente/index.html";
@@ -65,13 +80,21 @@
         }
       }
 
+      // ── Guardia por página: verificar que el rol tenga acceso ─────────────
+      const page = pageName();
+      const allowedRoles = PAGE_ROLES[page];
+      if (allowedRoles && perfil && !allowedRoles.includes(perfil.role)) {
+        // El rol no tiene permiso para esta página → redirigir al dashboard
+        window.location.href = "/dashboard.html";
+        return;
+      }
+
       if (typeof window.aplicarRestriccionesUI === "function") {
         window.aplicarRestriccionesUI(perfil);
-        
-      document.documentElement.style.visibility = 'visible';
       }
+      document.documentElement.style.visibility = "visible";
     });
   }
 
-  window.DOMKA_SECURITY = { protect, routeAfterLogin };
+  window.DOMKA_SECURITY = { protect, routeAfterLogin, PAGE_ROLES };
 })();
