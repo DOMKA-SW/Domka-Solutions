@@ -1,6 +1,19 @@
 // js/security.js
 // Proteccion de paginas basada en sesion + perfil (roles.js).
 (() => {
+  // ── Ocultar inmediatamente para evitar flash de contenido ────────────────
+  // Esto corre de forma síncrona al cargar el script, antes de cualquier async.
+  (function hideImmediately() {
+    const path = window.location.pathname;
+    const page = path.split("/").pop() || "index.html";
+    const isPublic =
+      path.includes("/public/") ||
+      (path.includes("/cliente/") && page === "login.html") ||
+      ["", "index.html", "home.html", "login-empresa.html"].includes(page);
+    if (!isPublic) {
+      document.documentElement.style.visibility = "hidden";
+    }
+  })();
   // ── Mapa de roles permitidos por página ──────────────────────────────────
   // Si la página no aparece aquí, cualquier rol de empresa puede acceder.
   const PAGE_ROLES = {
@@ -81,10 +94,12 @@
       }
 
       // ── Guardia por página: verificar que el rol tenga acceso ─────────────
+      // ⚠️  Solo aplica a páginas de empresa, NO al portal /cliente/
+      // (pageName() devuelve el mismo nombre para /cotizaciones.html
+      //  y /cliente/cotizaciones.html, por lo que hay que excluir el portal)
       const page = pageName();
       const allowedRoles = PAGE_ROLES[page];
-      if (allowedRoles && perfil && !allowedRoles.includes(perfil.role)) {
-        // El rol no tiene permiso para esta página → redirigir al dashboard
+      if (!isInFolder("cliente") && allowedRoles && perfil && !allowedRoles.includes(perfil.role)) {
         window.location.href = "/dashboard.html";
         return;
       }
