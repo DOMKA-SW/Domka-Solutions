@@ -273,10 +273,10 @@
             <div class="qa-name">Contabilidad</div>
             <div class="qa-desc">Reportes y finanzas</div>
           </a>
-          <a href="usuarios.html" class="quick-action" data-rol-min="comercial">
+          <a href="documentos.html" class="quick-action" data-rol-min="comercial">
             <div class="qa-icon"><i class="fas fa-folder-open"></i></div>
-            <div class="qa-name">Usuarios</div>
-            <div class="qa-desc">Empresa y Clientes</div>
+            <div class="qa-name">Documentos</div>
+            <div class="qa-desc">Actas y contratos</div>
           </a>
           <a href="comercial.html" class="quick-action" data-rol-min="comercial">
             <div class="qa-icon"><i class="fas fa-funnel-dollar"></i></div>
@@ -392,14 +392,24 @@
       const anioActual = now.getFullYear();
 
       // ── Proyectos (filtrados según rol) ──────────────────────────────────
-      let proyQuery = db.collection("proyectos").orderBy("creadoEn", "desc").limit(200);
+      // ⚠️ array-contains + orderBy requiere índice compuesto en Firestore.
+      // Para tecnico/comercial filtramos sin orderBy y ordenamos client-side.
+      let proySnap;
       if (role === "tecnico" || role === "comercial") {
-        proyQuery = db.collection("proyectos")
+        proySnap = await db.collection("proyectos")
           .where("uidsAsociados", "array-contains", uid)
-          .orderBy("creadoEn", "desc").limit(200);
+          .limit(200).get();
+      } else {
+        proySnap = await db.collection("proyectos")
+          .orderBy("creadoEn", "desc").limit(200).get();
       }
-      const proySnap = await proyQuery.get();
-      const proyData = proySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const proyData = proySnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const ta = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : new Date(a.creadoEn || 0).getTime();
+          const tb = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : new Date(b.creadoEn || 0).getTime();
+          return tb - ta;
+        });
 
       // Semáforo proyectos
       const semCounts = { pendiente: 0, en_ejecucion: 0, finalizado: 0, suspendido: 0 };
@@ -443,10 +453,16 @@
       if (role === "comercial" || role === "admin") {
         let cotQuery = db.collection("cotizaciones").orderBy("fecha", "desc").limit(200);
         if (role === "comercial") {
-          cotQuery = db.collection("cotizaciones").where("creadoPor", "==", uid).orderBy("fecha", "desc").limit(200);
+          cotQuery = db.collection("cotizaciones").where("creadoPor", "==", uid).limit(200);
         }
         const cotSnap = await cotQuery.get();
-        const cotData = cotSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const cotData = cotSnap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => {
+            const fa = a.fecha?.toDate ? a.fecha.toDate().getTime() : new Date(a.fecha || 0).getTime();
+            const fb = b.fecha?.toDate ? b.fecha.toDate().getTime() : new Date(b.fecha || 0).getTime();
+            return fb - fa;
+          });
 
         document.getElementById("count-cot").textContent = cotData.length.toLocaleString("es-CO");
 
