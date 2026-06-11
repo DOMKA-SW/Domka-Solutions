@@ -604,21 +604,44 @@ function renderCotizaciones(lista) {
 async function cargarCotizaciones() {
   if (tablaCotizaciones) tablaCotizaciones.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400">Cargando…</td></tr>`;
   try {
-    // Filtrar cotizaciones segun rol del usuario
-    const user = window.auth?.currentUser;
+    // Esperar auth state resuelto — currentUser es null en DOMContentLoaded
+    const user = window.auth?.currentUser || await new Promise(resolve => {
+      const unsub = window.auth.onAuthStateChanged(u => { unsub(); resolve(u || null); });
+    });
+    if (!user) return;
+
     let perfil = null;
-    if (user && typeof window.cargarPerfil === "function") {
+    if (typeof window.cargarPerfil === "function") {
       perfil = await window.cargarPerfil(user).catch(() => null);
     }
-    let query = db.collection("cotizaciones").orderBy("fecha", "desc").limit(100);
+
+    let snap;
     if (perfil?.role === "comercial") {
-      // Comercial solo ve sus propias cotizaciones
-      query = db.collection("cotizaciones").where("creadoPor", "==", user.uid).orderBy("fecha", "desc").limit(100);
+      // Comercial solo ve sus propias cotizaciones.
+      // SIN orderBy porque array-contains/equality + orderBy requiere índice compuesto.
+      // Ordenamos client-side.
+      snap = await db.collection("cotizaciones")
+        .where("creadoPor", "==", user.uid)
+        .limit(200)
+        .get();
+    } else {
+      snap = await db.collection("cotizaciones")
+        .orderBy("fecha", "desc")
+        .limit(100)
+        .get();
     }
-    const snap = await query.get();
-    _todasCotizaciones = snap.docs.map(doc => ({ id: doc.id, c: doc.data() }));
+
+    _todasCotizaciones = snap.docs
+      .map(doc => ({ id: doc.id, c: doc.data() }))
+      .sort((a, b) => {
+        // Ordenar client-side para que comercial también vea orden correcto
+        const fa = a.c.fecha?.toDate ? a.c.fecha.toDate().getTime() : new Date(a.c.fecha || 0).getTime();
+        const fb = b.c.fecha?.toDate ? b.c.fecha.toDate().getTime() : new Date(b.c.fecha || 0).getTime();
+        return fb - fa;
+      });
     aplicarBusquedaCotizaciones();
-  } catch {
+  } catch(e) {
+    console.error("[cotizaciones]", e);
     if (tablaCotizaciones) tablaCotizaciones.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500">Error cargando cotizaciones.</td></tr>`;
   }
 }
