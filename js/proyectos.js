@@ -170,19 +170,11 @@
     try {
       let query = db.collection("proyectos");
       if (_perfil?.role === "client") {
-        if (_perfil?.empresaId)   query = query.where("empresaId", "==", _perfil.empresaId);
-        else if (_perfil?.clienteId) query = query.where("clienteId", "==", _perfil.clienteId);
-      } else if (_perfil?.role === "tecnico" || _perfil?.role === "comercial") {
-        // Solo proyectos donde el usuario está en la lista de asociados
-        query = query.where("uidsAsociados", "array-contains", _perfil.uid);
-      }
-      // Límite de 100 para evitar leer toda la colección en una sola llamada
-      const snap = await query.orderBy("creadoEn", "desc").limit(100).get();
-      _all = snap.docs.map(d => {
-        const data = d.data() || {};
-        // Guardamos lista ligera: quitamos base64 pesado de evidencias/documentos
-        // El base64 completo se recarga al abrir el modal (verDetalle)
-        return {
+        if (_perfil?.empresaId)      query = query.where("empresaId",     "==", _perfil.empresaId);
+        else if (_perfil?.clienteId) query = query.where("clienteId",     "==", _perfil.clienteId);
+        // client: orderBy es seguro porque el campo es el mismo del where
+        const snap = await query.orderBy("creadoEn", "desc").limit(100).get();
+        _all = snap.docs.map(d => { const data = d.data() || {}; return {
           id: d.id,
           numero: data.numero,
           nombre: data.nombre,
@@ -212,6 +204,51 @@
             url: doc.url, creadoEn: doc.creadoEn
           }))
         };
+      });
+      aplicarFiltro();
+      return; // ← solo para el bloque client
+      } // cierre if client
+      // ── tecnico / comercial: array-contains no puede combinar con orderBy
+      // sin índice compuesto → ordenamos client-side
+      if (_perfil?.role === "tecnico" || _perfil?.role === "comercial") {
+        query = query.where("uidsAsociados", "array-contains", _perfil.uid);
+      }
+      const snap2 = await query.limit(200).get();
+      _all = snap2.docs.map(d => {
+        const data = d.data() || {};
+        return {
+          id: d.id,
+          numero: data.numero,
+          nombre: data.nombre,
+          nombreCliente: data.nombreCliente || data.clienteNombre,
+          clienteId: data.clienteId,
+          empresaId: data.empresaId,
+          empresaNombre: data.empresaNombre,
+          tecnico: data.tecnico,
+          estado: data.estado,
+          descripcion: data.descripcion,
+          fechaInicio: data.fechaInicio,
+          fechaCierre: data.fechaCierre,
+          presupuesto: data.presupuesto,
+          moneda: data.moneda,
+          creadoEn: data.creadoEn,
+          createdAt: data.createdAt,
+          creadoPor: data.creadoPor,
+          usuariosAsociados: data.usuariosAsociados || [],
+          aprobadores: data.aprobadores || [],
+          evidencias: (data.evidencias || []).map(ev => ({
+            tipo: ev.tipo, contentType: ev.contentType, name: ev.name,
+            nombre: ev.nombre, url: ev.url, uploadedAt: ev.uploadedAt
+          })),
+          documentos: (data.documentos || []).map(doc => ({
+            tipo: doc.tipo, nombre: doc.nombre, estado: doc.estado,
+            url: doc.url, creadoEn: doc.creadoEn
+          }))
+        };
+      }).sort((a, b) => {
+        const ta = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : new Date(a.creadoEn || 0).getTime();
+        const tb = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : new Date(b.creadoEn || 0).getTime();
+        return tb - ta;
       });
       aplicarFiltro();
     } catch (e) {
