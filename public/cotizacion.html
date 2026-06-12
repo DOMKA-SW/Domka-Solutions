@@ -131,7 +131,6 @@
     }
     .btn-pdf:hover { border-color: var(--green); background: var(--bg-alt); }
 
-    .btn-confirmar {
       display: inline-flex; align-items: center; gap: 10px;
       background: var(--green);
       color: var(--white);
@@ -145,8 +144,6 @@
       transition: background .2s, transform .15s;
       box-shadow: 0 4px 22px rgba(27,122,81,.28);
     }
-    .btn-confirmar:hover { background: var(--green-dk); transform: translateY(-2px); }
-    .btn-confirmar:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
     /* ── SECTION LABEL ────────────────────────────────────── */
     .slabel {
@@ -312,16 +309,6 @@
     .confirm-section { text-align: center; padding: 36px 0 12px; }
     .confirm-hint { font-size: .82rem; color: var(--gray-lt); margin-bottom: 18px; }
 
-    .confirmed-box {
-      display: none;
-      background: #d1fae5; border: 1px solid #6ee7b7;
-      border-radius: 12px; padding: 28px;
-      text-align: center; margin-top: 24px;
-    }
-    .confirmed-box.show { display: block; }
-    .confirmed-icon { font-size: 2.2rem; margin-bottom: 8px; }
-    .confirmed-title { font-family: 'DM Serif Display', serif; font-size: 1.35rem; color: #065f46; margin-bottom: 4px; }
-    .confirmed-sub { font-size: .85rem; color: #047857; }
 
     /* ── TÉRMINOS ─────────────────────────────────────────── */
     .terminos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -495,24 +482,7 @@
 
     <!-- /content -->
 
-    <!-- Acciones -->
-    <div id="acciones" style="display:none">
-      <hr class="hr-green">
-      <div class="confirm-section">
-        <p class="confirm-hint">¿Recibiste esta cotización? Confírmalo con un clic.</p>
-        <button class="btn-confirmar" id="btn-confirmar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Confirmar recibido
-        </button>
-      </div>
-    </div>
 
-    <!-- Confirmado -->
-    <div class="confirmed-box" id="confirmed-box">
-      <div class="confirmed-icon">✅</div>
-      <div class="confirmed-title">¡Recibido confirmado!</div>
-      <div class="confirmed-sub">Hemos registrado tu confirmación. Gracias.</div>
-    </div>
 
     <!-- Footer -->
     <div class="footer" style="margin-top:56px">
@@ -687,9 +657,7 @@
 
       // Estado + acciones
       setBadge(c.estado);
-      if (!c.estado||c.estado==="pendiente") {
-        document.getElementById("acciones").style.display="block";
-      }
+      // aprobación solo desde portal cliente
 
       // Mostrar
       document.getElementById("loader").style.display="none";
@@ -698,37 +666,6 @@
       // PDF
       document.getElementById("btn-pdf").onclick = () => generarPDFCotizacion({...c,id}, c.nombreCliente);
     }
-
-      // ── confirmar ── (actualiza documento público + refleja estado en cotizaciones si existe)
-    document.getElementById("btn-confirmar").addEventListener("click", async () => {
-      const btn = document.getElementById("btn-confirmar");
-      btn.disabled = true;
-      btn.innerHTML = `<div class="spinner" style="width:18px;height:18px;border-width:2px"></div> Guardando…`;
-      try {
-        await cotRef.update({estado:"aprobada", fechaRecibido:firebase.firestore.FieldValue.serverTimestamp()});
-        // best-effort sync interno
-        if (cotData?.cotizacionId) {
-          await db.collection("cotizaciones").doc(cotData.cotizacionId).set({
-            estado: "aprobada",
-            fechaRecibido: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true }).catch(()=>{});
-        }
-        await db.collection("logs").add({
-          docId:id, tipo:"cotizacion", accion:"recibido_confirmado",
-          nombreCliente:cotData?.nombreCliente||"", total:cotData?.total||0,
-          userAgent:navigator.userAgent||null,
-          timestamp:firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById("acciones").style.display="none";
-        document.getElementById("confirmed-box").classList.add("show");
-        setBadge("aprobada");
-      } catch(e) {
-        console.error(e);
-        btn.disabled=false;
-        btn.innerHTML=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Confirmar recibido`;
-        alert("Error al confirmar. Intenta de nuevo.");
-      }
-    });
 
     // ── tracking ──
     window.addEventListener("load", async () => {
