@@ -14,6 +14,18 @@
       document.documentElement.style.visibility = "hidden";
     }
   })();
+
+  // ── Suprimir logs en producción para no exponer info interna ─────────────
+  (function guardConsole() {
+    const isProd = location.hostname !== "localhost"
+                && location.hostname !== "127.0.0.1"
+                && !location.hostname.startsWith("192.168.");
+    if (isProd) {
+      const noop = () => {};
+      ["log", "debug", "info"].forEach(m => { try { console[m] = noop; } catch(_) {} });
+      // warn y error se mantienen para errores reales de Firebase/browser
+    }
+  })();
   // ── Mapa de roles permitidos por página ──────────────────────────────────
   // Si la página no aparece aquí, cualquier rol de empresa puede acceder.
   const PAGE_ROLES = {
