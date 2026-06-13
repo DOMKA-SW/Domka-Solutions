@@ -503,6 +503,21 @@ form.addEventListener("submit", async (e) => {
 //          botones Aprobar / Rechazar, badge de estado visual.
 // ============================
 let _todasCotizaciones = [];   // caché en memoria para búsqueda sin queries extra
+let _usuarios = [];            // usuarios internos para resolver nombres (aprobadoPor, rechazadoPor)
+
+// Carga una vez la lista de usuarios internos para resolver UIDs a nombres
+async function cargarUsuariosSistema() {
+  if (_usuarios.length) return; // ya cargados
+  try {
+    const snap = await db.collection("users").get();
+    _usuarios = snap.docs.map(d => ({
+      uid: d.id,
+      nombre: d.data().nombre || d.data().email || d.id,
+      email: d.data().email || "",
+      role: d.data().role || ""
+    }));
+  } catch (_) { /* sin acceso — no bloquear */ }
+}
 
 const ESTADO_BADGE = {
   pendiente:    "bg-yellow-100 text-yellow-800",
@@ -709,6 +724,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     await Promise.resolve(window.__domkaFirebaseReady);
     if (!window.db) throw new Error("Firestore no inicializado.");
     await cargarClientes();
+    await cargarUsuariosSistema(); // necesario para resolver aprobadoPor/rechazadoPor a nombres
     await cargarCotizaciones();
     toggleColumnasItems();
   } catch (e) {
