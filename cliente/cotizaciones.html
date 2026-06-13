@@ -160,6 +160,7 @@
 <script src="../js/auth.js"></script>
 <script>
   let _cots = [];
+  let _perfil = null; // perfil del cliente en sesión
 
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
   function fmt(n){return Number(n||0).toLocaleString('es-CO')}
@@ -172,6 +173,47 @@
     const l={pendiente:'⏳ Pendiente',aprobada:'✅ Aprobada',rechazada:'❌ Rechazada',enviada:'📤 Enviada'};
     return `<span class="badge ${m[e]||'badge-pendiente'}">${l[e]||e}</span>`;
   }
+
+  // Igual que en proyectos: puede aprobar si está en aprobadores,
+  // o si tiene el mismo clienteId (fallback para cotizaciones antiguas sin aprobadores)
+  function canApprove(cot) {
+    const uid = window.auth?.currentUser?.uid;
+    if (!uid) return false;
+    if (cot.aprobadores && cot.aprobadores.length) {
+      return cot.aprobadores.some(a => a.uid === uid);
+    }
+    // Fallback: cualquier usuario del portal con el mismo clienteId puede aprobar
+    return _perfil?.clienteId && _perfil.clienteId === cot.clienteId;
+  }
+
+  window.aprobarCotizacion = async function(id) {
+    if (!confirm('¿Confirmas la aprobación de esta cotización?')) return;
+    const btn = document.getElementById('btn-aprobar-cot');
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+    try {
+      const uid  = window.auth.currentUser.uid;
+      const now  = new Date().toISOString();
+      // Actualizar cotización interna
+      await db.collection('cotizaciones').doc(id).set({
+        estado: 'aprobada',
+        aprobadoPor: uid,
+        aprobadoEn: now
+      }, { merge: true });
+      // Actualizar publicQuote sincronizado
+      await db.collection('publicQuotes').doc(id).set({
+        estado: 'aprobada'
+      }, { merge: true }).catch(() => {});
+      // Actualizar en lista local
+      _cots = _cots.map(c => c.id === id ? { ...c, estado:'aprobada', aprobadoPor:uid, aprobadoEn:now } : c);
+      renderLista();
+      // Actualizar modal
+      const updated = _cots.find(c => c.id === id);
+      if (updated) verDetalle(id);
+    } catch(e) {
+      alert('Error al aprobar: ' + (e?.message || e));
+      if (btn) { btn.disabled = false; btn.textContent = '✅ Aprobar cotización'; }
+    }
+  };
 
   // Construir link público de la cotización aunque no esté guardado en el campo
   function getLinkPublico(cot) {
@@ -190,6 +232,7 @@
       unsub();
 
       const perfil = await cargarPerfil(user).catch(()=>null);
+      _perfil = perfil; // guardar para canApprove
 
       // Si no es cliente redirigir
       if (perfil?.role && perfil.role !== 'client') {
@@ -326,6 +369,10 @@
     // ✅ Acciones — siempre mostrar el link (reconstruido si no existe)
     const link = getLinkPublico(c);
     const tel  = (c.telefono||'').replace(/\D/g,'');
+    const puedeAprobar = canApprove(c) && c.estado !== 'aprobada' && c.estado !== 'aceptada' && c.estado !== 'rechazada';
+    const aprobadoEnStr = c.aprobadoEn
+      ? new Date(c.aprobadoEn).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})
+      : null;
 
     document.getElementById('m-acciones').innerHTML = `
       <a href="${esc(link)}" target="_blank" class="btn-accion btn-ver">
@@ -336,7 +383,16 @@
       </button>
       ${tel ? `<a href="https://wa.me/${tel}?text=${encodeURIComponent('Hola, tengo una consulta sobre mi cotización: '+link)}" target="_blank" class="btn-accion btn-wa">
         <i class="fab fa-whatsapp"></i> WhatsApp
-      </a>` : ''}`;
+      </a>` : ''}
+      ${puedeAprobar ? `<button id="btn-aprobar-cot" onclick="aprobarCotizacion('${c.id}')"
+        class="btn-accion" style="background:#dcfce7;color:#166534;border:1.5px solid #bbf7d0">
+        ✅ Aprobar cotización
+      </button>` : ''}
+      ${(c.estado === 'aprobada' || c.estado === 'aceptada') && aprobadoEnStr
+        ? `<div style="font-size:.78rem;color:#166534;align-self:center">
+             ✅ Aprobada el ${aprobadoEnStr}
+           </div>`
+        : ''}`;
 
     document.getElementById('modal-cot').style.display = 'flex';
   }
