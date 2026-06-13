@@ -37,10 +37,6 @@ service cloud.firestore {
       );
     }
 
-    // ── Validaciones de esquema ──────────────────────────────
-
-    // CAMBIO 1: email ya no es obligatorio (GABI no lo recolecta)
-    // Se quitó 'email' de hasAll y se eliminó la validación de tamaño de email
     function validLead(data) {
       return data.keys().hasAll(['nombre', 'servicio', 'createdAt'])
           && data.keys().hasOnly(['nombre', 'apellido', 'email', 'telefono',
@@ -73,6 +69,7 @@ service cloud.firestore {
                'numero', 'titulo', 'servicio', 'descripcion',
                'estado', 'validoHasta', 'fecha',
                'linkPublico', 'linkWhatsApp',
+               'aprobadores',
                'creadoPor', 'createdAt', 'updatedAt',
                'aprobadoPor', 'aprobadoEn', 'rechazadoPor', 'rechazadoEn',
                'comentarioAprobacion'
@@ -153,7 +150,7 @@ service cloud.firestore {
       allow list:   if isStaff() || isClient();
       allow create: if roleIs(["admin", "comercial"])
                     && validCotizacion(request.resource.data);
-      allow update: if roleIs(["admin", "comercial", "tecnico"])
+      allow update: if (roleIs(["admin", "comercial", "tecnico"]) || isClient())
                     && validCotizacion(request.resource.data);
       allow delete: if roleIs(["admin"]);
     }
@@ -163,7 +160,9 @@ service cloud.firestore {
       allow get:    if resource.data.enabled == true;
       allow list:   if false;
       allow create: if roleIs(["admin", "comercial"]);
-      allow update: if roleIs(["admin", "comercial"]);
+      // Cliente solo puede actualizar la quote de su propio clienteId (para aprobar)
+      allow update: if roleIs(["admin", "comercial"])
+                    || (isClient() && resource.data.clienteId == myClientId());
       allow delete: if roleIs(["admin"]);
     }
 
@@ -193,8 +192,6 @@ service cloud.firestore {
     match /leads/{id} {
       allow get:    if isStaff();
       allow list:   if isStaff();
-      // CAMBIO 2: staff puede crear leads manuales sin pasar validLead
-      // El validLead protege solo los creates del sitio público (sin auth)
       allow create: if isStaff() || validLead(request.resource.data);
       allow update: if isStaff();
       allow delete: if roleIs(["admin", "comercial"]);
