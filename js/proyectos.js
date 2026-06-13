@@ -588,7 +588,23 @@ window.filtrarContactosCliente = function(q) {
     set("detalle-descripcion", p.descripcion || "—");
 
     const estadoWrap = document.querySelector("#detalle-estado-wrap > div");
-    if (estadoWrap) estadoWrap.innerHTML = badge(p.estado || "pendiente");
+    if (estadoWrap) {
+      const puedeEditarEstado = ["admin","comercial","tecnico"].includes(_perfil?.role);
+      if (puedeEditarEstado) {
+        const estados = ["pendiente","en_ejecucion","finalizado","suspendido","planificacion","pausado"];
+        estadoWrap.innerHTML = `
+          <select id="select-estado-proyecto"
+            class="text-xs border border-gray-300 rounded-lg px-2 py-1 font-semibold focus:outline-none focus:ring-1 focus:ring-green-500"
+            onchange="actualizarEstadoProyecto(this.value)">
+            ${estados.map(e => `<option value="${e}" ${(p.estado||"pendiente") === e ? "selected" : ""}>${
+              {pendiente:"⏳ Pendiente", en_ejecucion:"🔧 En ejecución", finalizado:"✅ Finalizado",
+               suspendido:"⏸ Suspendido", planificacion:"📋 Planificación", pausado:"⏸ Pausado"}[e] || e
+            }</option>`).join("")}
+          </select>`;
+      } else {
+        estadoWrap.innerHTML = badge(p.estado || "pendiente");
+      }
+    }
 
     const fInicio = document.getElementById("detalle-fecha-inicio");
     const fCierre = document.getElementById("detalle-fecha-cierre");
@@ -899,6 +915,25 @@ window.filtrarContactosCliente = function(q) {
       </div>`;
   };
 
+  window.actualizarEstadoProyecto = async function(nuevoEstado) {
+    if (!_current) return;
+    const sel = document.getElementById("select-estado-proyecto");
+    if (sel) sel.disabled = true;
+    try {
+      // update() solo toca el campo indicado — no dispara validProyecto completo
+      await db.collection("proyectos").doc(_current.id).update({ estado: nuevoEstado });
+      _current.estado = nuevoEstado;
+      _all = _all.map(p => p.id === _current.id ? { ...p, estado: nuevoEstado } : p);
+      aplicarFiltro();
+    } catch(e) {
+      alert("Error actualizando estado: " + (e?.message || e));
+      // Revertir select al valor anterior
+      if (sel) sel.value = _current.estado || "pendiente";
+    } finally {
+      if (sel) sel.disabled = false;
+    }
+  };
+
   window.cancelarEditorEquipo = function() {
     const editor = document.getElementById("equipo-editor");
     const btnEdit = document.getElementById("btn-editar-equipo");
@@ -908,7 +943,7 @@ window.filtrarContactosCliente = function(q) {
 
   window.actualizarEquipoProyecto = async function() {
     if (!_current) return;
-    const asociados  = Array.from(document.querySelectorAll(".equipo-asoc-chk:checked")).map(c => ({
+    const asociados = Array.from(document.querySelectorAll(".equipo-asoc-chk:checked")).map(c => ({
       uid: c.value, email: c.dataset.email, nombre: c.dataset.nombre
     }));
     const aprobadores = Array.from(document.querySelectorAll(".equipo-apro-chk:checked")).map(c => ({
@@ -921,12 +956,13 @@ window.filtrarContactosCliente = function(q) {
     ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     try {
-      await db.collection("proyectos").doc(_current.id).set(
-        { usuariosAsociados: asociados, aprobadores, uidsAsociados },
-        { merge: true }
-      );
-      const snap = await db.collection("proyectos").doc(_current.id).get();
-      _current = { id: _current.id, ...snap.data() };
+      // update() solo toca estos 3 campos — no requiere documento completo válido
+      await db.collection("proyectos").doc(_current.id).update({
+        usuariosAsociados: asociados,
+        aprobadores,
+        uidsAsociados
+      });
+      _current = { ..._current, usuariosAsociados: asociados, aprobadores, uidsAsociados };
       _all = _all.map(p => p.id === _current.id
         ? { ...p, usuariosAsociados: asociados, aprobadores }
         : p);
