@@ -1,17 +1,21 @@
 // js/firebase.js
-
+// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
 (() => {
   const firebaseConfig = {
-    apiKey: "AIzaSyD8desCyfOvif4T3YciXj2RA6zozbfriF8",
-    authDomain: "domka-solutions.firebaseapp.com",
-    projectId: "domka-solutions",
-    storageBucket: "domka-solutions.firebasestorage.app",
+    apiKey:            "AIzaSyD8desCyfOvif4T3YciXj2RA6zozbfriF8",
+    authDomain:        "domka-solutions.firebaseapp.com",
+    projectId:         "domka-solutions",
+    storageBucket:     "domka-solutions.firebasestorage.app",
     messagingSenderId: "698458465020",
-    appId: "1:698458465020:web:4b9e841472bc3db0ba2d79"
+    appId:             "1:698458465020:web:4b9e841472bc3db0ba2d79"
   };
 
   if (!window.firebase) {
-    console.error("Firebase SDK no fue cargado");
+    // Error silencioso en producción — no revelar detalles internos
+    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+      console.error("[DOMKA] Firebase SDK no fue cargado");
+    }
     return;
   }
 
@@ -19,16 +23,11 @@
     ? firebase.app()
     : firebase.initializeApp(firebaseConfig);
 
-  window.db = app.firestore();
+  window.db   = app.firestore();
   window.auth = app.auth();
 
-  window.db.enablePersistence({
-    synchronizeTabs: true
-  }).catch(err => {
-    console.warn("Firestore Persistence:", err);
-  });
+  window.db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
   window.__domkaFirebaseReady = Promise.resolve();
-
-  console.log("Firebase listo");
+  // Sin console.log en producción — no exponer estado interno
 })();
