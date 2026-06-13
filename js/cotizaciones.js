@@ -424,6 +424,19 @@ form.addEventListener("submit", async (e) => {
     anexos
   };
 
+  // Cargar aprobadores: usuarios del portal cliente asociados a este clienteId
+  try {
+    const portalSnap = await db.collection("users")
+      .where("clienteId", "==", clienteId)
+      .where("role", "==", "client")
+      .get();
+    cotizacion.aprobadores = portalSnap.docs.map(d => ({
+      uid: d.id,
+      nombre: d.data().nombre || d.data().email || d.id,
+      email: d.data().email || ""
+    }));
+  } catch (_) { cotizacion.aprobadores = []; }
+
   const docRef = await db.collection("cotizaciones").add(cotizacion);
 
   // Link público en Vercel (mismo dominio)
@@ -534,6 +547,24 @@ function renderCotizaciones(lista) {
     const puedeAprobar = estado !== "aceptada" && estado !== "aprobada";
     const puedeRechazar = estado !== "rechazada";
 
+    // Resolver nombre de quien aprobó/rechazó
+    const aprobadorNombre = (() => {
+      if (!c.aprobadoPor) return null;
+      const u = _usuarios.find(x => x.uid === c.aprobadoPor);
+      return u ? (u.nombre || u.email) : "Cliente";
+    })();
+    const aprobadoEnStr = c.aprobadoEn
+      ? new Date(c.aprobadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
+      : null;
+    const rechazadorNombre = (() => {
+      if (!c.rechazadoPor) return null;
+      const u = _usuarios.find(x => x.uid === c.rechazadoPor);
+      return u ? (u.nombre || u.email) : "Cliente";
+    })();
+    const rechazadoEnStr = c.rechazadoEn
+      ? new Date(c.rechazadoEn).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
+      : null;
+
     const tr = document.createElement("tr");
     tr.className = "border-b hover:bg-gray-50";
     tr.innerHTML = `
@@ -544,7 +575,15 @@ function renderCotizaciones(lista) {
         ${tieneAnexos ? '<span class="text-xs text-blue-500">📎 anexos</span>' : ''}
       </td>
       <td class="p-2 font-medium">$${Number(c.total || 0).toLocaleString("es-CO")}</td>
-      <td class="p-2">${estadoBadge(estado)}</td>
+      <td class="p-2">
+        ${estadoBadge(estado)}
+        ${aprobadorNombre && (estado === "aprobada" || estado === "aceptada")
+          ? `<div class="text-xs text-gray-400 mt-0.5">✅ ${aprobadorNombre}${aprobadoEnStr ? " · " + aprobadoEnStr : ""}</div>`
+          : ""}
+        ${rechazadorNombre && estado === "rechazada"
+          ? `<div class="text-xs text-gray-400 mt-0.5">❌ ${rechazadorNombre}${rechazadoEnStr ? " · " + rechazadoEnStr : ""}</div>`
+          : ""}
+      </td>
       <td class="p-2 text-xs text-gray-500">${fechaStr}</td>
       <td class="p-2">
         <div class="flex flex-wrap gap-1">
