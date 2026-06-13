@@ -604,10 +604,11 @@ window.filtrarContactosCliente = function(q) {
     if (usersEl) {
       const asoc = p.usuariosAsociados || [];
       const apro = p.aprobadores || [];
-      if (!asoc.length && !apro.length) {
-        usersEl.innerHTML = `<p class="text-gray-400 text-xs">Sin usuarios asignados.</p>`;
-      } else {
-        usersEl.innerHTML = `
+      const puedeEditarEquipo = ["admin","comercial"].includes(_perfil?.role);
+
+      const displayEquipo = () => {
+        if (!asoc.length && !apro.length) return `<p class="text-gray-400 text-xs">Sin usuarios asignados.</p>`;
+        return `
           ${asoc.length ? `
             <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">👥 Asociados</p>
             <div class="flex flex-wrap gap-1 mb-2">
@@ -618,7 +619,18 @@ window.filtrarContactosCliente = function(q) {
             <div class="flex flex-wrap gap-1">
               ${apro.map(u => `<span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">⭐ ${esc(u.nombre || u.email)}</span>`).join("")}
             </div>` : ""}`;
-      }
+      };
+
+      usersEl.innerHTML = `
+        <div id="equipo-display">${displayEquipo()}</div>
+        ${puedeEditarEquipo ? `
+        <button onclick="mostrarEditorEquipo()" id="btn-editar-equipo"
+          class="mt-2 text-xs text-green-700 border border-green-300 px-2 py-1 rounded hover:bg-green-50">
+          ✏️ Editar equipo
+        </button>
+        <div id="equipo-editor" style="display:none" class="mt-3 space-y-3">
+          <p class="text-xs text-gray-500 italic">Cargando usuarios…</p>
+        </div>` : ""}`;
     }
 
     // Documentos
@@ -642,7 +654,11 @@ window.filtrarContactosCliente = function(q) {
                   <span class="text-sm">${d.base64 ? tipoIconDoc(d) : "📄"}</span>
                   <div class="flex-1 min-w-0">
                     <div class="text-sm font-medium truncate">${esc(d.nombre || d.tipo)}</div>
-                    <div class="text-xs text-gray-400">${fmtDate(d.creadoEn)} · ${d.estado === "aprobado" ? "✅ Aprobado" : d.estado === "rechazado" ? "❌ Rechazado" : "⏳ Pendiente"}</div>
+                    <div class="text-xs text-gray-400">${fmtDate(d.creadoEn)} · ${
+                    d.estado === "aprobado"
+                      ? `✅ Aprobado${d.aprobadoPor ? ` por ${(() => { const u = _usuarios.find(x => x.uid === d.aprobadoPor); return u ? (u.nombre || u.email) : "Cliente"; })()} · ${d.aprobadoEn ? new Date(d.aprobadoEn).toLocaleDateString("es-CO",{day:"2-digit",month:"short"}) : ""}` : ""}`
+                      : d.estado === "rechazado" ? "❌ Rechazado" : "⏳ Pendiente"
+                  }</div>
                   </div>
                   <div class="flex gap-2 items-center">
                     ${d.base64 ? `<a href="${esc(d.base64)}" download="${esc(d.fileName || d.nombre)}" class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded hover:bg-green-100">⬇ Descargar</a>` : ""}
@@ -812,6 +828,113 @@ window.filtrarContactosCliente = function(q) {
     _current = { id: _current.id, ...snap.data() };
     llenarDetalle(_current);
   }
+
+  /* ── Gestión de equipo del proyecto ────────────── */
+  window.mostrarEditorEquipo = async function() {
+    if (!_current) return;
+    const editor = document.getElementById("equipo-editor");
+    const btnEdit = document.getElementById("btn-editar-equipo");
+    if (!editor) return;
+    editor.style.display = "block";
+    if (btnEdit) btnEdit.style.display = "none";
+    editor.innerHTML = `<p class="text-xs text-gray-400 italic">Cargando…</p>`;
+
+    // Usuarios internos (no clientes)
+    const internos = _usuarios.filter(u => u.role !== "client");
+
+    // Usuarios portal del cliente asociado al proyecto
+    let portalUsers = [];
+    if (_current.clienteId) {
+      try {
+        const snap = await db.collection("users")
+          .where("clienteId", "==", _current.clienteId)
+          .where("role", "==", "client").get();
+        portalUsers = snap.docs.map(d => ({
+          uid: d.id,
+          nombre: d.data().nombre || d.data().email || d.id,
+          email: d.data().email || ""
+        }));
+      } catch (_) {}
+    }
+
+    const currentAsocUids = (_current.usuariosAsociados || []).map(u => u.uid);
+    const currentAproUids = (_current.aprobadores || []).map(u => u.uid);
+
+    editor.innerHTML = `
+      <div class="mb-3">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">👥 Equipo interno (asociados)</p>
+        <div class="space-y-1 max-h-40 overflow-y-auto">
+          ${internos.length ? internos.map(u => `
+            <label class="flex items-center gap-2 px-1 py-1 hover:bg-green-50 rounded cursor-pointer">
+              <input type="checkbox" class="equipo-asoc-chk accent-green-700"
+                value="${esc(u.uid)}" data-email="${esc(u.email)}" data-nombre="${esc(u.nombre)}"
+                ${currentAsocUids.includes(u.uid) ? "checked" : ""}>
+              <span class="text-xs"><b>${esc(u.nombre)}</b>
+                <span class="text-gray-400">${esc(u.role)}</span></span>
+            </label>`).join("") : '<p class="text-xs text-gray-400 px-1">Sin usuarios internos</p>'}
+        </div>
+      </div>
+      <div class="mb-3">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">⭐ Aprobadores (portal cliente)</p>
+        <div class="space-y-1">
+          ${portalUsers.length ? portalUsers.map(u => `
+            <label class="flex items-center gap-2 px-1 py-1 hover:bg-yellow-50 rounded cursor-pointer">
+              <input type="checkbox" class="equipo-apro-chk accent-yellow-600"
+                value="${esc(u.uid)}" data-email="${esc(u.email)}" data-nombre="${esc(u.nombre)}"
+                ${currentAproUids.includes(u.uid) ? "checked" : ""}>
+              <span class="text-xs"><b>${esc(u.nombre)}</b>
+                <span class="text-gray-400">${esc(u.email)}</span></span>
+            </label>`).join("") : '<p class="text-xs text-gray-400 px-1">Sin usuarios portal para este cliente</p>'}
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="actualizarEquipoProyecto()"
+          class="text-xs bg-green-700 text-white px-3 py-1.5 rounded hover:bg-green-800 font-semibold">
+          💾 Guardar equipo
+        </button>
+        <button onclick="cancelarEditorEquipo()"
+          class="text-xs border border-gray-300 text-gray-600 px-3 py-1.5 rounded hover:bg-gray-50">
+          Cancelar
+        </button>
+      </div>`;
+  };
+
+  window.cancelarEditorEquipo = function() {
+    const editor = document.getElementById("equipo-editor");
+    const btnEdit = document.getElementById("btn-editar-equipo");
+    if (editor) editor.style.display = "none";
+    if (btnEdit) btnEdit.style.display = "";
+  };
+
+  window.actualizarEquipoProyecto = async function() {
+    if (!_current) return;
+    const asociados  = Array.from(document.querySelectorAll(".equipo-asoc-chk:checked")).map(c => ({
+      uid: c.value, email: c.dataset.email, nombre: c.dataset.nombre
+    }));
+    const aprobadores = Array.from(document.querySelectorAll(".equipo-apro-chk:checked")).map(c => ({
+      uid: c.value, email: c.dataset.email, nombre: c.dataset.nombre
+    }));
+    const uidsAsociados = [
+      _current.creadoPor || null,
+      ...asociados.map(u => u.uid),
+      ...aprobadores.map(u => u.uid)
+    ].filter((v, i, a) => v && a.indexOf(v) === i);
+
+    try {
+      await db.collection("proyectos").doc(_current.id).set(
+        { usuariosAsociados: asociados, aprobadores, uidsAsociados },
+        { merge: true }
+      );
+      const snap = await db.collection("proyectos").doc(_current.id).get();
+      _current = { id: _current.id, ...snap.data() };
+      _all = _all.map(p => p.id === _current.id
+        ? { ...p, usuariosAsociados: asociados, aprobadores }
+        : p);
+      llenarDetalle(_current);
+    } catch(e) {
+      alert("Error actualizando equipo: " + (e?.message || e));
+    }
+  };
 
   /* ── Exponer globales ────────────────────────────── */
   window.verDetalle               = verDetalle;
