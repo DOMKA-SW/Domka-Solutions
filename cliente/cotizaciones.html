@@ -193,16 +193,16 @@
     try {
       const uid  = window.auth.currentUser.uid;
       const now  = new Date().toISOString();
-      // Actualizar cotización interna
-      await db.collection('cotizaciones').doc(id).set({
+      // update() solo toca estos 3 campos — la regla hasOnly lo permite
+      await db.collection('cotizaciones').doc(id).update({
         estado: 'aprobada',
         aprobadoPor: uid,
         aprobadoEn: now
-      }, { merge: true });
-      // Actualizar publicQuote sincronizado
-      await db.collection('publicQuotes').doc(id).set({
+      });
+      // Sincronizar publicQuote
+      await db.collection('publicQuotes').doc(id).update({
         estado: 'aprobada'
-      }, { merge: true }).catch(() => {});
+      }).catch(() => {});
       // Actualizar en lista local
       _cots = _cots.map(c => c.id === id ? { ...c, estado:'aprobada', aprobadoPor:uid, aprobadoEn:now } : c);
       renderLista();
