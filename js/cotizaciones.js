@@ -437,17 +437,30 @@ form.addEventListener("submit", async (e) => {
     }));
   } catch (_) { cotizacion.aprobadores = []; }
 
-  const docRef = await db.collection("cotizaciones").add(cotizacion);
+  const docRef = _editandoId
+    ? db.collection("cotizaciones").doc(_editandoId)
+    : await db.collection("cotizaciones").add(cotizacion).then(ref => ref);
 
-  // Link público en Vercel (mismo dominio)
+  let finalId;
+  if (_editandoId) {
+    // Modo edición — update parcial más campos clave
+    await docRef.update({
+      ...cotizacion,
+      updatedAt: new Date().toISOString()
+    });
+    finalId = _editandoId;
+  } else {
+    finalId = docRef.id;
+  }
+
   const base = window.DOMKA_CONFIG?.PUBLIC_BASE_URL || window.location.origin;
   const publicPath = window.DOMKA_CONFIG?.ROUTES?.publicQuote || "/public/cotizacion.html";
-  const linkPublico = `${base}${publicPath}?id=${docRef.id}`;
+  const linkPublico = `${base}${publicPath}?id=${finalId}`;
 
-  await db.collection("cotizaciones").doc(docRef.id).update({ linkPublico });
+  await db.collection("cotizaciones").doc(finalId).update({ linkPublico });
 
-  // Documento sanitizado para lectura pública (reglas: publicQuotes)
-  await db.collection("publicQuotes").doc(docRef.id).set({
+  // Documento sanitizado para lectura pública
+  await db.collection("publicQuotes").doc(finalId).set({
     enabled: true,
     cotizacionId: docRef.id,
     clienteId,
@@ -475,7 +488,16 @@ form.addEventListener("submit", async (e) => {
     anexos
   }, { merge: true });
 
-  alert("✅ Cotización guardada");
+  alert(_editandoId ? "✅ Cotización actualizada" : "✅ Cotización guardada");
+  _editandoId = null;
+  const banner = document.getElementById("edit-mode-banner");
+  if (banner) banner.remove();
+  const submitBtn = form.querySelector("button[type=submit]");
+  if (submitBtn) {
+    submitBtn.textContent = "Guardar cotización";
+    submitBtn.classList.remove("bg-blue-700");
+    submitBtn.classList.add("bg-green-700");
+  }
   form.reset();
   tablaItems.innerHTML = "";
   pagosPersonalizadosDiv.classList.add("hidden");
@@ -559,8 +581,9 @@ function renderCotizaciones(lista) {
     let tipoTexto = { "mano-obra":"Mano de obra", "materiales":"Materiales", "ambos":"MO + Mat." }[c.tipo] || c.tipo || "—";
 
     const estado = c.estado || "pendiente";
-    const puedeAprobar = estado !== "aceptada" && estado !== "aprobada";
+    const puedeAprobar  = estado !== "aceptada" && estado !== "aprobada";
     const puedeRechazar = estado !== "rechazada";
+    const puedeEditar   = !["aprobada","aceptada"].includes(estado); // bloqueado si ya aprobada
 
     // Resolver nombre de quien aprobó/rechazó
     const aprobadorNombre = (() => {
@@ -605,6 +628,7 @@ function renderCotizaciones(lista) {
           <button class="text-xs bg-orange-600 text-white px-2 py-1 rounded hover:bg-orange-700 btn-pdf">PDF</button>
           <a class="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 no-underline" target="_blank"
             href="https://wa.me/${c.telefono || ''}?text=${encodeURIComponent(`Hola ${nombreCliente}, aquí tienes tu cotización: ${c.linkPublico || ''}`)}">WA</a>
+          ${puedeEditar ? `<button class="text-xs bg-blue-100 text-blue-700 border border-blue-300 px-2 py-1 rounded hover:bg-blue-200 btn-editar">✎ Editar</button>` : ""}
           ${puedeAprobar ? `<button class="text-xs bg-green-100 text-green-700 border border-green-300 px-2 py-1 rounded hover:bg-green-200 btn-aprobar">✔ Aprobar</button>` : ""}
           ${puedeRechazar ? `<button class="text-xs bg-red-100 text-red-700 border border-red-300 px-2 py-1 rounded hover:bg-red-200 btn-rechazar">✘ Rechazar</button>` : ""}
         </div>
@@ -614,6 +638,12 @@ function renderCotizaciones(lista) {
     tr.querySelector(".btn-pdf").addEventListener("click", () => {
       generarPDFCotizacion({ ...c, id }, nombreCliente);
     });
+
+    if (puedeEditar) {
+      tr.querySelector(".btn-editar")?.addEventListener("click", () => {
+        cargarCotizacionEnFormulario(id, c);
+      });
+    }
 
     if (puedeAprobar) {
       tr.querySelector(".btn-aprobar").addEventListener("click", async () => {
@@ -712,6 +742,91 @@ function aplicarBusquedaCotizaciones() {
     : _todasCotizaciones;
   renderCotizaciones(lista);
 }
+
+// ── Editar cotización (solo si no está aprobada) ───────────────────────────
+let _editandoId = null; // null = modo creación, string = modo edición
+
+function cargarCotizacionEnFormulario(id, c) {
+  _editandoId = id;
+
+  // Scroll al formulario
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // Indicador visual de modo edición
+  const submitBtn = form.querySelector("button[type=submit]");
+  if (submitBtn) {
+    submitBtn.textContent = "💾 Guardar cambios";
+    submitBtn.classList.add("bg-blue-700");
+    submitBtn.classList.remove("bg-green-700");
+  }
+  // Banner
+  let banner = document.getElementById("edit-mode-banner");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "edit-mode-banner";
+    banner.className = "mb-4 p-3 bg-blue-50 border border-blue-300 rounded-lg text-blue-800 text-sm flex justify-between items-center";
+    form.insertAdjacentElement("beforebegin", banner);
+  }
+  banner.innerHTML = `✎ Editando cotización <b>${c.numero || id.slice(0,6).toUpperCase()}</b>
+    <button onclick="cancelarEdicionCotizacion()" class="text-xs text-blue-600 underline ml-4">Cancelar</button>`;
+
+  // Poblar cliente
+  if (clienteSelect) {
+    clienteSelect.value = c.clienteId || "";
+    clienteSelect.dispatchEvent(new Event("change"));
+  }
+
+  // Poblar campos simples
+  const set = (sel, val) => { const el = document.getElementById(sel); if (el) el.value = val || ""; };
+  set("ubicacion", c.ubicacion);
+  set("valor-total-directo", c.total);
+
+  // Tipo cotización
+  const tipoRadio = document.querySelector(`input[name="tipo"][value="${c.tipo}"]`);
+  if (tipoRadio) tipoRadio.checked = true;
+
+  // Forma pago
+  if (formaPagoSelect) formaPagoSelect.value = c.formaPago || "contado";
+
+  // Tipo cálculo
+  const tcRadio = document.querySelector(`input[name="tipo-calculo"][value="${c.tipoCalculo || 'por-items'}"]`);
+  if (tcRadio) { tcRadio.checked = true; tcRadio.dispatchEvent(new Event("change")); }
+
+  // Items
+  if (tablaItems && c.items?.length) {
+    tablaItems.innerHTML = "";
+    c.items.forEach(it => {
+      const agregarItem = window.agregarItem || window._agregarItem;
+      if (typeof agregarItem === "function") {
+        agregarItem(it);
+      }
+    });
+  }
+
+  // Notas
+  const notasEl = document.getElementById("notas");
+  if (notasEl) notasEl.value = c.notas || "";
+
+  // Mostrar valor letras
+  const mvl = document.getElementById("mostrar-valor-letras");
+  if (mvl) mvl.checked = !!c.mostrarValorLetras;
+
+  recalcular();
+}
+
+window.cancelarEdicionCotizacion = function() {
+  _editandoId = null;
+  form.reset();
+  const banner = document.getElementById("edit-mode-banner");
+  if (banner) banner.remove();
+  const submitBtn = form.querySelector("button[type=submit]");
+  if (submitBtn) {
+    submitBtn.textContent = "Guardar cotización";
+    submitBtn.classList.remove("bg-blue-700");
+    submitBtn.classList.add("bg-green-700");
+  }
+  if (tablaItems) tablaItems.innerHTML = "";
+};
 
 // Buscar al escribir
 document.addEventListener("DOMContentLoaded", () => {
