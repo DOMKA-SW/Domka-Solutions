@@ -1,5 +1,10 @@
 // js/firebase.js
 // ─────────────────────────────────────────────────────────────────
+// NOTA DE SEGURIDAD: La API key de Firebase en aplicaciones web es
+// INTENCIONALMENTE pública por diseño de Google. La seguridad real
+// viene de las Firestore Security Rules y de restringir el dominio
+// en Google Cloud Console → APIs → Credentials → HTTP referrers.
+// Nunca guardar aquí tokens de servidor, service accounts ni secrets.
 // ─────────────────────────────────────────────────────────────────
 (() => {
   const firebaseConfig = {
