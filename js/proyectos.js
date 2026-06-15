@@ -616,7 +616,12 @@ window.filtrarContactosCliente = function(q) {
     if (presEl) presEl.textContent = p.presupuesto ? fmtMoney(p.presupuesto, p.moneda) : "—";
 
     // Usuarios asociados y aprobadores
-    const usersEl = document.getElementById("detalle-usuarios");
+    // ── Actividades ──────────────────────────────────────────
+    const actEl = document.getElementById("detalle-actividades");
+    const actFormWrap = document.getElementById("act-form-wrap");
+    const puedeEscribirAct = ["admin","comercial","tecnico"].includes(_perfil?.role);
+    if (actFormWrap) actFormWrap.style.display = puedeEscribirAct ? "" : "none";
+    if (actEl) renderActividades(p.actividades || []);
     if (usersEl) {
       const asoc = p.usuariosAsociados || [];
       const apro = p.aprobadores || [];
@@ -844,6 +849,101 @@ window.filtrarContactosCliente = function(q) {
     _current = { id: _current.id, ...snap.data() };
     llenarDetalle(_current);
   }
+
+  /* ── Actividades del proyecto ───────────────────────────── */
+  function renderActividades(lista) {
+    const el = document.getElementById("detalle-actividades");
+    if (!el) return;
+    if (!lista.length) {
+      el.innerHTML = `<p class="text-gray-400 text-sm">Sin actividades registradas.</p>`;
+      return;
+    }
+    const puedeToggle = ["admin","comercial","tecnico"].includes(_perfil?.role);
+    el.innerHTML = lista.slice().reverse().map((a, i) => {
+      const realIdx = lista.length - 1 - i;
+      const fecha = a.creadoEn
+        ? new Date(a.creadoEn).toLocaleDateString("es-CO", {day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})
+        : "";
+      const hechoFecha = a.hechoEn
+        ? new Date(a.hechoEn).toLocaleDateString("es-CO", {day:"2-digit",month:"short"})
+        : "";
+      return `
+        <div class="flex gap-3 items-start py-3 border-b border-gray-100 last:border-0">
+          <div class="mt-0.5 flex-shrink-0">
+            ${puedeToggle
+              ? `<button onclick="toggleActividad(${realIdx})"
+                  class="w-5 h-5 rounded border-2 flex items-center justify-center text-xs transition-all
+                  ${a.hecho ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 hover:border-green-500'}"
+                  title="${a.hecho ? 'Marcar como pendiente' : 'Marcar como hecha'}">
+                  ${a.hecho ? '✓' : ''}
+                </button>`
+              : `<span class="w-5 h-5 rounded border-2 flex items-center justify-center text-xs
+                  ${a.hecho ? 'bg-green-600 border-green-600 text-white' : 'border-gray-200'}">
+                  ${a.hecho ? '✓' : ''}
+                </span>`
+            }
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm ${a.hecho ? 'line-through text-gray-400' : 'text-gray-700'}">${esc(a.texto)}</p>
+            <p class="text-xs text-gray-400 mt-0.5">
+              ${esc(a.autorNombre || "Staff")} · ${fecha}
+              ${a.hecho ? `<span class="text-green-600 ml-1">✓ Hecho${hechoFecha ? " el " + hechoFecha : ""}</span>` : ""}
+            </p>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  window.agregarActividad = async function() {
+    if (!_current) return;
+    const input = document.getElementById("act-texto");
+    const texto = input?.value?.trim();
+    if (!texto) return;
+    const btn = document.querySelector("#act-form-wrap button");
+    if (btn) { btn.disabled = true; btn.textContent = "Guardando…"; }
+    try {
+      const nuevaAct = {
+        texto,
+        autorUid: _perfil?.uid || null,
+        autorNombre: _perfil?.nombre || _perfil?.email || "Staff",
+        creadoEn: new Date().toISOString(),
+        hecho: false,
+        hechoEn: null,
+        hechoPorUid: null
+      };
+      const actividades = [...(_current.actividades || []), nuevaAct];
+      await db.collection("proyectos").doc(_current.id).update({ actividades });
+      _current.actividades = actividades;
+      _all = _all.map(p => p.id === _current.id ? { ...p, actividades } : p);
+      renderActividades(actividades);
+      if (input) input.value = "";
+    } catch(e) {
+      alert("Error al agregar actividad: " + (e?.message || e));
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "+ Agregar actividad"; }
+    }
+  };
+
+  window.toggleActividad = async function(idx) {
+    if (!_current) return;
+    const actividades = [...(_current.actividades || [])];
+    if (!actividades[idx]) return;
+    const hecho = !actividades[idx].hecho;
+    actividades[idx] = {
+      ...actividades[idx],
+      hecho,
+      hechoEn: hecho ? new Date().toISOString() : null,
+      hechoPorUid: hecho ? (_perfil?.uid || null) : null
+    };
+    try {
+      await db.collection("proyectos").doc(_current.id).update({ actividades });
+      _current.actividades = actividades;
+      _all = _all.map(p => p.id === _current.id ? { ...p, actividades } : p);
+      renderActividades(actividades);
+    } catch(e) {
+      alert("Error: " + (e?.message || e));
+    }
+  };
 
   /* ── Gestión de equipo del proyecto ────────────── */
   window.mostrarEditorEquipo = async function() {
