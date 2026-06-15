@@ -182,8 +182,10 @@
   async function cargarProyectoCompleto(pid) {
     const tabDocs = document.getElementById('tab-'+pid+'-docs');
     const tabEvid = document.getElementById('tab-'+pid+'-evid');
+    const tabAct  = document.getElementById('tab-'+pid+'-act');
     if (tabDocs) tabDocs.innerHTML = '<p style="color:var(--gray-lt);font-size:.85rem;padding:16px 0"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</p>';
     if (tabEvid) tabEvid.innerHTML = '';
+    if (tabAct)  tabAct.innerHTML  = '';
 
     try {
       const snap = await db.collection('proyectos').doc(pid).get();
@@ -191,20 +193,46 @@
       const p = { id: pid, ...snap.data() };
       _proyectosCache[pid] = p;
 
-      // Actualizar contador en pills
-      const docs = p.documentos || [];
+      const docs = p.documentos  || [];
       const evs  = p.evidencias  || [];
+      const acts = p.actividades || [];
+
       const pillDocs = document.getElementById('pill-'+pid+'-docs');
       const pillEvid = document.getElementById('pill-'+pid+'-evid');
+      const pillAct  = document.getElementById('pill-'+pid+'-act');
       if (pillDocs) pillDocs.innerHTML = `<i class="fas fa-file-alt" style="margin-right:5px"></i>Documentos ${docs.length?'('+docs.length+')':''}`;
       if (pillEvid) pillEvid.innerHTML = `<i class="fas fa-images" style="margin-right:5px"></i>Evidencias ${evs.length?'('+evs.length+')':''}`;
+      if (pillAct)  pillAct.innerHTML  = `<i class="fas fa-tasks" style="margin-right:5px"></i>Actividades ${acts.length?'('+acts.length+')':''}`;
 
       if (tabDocs) tabDocs.innerHTML = renderDocumentos(p);
       if (tabEvid) tabEvid.innerHTML = renderEvidencias(p);
+      if (tabAct)  tabAct.innerHTML  = renderActividades(acts);
     } catch(e) {
       console.error('Error cargando proyecto completo:', e);
       if (tabDocs) tabDocs.innerHTML = '<p style="color:#991b1b;font-size:.85rem;padding:12px 0">Error cargando el proyecto.</p>';
     }
+  }
+
+  function renderActividades(lista) {
+    if (!lista || !lista.length) return '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin actividades registradas.</p>';
+    return '<div style="padding:8px 0">' + lista.slice().reverse().map(a => {
+      const fecha = a.creadoEn ? new Date(a.creadoEn).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '';
+      const hechoFecha = a.hechoEn ? new Date(a.hechoEn).toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : '';
+      return `
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)">
+          <div style="margin-top:2px;width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;
+            background:${a.hecho?'#166534':'#f3f4f6'};color:${a.hecho?'#fff':'#9a9a9a'};border:2px solid ${a.hecho?'#166534':'#d1d5db'}">
+            ${a.hecho?'✓':''}
+          </div>
+          <div style="flex:1">
+            <p style="font-size:.88rem;color:${a.hecho?'var(--gray-lt)':'var(--text)'};${a.hecho?'text-decoration:line-through':''}">${esc(a.texto)}</p>
+            <p style="font-size:.72rem;color:var(--gray-lt);margin-top:3px">
+              ${esc(a.autorNombre||'Staff')} · ${fecha}
+              ${a.hecho?`<span style="color:#166534;margin-left:6px">✓ Completado${hechoFecha?' el '+hechoFecha:''}</span>`:''}
+            </p>
+          </div>
+        </div>`;
+    }).join('') + '</div>';
   }
 
   function renderDocumentos(p) {
@@ -437,11 +465,15 @@
               <button id="pill-${pid}-evid" class="tab-pill" data-proy="${pid}" onclick="switchTab('${pid}','evid')">
                 <i class="fas fa-images" style="margin-right:5px"></i>Evidencias ${evCount?'('+evCount+')':''}
               </button>
+              <button id="pill-${pid}-act" class="tab-pill" data-proy="${pid}" onclick="switchTab('${pid}','act')">
+                <i class="fas fa-tasks" style="margin-right:5px"></i>Actividades
+              </button>
             </div>
             <div id="tab-${pid}-docs" class="tab-body active" data-proy="${pid}">
               <p style="color:var(--gray-lt);font-size:.85rem;padding:16px 0"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</p>
             </div>
             <div id="tab-${pid}-evid" class="tab-body" data-proy="${pid}"></div>
+            <div id="tab-${pid}-act" class="tab-body" data-proy="${pid}"></div>
           </div>
         </div>`;
     }).join('');
