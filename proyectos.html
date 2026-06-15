@@ -289,6 +289,9 @@
       <button id="tab-evid-btn" class="tab-btn text-sm px-4 py-2 rounded-t-lg border border-transparent text-gray-500 -mb-px" onclick="switchTab('evid')">
         📷 Evidencias
       </button>
+      <button id="tab-act-btn" class="tab-btn text-sm px-4 py-2 rounded-t-lg border border-transparent text-gray-500 -mb-px" onclick="switchTab('act')">
+        📋 Actividades
+      </button>
     </div>
 
     <!-- TAB: Documentos -->
@@ -357,6 +360,26 @@
       <div id="galeria-evidencias">
         <p class="text-gray-400 text-sm">Sin evidencias.</p>
       </div>
+
+    <!-- TAB: Actividades -->
+    <div id="tab-act" class="tab-pane">
+      <!-- Formulario nueva actividad (solo staff) -->
+      <div id="act-form-wrap" class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Nueva actividad</p>
+        <textarea id="act-texto" rows="2"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-green-500"
+          placeholder="Describe la actividad realizada o pendiente…"></textarea>
+        <button onclick="agregarActividad()"
+          class="text-xs bg-green-700 text-white px-4 py-1.5 rounded-lg hover:bg-green-800 font-semibold">
+          + Agregar actividad
+        </button>
+      </div>
+      <!-- Lista actividades -->
+      <div id="detalle-actividades">
+        <p class="text-gray-400 text-sm">Sin actividades registradas.</p>
+      </div>
+    </div>
+
     </div>
 
   </div>
