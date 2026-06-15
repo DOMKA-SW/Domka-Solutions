@@ -615,13 +615,15 @@ window.filtrarContactosCliente = function(q) {
     const presEl = document.getElementById("detalle-presupuesto");
     if (presEl) presEl.textContent = p.presupuesto ? fmtMoney(p.presupuesto, p.moneda) : "—";
 
-    // Usuarios asociados y aprobadores
     // ── Actividades ──────────────────────────────────────────
     const actEl = document.getElementById("detalle-actividades");
     const actFormWrap = document.getElementById("act-form-wrap");
     const puedeEscribirAct = ["admin","comercial","tecnico"].includes(_perfil?.role);
     if (actFormWrap) actFormWrap.style.display = puedeEscribirAct ? "" : "none";
     if (actEl) renderActividades(p.actividades || []);
+
+    // ── Usuarios asociados y aprobadores ─────────────────────
+    const usersEl = document.getElementById("detalle-usuarios");
     if (usersEl) {
       const asoc = p.usuariosAsociados || [];
       const apro = p.aprobadores || [];
