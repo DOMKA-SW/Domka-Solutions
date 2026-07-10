@@ -313,6 +313,31 @@
     .footer-bottom { border-top: 1px solid rgba(255,255,255,.06); max-width: var(--max-width); margin: 0 auto; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
     .footer-bottom span { font-size: 0.78rem; color: rgba(255,255,255,.28); }
 
+    /* COOKIE BANNER */
+    .cookie-banner {
+      position: fixed; left: 20px; right: 20px; bottom: 20px; z-index: 1200;
+      max-width: 620px; margin: 0 auto;
+      background: rgba(10,10,10,.96); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: 22px 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      transform: translateY(140%); opacity: 0; transition: transform .5s var(--ease), opacity .5s var(--ease);
+    }
+    .cookie-banner.show { transform: translateY(0); opacity: 1; }
+    .cookie-banner p { font-size: 0.82rem; line-height: 1.6; color: rgba(255,255,255,.68); flex: 1 1 320px; }
+    .cookie-banner p a { color: var(--orange-light); text-decoration: underline; }
+    .cookie-banner-actions { display: flex; gap: 10px; flex-shrink: 0; }
+    .cookie-btn { font-size: 0.78rem; font-weight: 600; padding: 10px 18px; border-radius: 6px; white-space: nowrap; }
+    .cookie-btn-accept { background: var(--orange); color: var(--white); }
+    .cookie-btn-accept:hover { background: var(--orange-light); }
+    .cookie-btn-reject { background: transparent; border: 1.5px solid rgba(255,255,255,.22); color: rgba(255,255,255,.7); }
+    .cookie-btn-reject:hover { border-color: rgba(255,255,255,.5); color: var(--white); }
+    @media (max-width: 560px) {
+      .cookie-banner { left: 12px; right: 12px; bottom: 12px; padding: 18px; }
+      .cookie-banner-actions { width: 100%; }
+      .cookie-btn { flex: 1; text-align: center; }
+    }
+
     /* ANIMATIONS */
     @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeIn { to { opacity: 1; } }
@@ -1260,7 +1285,10 @@
   <footer>
     <div class="footer-main">
       <div>
-        <div class="footer-brand">DOMKA CONSTRUCCIONES</div>
+        <div class="footer-brand" style="display:flex;align-items:center;gap:12px;">
+          <img src="img/Logo.png" alt="DOMKA CONSTRUCCIONES logo" style="height:44px;width:44px;object-fit:cover;border-radius:8px;flex-shrink:0;">
+          <span>DOMKA CONSTRUCCIONES</span>
+        </div>
         <p class="footer-desc">Soluciones integrales de construcción, remodelación y mantenimiento para hogares y empresas en Colombia. Calidad, experiencia y confianza en cada obra.</p>
         <div class="footer-social">
           <!-- LinkedIn activo -->
@@ -1307,7 +1335,7 @@
     </div>
 
     <div class="footer-bottom">
-      <span>© 2026 DOMKA CONSTRUCCIONES S.A.S. · Construcción &amp; Diseño · Colombia</span>
+      <span>© 2026 DOMKA CONSTRUCCIONES S.A.S. · NIT 902.083.143-2 · Construcción &amp; Diseño · Colombia</span>
       <span>Hecho con ♥ en Colombia by DOMKA SOLUTIONS</span>
     </div>
   </footer>
@@ -1586,11 +1614,11 @@
           </div>
           <i class="fas fa-chevron-right gabi-option-arrow"></i>
         </button>
-        <button class="gabi-option-btn" onclick="window.location.href='mailto:domka.solutions@gmail.com'">
+        <button class="gabi-option-btn" onclick="window.location.href='mailto:contacto@domkaconstrucciones.com'">
           <div class="gabi-option-icon"><i class="fas fa-envelope"></i></div>
           <div class="gabi-option-label">
             Enviar email
-            <span>domka.solutions@gmail.com</span>
+            <span>contacto@domkaconstrucciones.com</span>
           </div>
           <i class="fas fa-chevron-right gabi-option-arrow"></i>
         </button>
@@ -1612,6 +1640,32 @@
     </div>
 
   </div><!-- /gabiPanel -->
+
+  <!-- COOKIE BANNER -->
+  <div class="cookie-banner" id="cookieBanner">
+    <p>Usamos cookies técnicas y de funcionamiento para que la página opere correctamente. No usamos cookies de rastreo publicitario. Al continuar navegando aceptas nuestro uso. <a href="#" onclick="return false;">Más información</a></p>
+    <div class="cookie-banner-actions">
+      <button class="cookie-btn cookie-btn-reject" onclick="cookieDismiss('rechazado')">Rechazar</button>
+      <button class="cookie-btn cookie-btn-accept" onclick="cookieDismiss('aceptado')">Aceptar</button>
+    </div>
+  </div>
+
+  <script>
+    // ── Cookie banner ────────────────────────────────────────────
+    (function () {
+      const KEY = 'domka_cookie_consent';
+      const banner = document.getElementById('cookieBanner');
+      if (!banner) return;
+      const saved = localStorage.getItem(KEY);
+      if (!saved) {
+        setTimeout(() => banner.classList.add('show'), 1200);
+      }
+      window.cookieDismiss = function (choice) {
+        localStorage.setItem(KEY, choice);
+        banner.classList.remove('show');
+      };
+    })();
+  </script>
 
   <script>
     // ── GABI Logic ───────────────────────────────────────────────
