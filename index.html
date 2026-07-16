@@ -190,7 +190,7 @@
     .projects-section { background: var(--gray-50); }
     .projects-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 24px; margin-bottom: 44px; }
     .projects-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
-    .project-card { position: relative; border-radius: var(--radius-md); overflow: hidden; background: var(--gray-200); }
+    .project-card { position: relative; border-radius: var(--radius-md); overflow: hidden; background: var(--gray-200); cursor: pointer; }
     .project-card:nth-child(1) { grid-column: 1 / 8; aspect-ratio: 16/10; }
     .project-card:nth-child(2) { grid-column: 8 / 13; aspect-ratio: 4/3; }
     .project-card:nth-child(3) { grid-column: 1 / 5; aspect-ratio: 4/3; }
@@ -204,6 +204,34 @@
     .project-card:hover .project-info { transform: translateY(0); opacity: 1; }
     .project-tag { display: inline-block; font-size: 0.67rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange-light); margin-bottom: 6px; }
     .project-info h3 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; color: var(--white); }
+    .project-zoom-btn { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; background: rgba(255,255,255,0.15); backdrop-filter: blur(6px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem; opacity: 0; transition: opacity 0.3s ease, background 0.2s; border: 1px solid rgba(255,255,255,0.25); }
+    .project-card:hover .project-zoom-btn { opacity: 1; }
+    .project-zoom-btn:hover { background: rgba(255,255,255,0.3); }
+    /* ── Lightbox ── */
+    .lb-backdrop { display: none; position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.92); backdrop-filter: blur(6px); align-items: center; justify-content: center; }
+    .lb-backdrop.lb-open { display: flex; animation: lbIn 0.25s ease; }
+    @keyframes lbIn { from { opacity:0 } to { opacity:1 } }
+    .lb-box { position: relative; max-width: 960px; width: 94vw; max-height: 92vh; display: flex; flex-direction: column; }
+    .lb-main { position: relative; flex: 1; min-height: 0; border-radius: 12px; overflow: hidden; background: #111; }
+    .lb-main-img { width: 100%; height: 100%; max-height: 68vh; object-fit: contain; display: block; transition: opacity 0.25s ease; }
+    .lb-main-img.lb-fade { opacity: 0; }
+    .lb-meta { padding: 18px 4px 12px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .lb-meta-left { }
+    .lb-tag { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange-light); display: block; margin-bottom: 4px; }
+    .lb-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 500; color: #fff; margin: 0; }
+    .lb-counter { font-size: 0.78rem; color: rgba(255,255,255,0.45); white-space: nowrap; }
+    .lb-thumbs { display: flex; gap: 10px; padding: 0 0 4px; overflow-x: auto; scrollbar-width: none; }
+    .lb-thumbs::-webkit-scrollbar { display: none; }
+    .lb-thumb { width: 72px; height: 52px; border-radius: 7px; overflow: hidden; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s, transform 0.2s; }
+    .lb-thumb.active { border-color: var(--orange-light); transform: scale(1.06); }
+    .lb-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .lb-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); border-radius: 50%; color: #fff; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; z-index: 2; }
+    .lb-arrow:hover { background: rgba(255,255,255,0.22); }
+    .lb-arrow.lb-prev { left: 12px; }
+    .lb-arrow.lb-next { right: 12px; }
+    .lb-arrow[style*="display:none"] { display: none !important; }
+    .lb-close { position: absolute; top: -44px; right: 0; width: 36px; height: 36px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; color: #fff; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+    .lb-close:hover { background: rgba(255,255,255,0.25); }
 
     /* ABOUT */
     .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 88px; align-items: center; }
@@ -388,6 +416,9 @@
       .services-grid { grid-template-columns: 1fr; }
       .projects-grid { display: flex; flex-direction: column; }
       .project-card { aspect-ratio: 16/9 !important; }
+      .lb-arrow { width: 36px; height: 36px; font-size: 0.85rem; }
+      .lb-thumb { width: 58px; height: 42px; }
+      .lb-title { font-size: 1.1rem; }
       .process-grid { grid-template-columns: 1fr 1fr; gap: 36px; }
       .testimonials-grid { grid-template-columns: 1fr; gap: 20px; }
       .video-testimonial-card { max-height: 420px; }
@@ -1006,49 +1037,223 @@
         </a>
       </div>
       <div class="projects-grid">
-        <div class="project-card reveal">
+
+        <!-- Proyecto 1 -->
+        <div class="project-card reveal" onclick="abrirLightbox(0)">
           <img class="project-img" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=900&q=82&auto=format&fit=crop" alt="Remodelación de vivienda premium en Bogotá" loading="lazy">
           <div class="project-overlay"></div>
           <div class="project-info">
             <span class="project-tag">Remodelación Residencial</span>
             <h3>Casa Los Nogales — Bogotá</h3>
           </div>
+          <div class="project-zoom-btn"><i class="fas fa-expand-alt"></i></div>
         </div>
-        <div class="project-card reveal reveal-delay-1">
+
+        <!-- Proyecto 2 -->
+        <div class="project-card reveal reveal-delay-1" onclick="abrirLightbox(1)">
           <img class="project-img" src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=82&auto=format&fit=crop" alt="Adecuación de oficinas corporativas" loading="lazy">
           <div class="project-overlay"></div>
           <div class="project-info">
             <span class="project-tag">Adecuación Empresarial</span>
             <h3>Torre Corporativa Norte</h3>
           </div>
+          <div class="project-zoom-btn"><i class="fas fa-expand-alt"></i></div>
         </div>
-        <div class="project-card reveal">
+
+        <!-- Proyecto 3 -->
+        <div class="project-card reveal" onclick="abrirLightbox(2)">
           <img class="project-img" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=82&auto=format&fit=crop" alt="Cocina moderna remodelada" loading="lazy">
           <div class="project-overlay"></div>
           <div class="project-info">
             <span class="project-tag">Diseño &amp; Acabados</span>
             <h3>Cocina Integral — El Poblado</h3>
           </div>
+          <div class="project-zoom-btn"><i class="fas fa-expand-alt"></i></div>
         </div>
-        <div class="project-card reveal reveal-delay-1">
+
+        <!-- Proyecto 4 -->
+        <div class="project-card reveal reveal-delay-1" onclick="abrirLightbox(3)">
           <img class="project-img" src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=82&auto=format&fit=crop" alt="Proyecto de construcción residencial" loading="lazy">
           <div class="project-overlay"></div>
           <div class="project-info">
             <span class="project-tag">Construcción</span>
             <h3>Conjunto Residencial Serena</h3>
           </div>
+          <div class="project-zoom-btn"><i class="fas fa-expand-alt"></i></div>
         </div>
-        <div class="project-card reveal reveal-delay-2">
+
+        <!-- Proyecto 5 -->
+        <div class="project-card reveal reveal-delay-2" onclick="abrirLightbox(4)">
           <img class="project-img" src="https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=600&q=82&auto=format&fit=crop" alt="Suite de lujo remodelada" loading="lazy">
           <div class="project-overlay"></div>
           <div class="project-info">
             <span class="project-tag">Remodelación</span>
             <h3>Suite Principal — Chía</h3>
           </div>
+          <div class="project-zoom-btn"><i class="fas fa-expand-alt"></i></div>
         </div>
+
       </div>
     </div>
   </section>
+
+  <!-- ── LIGHTBOX ── -->
+  <div class="lb-backdrop" id="lbBackdrop" onclick="cerrarLightbox(event)">
+    <div class="lb-box" onclick="event.stopPropagation()">
+      <!-- Botón cerrar -->
+      <button class="lb-close" onclick="cerrarLightbox()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+
+      <!-- Imagen principal -->
+      <div class="lb-main">
+        <img class="lb-main-img" id="lbImg" src="" alt="">
+        <button class="lb-arrow lb-prev" id="lbPrev" onclick="lbNav(-1)" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+        <button class="lb-arrow lb-next" id="lbNext" onclick="lbNav(1)" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+      </div>
+
+      <!-- Meta -->
+      <div class="lb-meta">
+        <div class="lb-meta-left">
+          <span class="lb-tag" id="lbTag"></span>
+          <p class="lb-title" id="lbTitle"></p>
+        </div>
+        <span class="lb-counter" id="lbCounter"></span>
+      </div>
+
+      <!-- Thumbnails -->
+      <div class="lb-thumbs" id="lbThumbs"></div>
+    </div>
+  </div>
+
+  <script>
+  // ── DATOS DEL PORTAFOLIO ───────────────────────────────────
+  // Agrega o quita fotos en el array "imgs" de cada proyecto.
+  // Cuando tengas fotos propias, reemplaza las URLs de Unsplash.
+  const PROYECTOS_LB = [
+    {
+      tag: 'Remodelación Residencial',
+      titulo: 'Casa Los Nogales — Bogotá',
+      imgs: [
+        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=1200&q=85&auto=format&fit=crop',
+      ]
+    },
+    {
+      tag: 'Adecuación Empresarial',
+      titulo: 'Torre Corporativa Norte',
+      imgs: [
+        'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1497366412874-3415097a27e7?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1604328698692-f76ea9498e76?w=1200&q=85&auto=format&fit=crop',
+      ]
+    },
+    {
+      tag: 'Diseño & Acabados',
+      titulo: 'Cocina Integral — El Poblado',
+      imgs: [
+        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=1200&q=85&auto=format&fit=crop',
+      ]
+    },
+    {
+      tag: 'Construcción',
+      titulo: 'Conjunto Residencial Serena',
+      imgs: [
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=85&auto=format&fit=crop',
+      ]
+    },
+    {
+      tag: 'Remodelación',
+      titulo: 'Suite Principal — Chía',
+      imgs: [
+        'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=1200&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1598928636135-d146006ff4be?w=1200&q=85&auto=format&fit=crop',
+      ]
+    },
+  ];
+
+  let _lbProj = 0, _lbIdx = 0;
+
+  function abrirLightbox(projIdx) {
+    _lbProj = projIdx;
+    _lbIdx  = 0;
+    _renderLightbox();
+    document.getElementById('lbBackdrop').classList.add('lb-open');
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', _lbKey);
+  }
+
+  function cerrarLightbox(e) {
+    if (e && e.target !== document.getElementById('lbBackdrop') && !e.target.closest('.lb-close')) return;
+    document.getElementById('lbBackdrop').classList.remove('lb-open');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', _lbKey);
+  }
+
+  function lbNav(dir) {
+    const proj = PROYECTOS_LB[_lbProj];
+    _lbIdx = (_lbIdx + dir + proj.imgs.length) % proj.imgs.length;
+    _setImg(_lbIdx);
+  }
+
+  function _lbKey(e) {
+    if (e.key === 'ArrowRight') lbNav(1);
+    if (e.key === 'ArrowLeft')  lbNav(-1);
+    if (e.key === 'Escape')     { document.getElementById('lbBackdrop').classList.remove('lb-open'); document.body.style.overflow=''; document.removeEventListener('keydown',_lbKey); }
+  }
+
+  function _renderLightbox() {
+    const proj = PROYECTOS_LB[_lbProj];
+    document.getElementById('lbTag').textContent   = proj.tag;
+    document.getElementById('lbTitle').textContent = proj.titulo;
+
+    // Thumbnails
+    const thumbsEl = document.getElementById('lbThumbs');
+    thumbsEl.innerHTML = proj.imgs.map((src, i) =>
+      `<div class="lb-thumb${i===0?' active':''}" onclick="lbGoTo(${i})">
+        <img src="${src.replace('w=1200','w=200')}" alt="foto ${i+1}" loading="lazy">
+      </div>`
+    ).join('');
+
+    // Flechas (ocultar si solo 1 imagen)
+    const one = proj.imgs.length <= 1;
+    document.getElementById('lbPrev').style.display = one ? 'none' : '';
+    document.getElementById('lbNext').style.display = one ? 'none' : '';
+
+    _setImg(0, true);
+  }
+
+  function lbGoTo(idx) {
+    _lbIdx = idx;
+    _setImg(idx);
+  }
+
+  function _setImg(idx, instant) {
+    const proj   = PROYECTOS_LB[_lbProj];
+    const imgEl  = document.getElementById('lbImg');
+    const counter= document.getElementById('lbCounter');
+
+    if (!instant) {
+      imgEl.classList.add('lb-fade');
+      setTimeout(() => {
+        imgEl.src = proj.imgs[idx];
+        imgEl.classList.remove('lb-fade');
+      }, 220);
+    } else {
+      imgEl.src = proj.imgs[idx];
+    }
+
+    counter.textContent = `${idx+1} / ${proj.imgs.length}`;
+    document.querySelectorAll('.lb-thumb').forEach((t,i) =>
+      t.classList.toggle('active', i === idx)
+    );
+    _lbIdx = idx;
+  }
+  </script>
 
   <!-- ABOUT -->
   <section class="section-pad-lg" id="nosotros" style="background:var(--white);">
