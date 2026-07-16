@@ -1265,6 +1265,15 @@
             style="object-fit:cover; width:100%; height:560px; display:block;">
             <source src="img/landing/video.mp4" type="video/mp4">
           </video>
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              var v = document.querySelector('.about-img-main');
+              if (v) {
+                v.muted = true;
+                v.play().catch(function(){});
+              }
+            });
+          </script>
           <img class="about-img-accent" src="img/landing/landingpersonas.png" alt="Personas de DOMKA" loading="lazy">
           <div class="about-badge">
             <div class="about-badge-num">15+</div>
