@@ -236,7 +236,7 @@
     /* ABOUT */
     .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 88px; align-items: center; }
     .about-img-wrap { position: relative; }
-    .about-img-main { width: 100%; height: 560px; object-fit: cover; border-radius: var(--radius-lg); }
+    .about-img-main { display: block; width: 100%; height: 560px; object-fit: cover; border-radius: var(--radius-lg); }
     .about-img-accent { position: absolute; bottom: -28px; right: -28px; width: 210px; height: 175px; border-radius: var(--radius-md); object-fit: cover; border: 6px solid var(--white); box-shadow: var(--shadow-lg); }
     .about-badge { position: absolute; top: 32px; left: -22px; background: var(--green); color: var(--white); padding: 18px 22px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); text-align: center; }
     .about-badge-num { font-family: var(--font-display); font-size: 2rem; font-weight: 600; line-height: 1; color: var(--white); }
@@ -1262,7 +1262,7 @@
         <div class="about-img-wrap reveal">
           <video class="about-img-main" src="img/landing/video.mp4"
             autoplay muted loop playsinline
-            style="object-fit:cover; width:100%; height:100%;">
+            style="object-fit:cover; width:100%; height:560px; display:block;">
           </video>
           <img class="about-img-accent" src="img/landing/landingpersonas.png" alt="Personas de DOMKA" loading="lazy">
           <div class="about-badge">
