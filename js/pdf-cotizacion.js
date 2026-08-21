@@ -146,7 +146,7 @@ async function generarPDFCotizacion(cotizacion, nombreCliente = "Cliente") {
           // DOMKA — nombre empresa
           stack: [
             { text: "DOMKA", fontSize: 28, bold: true, color: P.green, font: "Roboto" },
-            { text: "Construcción", fontSize: 9, color: P.gray, font: "Roboto", margin: [0, 3, 0, 0] },
+            { text: "Construcciónes", fontSize: 9, color: P.gray, font: "Roboto", margin: [0, 3, 0, 0] },
             { text: `Fecha: ${fechaStr}` }
           ],
           fillColor: P.bg, border: [false,false,false,false], margin: [0, 0, 20, 0]
@@ -514,9 +514,9 @@ const bloqueTotales = {
           {
             stack: [
               sLabel("CONTÁCTANOS"),
-              { text: "domka.solutions@gmail.com",            fontSize: 9, color: P.gray, font: "Roboto", margin: [0,0,0,2] },
+              { text: "contacto@domkaconstrucciones.com",            fontSize: 9, color: P.gray, font: "Roboto", margin: [0,0,0,2] },
               { text: "Cel: +57 305 811 4595",            fontSize: 9, color: P.gray, font: "Roboto", margin: [0,0,0,2] },
-              { text: "RUT: 79.597.683-1",                fontSize: 9, color: P.gray, font: "Roboto" }
+              { text: "NIT: 902.083.143",                fontSize: 9, color: P.gray, font: "Roboto" }
             ],
             fillColor: P.bg, border: [false,false,false,false], margin: [0,0,0,0]
           },
@@ -528,7 +528,7 @@ const bloqueTotales = {
                 ? { image: images.firma, width: 100, margin: [0, 6, 0, 8] }
                 : { text: "— firma —", fontSize: 9, italic: true, color: P.grayLight, font: "Roboto", margin: [0,16,0,8] },
               { text: "Alexander Otalora Camayo",  fontSize: 10, bold: true, color: P.black,     font: "Roboto" },
-              { text: "DOMKA",                    fontSize: 8.5,             color: P.grayLight, font: "Roboto" }
+              { text: "DOMKA CONSTRUCCIONES SAS",                    fontSize: 8.5,             color: P.grayLight, font: "Roboto" }
             ],
             fillColor: P.bg, border: [false,false,false,false], margin: [0,0,0,0]
           }
@@ -563,7 +563,7 @@ const bloqueTotales = {
     table: {
       widths: ["*", "auto"],
       body: [[
-        { text: `DOMKA Construcción  ·  +57 305 811 4595  ·  domka.solutions@gmail.com`, fontSize: 7, color: P.grayLight, font: "Roboto", border: [false,false,false,false], margin: [45,0,0,0] },
+        { text: `DOMKA Construcciónes SAS  ·  +57 305 811 4595  ·  contacto@domkaconstrucciones.com`, fontSize: 7, color: P.grayLight, font: "Roboto", border: [false,false,false,false], margin: [45,0,0,0] },
         { text: `Página ${pg} de ${total}`, fontSize: 7, color: P.grayLight, font: "Roboto", alignment: "right", border: [false,false,false,false], margin: [0,0,45,0] }
       ]]
     },
