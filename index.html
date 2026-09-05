@@ -1655,6 +1655,7 @@
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
+        notificarLeadPorCorreo({ nombre, email, telefono, empresa, servicio, descripcion, origen: 'web' });
         notice.style.display = 'block';
         document.querySelectorAll('.contact-form-wrap .form-control').forEach(el => (el.value = ''));
         btn.innerHTML = '<i class="fas fa-check"></i> ¡Enviado!';
@@ -1676,6 +1677,33 @@
   
   <script src="js/config.js"></script>
   <script src="js/firebase.js"></script>
+
+  <!-- EmailJS: notificación automática a contacto@domkaconstrucciones.com por cada lead -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    (function () {
+      const cfg = window.DOMKA_CONFIG?.EMAILJS;
+      if (window.emailjs && cfg?.PUBLIC_KEY) {
+        emailjs.init({ publicKey: cfg.PUBLIC_KEY });
+      }
+    })();
+
+    // Notifica por correo cada vez que entra un lead nuevo (no bloquea el flujo si falla)
+    function notificarLeadPorCorreo(datos) {
+      const cfg = window.DOMKA_CONFIG?.EMAILJS;
+      if (!window.emailjs || !cfg?.SERVICE_ID || !cfg?.TEMPLATE_ID) return;
+      emailjs.send(cfg.SERVICE_ID, cfg.TEMPLATE_ID, {
+        to_email: cfg.NOTIFY_TO || "contacto@domkaconstrucciones.com",
+        nombre: datos.nombre || "",
+        email: datos.email || "",
+        telefono: datos.telefono || "",
+        empresa: datos.empresa || "",
+        servicio: datos.servicio || "",
+        descripcion: datos.descripcion || "",
+        origen: datos.origen || "web"
+      }).catch(err => console.error("Error notificando lead por correo:", err));
+    }
+  </script>
 
   <!-- ══════════════════════════════════════════
        GABI — Asistente Virtual DOMKA CONSTRUCCIONES
@@ -1956,6 +1984,7 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).catch(console.error);
       }
+      notificarLeadPorCorreo({ nombre, telefono, servicio: tipo, descripcion: desc, origen: 'gabi-widget' });
 
       document.getElementById('gabiCotizarForm').style.display = 'none';
       document.getElementById('gabiCotizarOk').classList.add('show');
