@@ -509,12 +509,36 @@ document.getElementById("btn-guardar-mov").addEventListener("click", async () =>
 });
 
 window.eliminarMovimiento = async function(id) {
-  if (!confirm("¿Eliminar este movimiento? El saldo de la cuenta NO se revertirá automáticamente.")) return;
-  await db.collection("movimientos").doc(id).delete();
-  await fetchAll();
-  renderMovimientos();
-  renderCuentasBancarias();
-  calcularKPIs();
+  const mov = _movimientos.find(m => m.id === id);
+  if (!mov) return;
+
+  const afectaSaldo = mov.estado === "realizado" && mov.cuentaId;
+  const msg = afectaSaldo
+    ? `¿Eliminar este movimiento? El saldo de la cuenta "${mov.cuentaNombre || ''}" se ajustará automáticamente (${mov.tipo === 'ingreso' ? 'se restará' : 'se sumará de vuelta'} $${Number(mov.monto || 0).toLocaleString('es-CO')}).`
+    : "¿Eliminar este movimiento?";
+  if (!confirm(msg)) return;
+
+  try {
+    // Revertir el saldo de la cuenta si el movimiento estaba "realizado" y tenía cuenta asociada
+    if (afectaSaldo) {
+      const bd = await db.collection("cuentasBancarias").doc(mov.cuentaId).get();
+      if (bd.exists) {
+        const saldoActual = Number(bd.data().saldo || 0);
+        const monto = Number(mov.monto || 0);
+        // Si era un ingreso, al borrarlo se resta del saldo; si era un gasto, al borrarlo se suma de vuelta
+        const nuevoSaldo = mov.tipo === "ingreso" ? saldoActual - monto : saldoActual + monto;
+        await db.collection("cuentasBancarias").doc(mov.cuentaId).update({ saldo: nuevoSaldo });
+      }
+    }
+
+    await db.collection("movimientos").doc(id).delete();
+    await fetchAll();
+    renderMovimientos();
+    renderCuentasBancarias();
+    calcularKPIs();
+  } catch (e) {
+    alert("Error al eliminar el movimiento: " + (e?.message || e));
+  }
 };
 
 // Estilos visuales al cambiar tipo ingreso/gasto
