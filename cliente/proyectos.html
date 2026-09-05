@@ -133,6 +133,9 @@
 <script src="../js/security.js"></script>
 <script src="../js/roles.js"></script>
 <script src="../js/auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="../js/pdf-avance.js"></script>
 <script>
   const badgeCls = {pendiente:'badge-pendiente',en_ejecucion:'badge-en_ejecucion',finalizado:'badge-finalizado',suspendido:'badge-suspendido'};
   const badgeLbl = {pendiente:'⏳ Pendiente',en_ejecucion:'🔧 En ejecución',finalizado:'✅ Finalizado',suspendido:'⏸ Suspendido'};
@@ -206,34 +209,154 @@
 
       if (tabDocs) tabDocs.innerHTML = renderDocumentos(p);
       if (tabEvid) tabEvid.innerHTML = renderEvidencias(p);
-      if (tabAct)  tabAct.innerHTML  = renderActividades(acts);
+      if (tabAct)  tabAct.innerHTML  = renderActividades(acts, pid);
     } catch(e) {
       console.error('Error cargando proyecto completo:', e);
       if (tabDocs) tabDocs.innerHTML = '<p style="color:#991b1b;font-size:.85rem;padding:12px 0">Error cargando el proyecto.</p>';
     }
   }
 
-  function renderActividades(lista) {
-    if (!lista || !lista.length) return '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin actividades registradas.</p>';
-    return '<div style="padding:8px 0">' + lista.slice().reverse().map(a => {
-      const fecha = a.creadoEn ? new Date(a.creadoEn).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '';
-      const hechoFecha = a.hechoEn ? new Date(a.hechoEn).toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : '';
-      return `
-        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)">
-          <div style="margin-top:2px;width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;
-            background:${a.hecho?'#166534':'#f3f4f6'};color:${a.hecho?'#fff':'#9a9a9a'};border:2px solid ${a.hecho?'#166534':'#d1d5db'}">
-            ${a.hecho?'✓':''}
-          </div>
-          <div style="flex:1">
-            <p style="font-size:.88rem;color:${a.hecho?'var(--gray-lt)':'var(--text)'};${a.hecho?'text-decoration:line-through':''}">${esc(a.texto)}</p>
-            <p style="font-size:.72rem;color:var(--gray-lt);margin-top:3px">
-              ${esc(a.autorNombre||'Staff')} · ${fecha}
-              ${a.hecho?`<span style="color:#166534;margin-left:6px">✓ Completado${hechoFecha?' el '+hechoFecha:''}</span>`:''}
-            </p>
-          </div>
-        </div>`;
-    }).join('') + '</div>';
+  function estadoActividadCliente(a) {
+    if (a.estado) return a.estado;
+    return a.hecho ? 'validado' : 'pendiente';
   }
+
+  function badgeActividadCliente(estado) {
+    const map = {
+      pendiente: { label:'Pendiente',             bg:'#f3f4f6', fg:'#6b7280' },
+      ejecutado: { label:'Por validar',            bg:'#fef3c7', fg:'#92400e' },
+      validado:  { label:'✓ Validado',             bg:'#dcfce7', fg:'#166534' },
+      objetado:  { label:'⚠ Objetado',             bg:'#fee2e2', fg:'#991b1b' }
+    };
+    const m = map[estado] || map.pendiente;
+    return `<span style="font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:999px;background:${m.bg};color:${m.fg}">${m.label}</span>`;
+  }
+
+  function renderActividades(lista, proyId) {
+    if (!lista || !lista.length) return '<p style="color:var(--gray-lt);font-size:.88rem;padding:12px 0">Sin actividades registradas.</p>';
+
+    const total = lista.length;
+    const validadas = lista.filter(a => estadoActividadCliente(a) === 'validado').length;
+    const pct = total ? Math.round((validadas/total)*100) : 0;
+
+    const barra = `
+      <div style="padding:10px 0 16px 0">
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--gray-lt);margin-bottom:5px">
+          <span>Avance validado</span><span style="font-weight:700">${validadas}/${total} · ${pct}%</span>
+        </div>
+        <div style="width:100%;height:8px;background:#f0f0f0;border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--green)"></div>
+        </div>
+      </div>`;
+
+    // Agrupar por categoría / fase
+    const grupos = {};
+    lista.forEach((a, idx) => {
+      const cat = a.categoria || 'General';
+      if (!grupos[cat]) grupos[cat] = [];
+      grupos[cat].push({ ...a, _idx: idx });
+    });
+
+    const cuerpo = Object.entries(grupos).map(([cat, items]) => `
+      <div style="margin-bottom:10px">
+        <p style="font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin:10px 0 4px">${esc(cat)}</p>
+        ${items.slice().reverse().map(a => {
+          const estado = estadoActividadCliente(a);
+          const fecha = a.creadoEn ? new Date(a.creadoEn).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '';
+          const cantTxt = a.cantidad != null && a.cantidad !== '' ? `${a.cantidad} ${esc(a.unidad||'')}`.trim() : '';
+          const puedeValidar = estado === 'ejecutado';
+          return `
+            <div style="padding:10px 0;border-bottom:1px solid var(--line)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+                <p style="font-size:.86rem;color:${estado==='validado'?'var(--gray-lt)':'var(--text)'}">${esc(a.texto)}</p>
+                ${badgeActividadCliente(estado)}
+              </div>
+              ${cantTxt?`<p style="font-size:.72rem;color:var(--gray-lt);margin-top:2px">${cantTxt}</p>`:''}
+              ${estado==='objetado' && a.motivoObjecion ? `<p style="font-size:.72rem;color:#991b1b;margin-top:4px">Tu observación: ${esc(a.motivoObjecion)}</p>` : ''}
+              <p style="font-size:.68rem;color:var(--gray-lt);margin-top:4px">
+                ${esc(a.autorNombre||'Staff')} · ${fecha}
+                ${estado==='validado' && a.validadoPorNombre ? `<span style="color:#166534;margin-left:4px">· Validado por ti</span>` : ''}
+              </p>
+              ${puedeValidar ? `
+                <div style="margin-top:8px;display:flex;gap:8px">
+                  <button onclick="validarActividadCliente('${proyId}',${a._idx})"
+                    style="font-size:.72rem;font-weight:700;background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer">
+                    ✅ Confirmo que se ejecutó
+                  </button>
+                  <button onclick="objetarActividadCliente('${proyId}',${a._idx})"
+                    style="font-size:.72rem;font-weight:700;background:#fff;color:#991b1b;border:1px solid #991b1b;border-radius:8px;padding:6px 12px;cursor:pointer">
+                    No se ejecutó
+                  </button>
+                </div>` : ''}
+            </div>`;
+        }).join('')}
+      </div>`).join('');
+
+    const btnExport = `
+      <div style="text-align:right;margin-bottom:6px">
+        <button onclick="exportarPDFAvanceCliente('${proyId}')"
+          style="font-size:.72rem;font-weight:700;background:#fff;color:var(--green);border:1px solid var(--green);border-radius:8px;padding:6px 12px;cursor:pointer">
+          <i class="fas fa-file-pdf" style="margin-right:5px"></i>Exportar avance (PDF)
+        </button>
+      </div>`;
+
+    return btnExport + barra + cuerpo;
+  }
+
+  window.validarActividadCliente = async function(proyId, idx) {
+    if (!confirm('¿Confirmas que esta actividad fue ejecutada correctamente?')) return;
+    try {
+      const snap = await db.collection('proyectos').doc(proyId).get();
+      const data = snap.data() || {};
+      const actividades = [...(data.actividades || [])];
+      if (!actividades[idx]) return;
+      actividades[idx] = {
+        ...actividades[idx],
+        estado: 'validado',
+        validadoPorUid: window.auth?.currentUser?.uid || null,
+        validadoPorNombre: _perfil?.nombre || _perfil?.email || 'Cliente',
+        validadoEn: new Date().toISOString(),
+        motivoObjecion: null, objetadoEn: null
+      };
+      await db.collection('proyectos').doc(proyId).set({ actividades }, { merge: true });
+      if (_proyectosCache[proyId]) _proyectosCache[proyId].actividades = actividades;
+      const tabAct = document.getElementById('tab-'+proyId+'-act');
+      if (tabAct) tabAct.innerHTML = renderActividades(actividades, proyId);
+    } catch (e) {
+      alert('Error al validar: ' + (e?.message || e));
+    }
+  };
+
+  window.objetarActividadCliente = async function(proyId, idx) {
+    const motivo = prompt('Cuéntanos brevemente qué encontraste (opcional):') || '';
+    if (!confirm('¿Marcar esta actividad como no ejecutada / con observación?')) return;
+    try {
+      const snap = await db.collection('proyectos').doc(proyId).get();
+      const data = snap.data() || {};
+      const actividades = [...(data.actividades || [])];
+      if (!actividades[idx]) return;
+      actividades[idx] = {
+        ...actividades[idx],
+        estado: 'objetado',
+        motivoObjecion: motivo.trim() || null,
+        objetadoEn: new Date().toISOString(),
+        validadoPorUid: null, validadoPorNombre: null, validadoEn: null
+      };
+      await db.collection('proyectos').doc(proyId).set({ actividades }, { merge: true });
+      if (_proyectosCache[proyId]) _proyectosCache[proyId].actividades = actividades;
+      const tabAct = document.getElementById('tab-'+proyId+'-act');
+      if (tabAct) tabAct.innerHTML = renderActividades(actividades, proyId);
+    } catch (e) {
+      alert('Error al registrar la observación: ' + (e?.message || e));
+    }
+  };
+
+  window.exportarPDFAvanceCliente = function(proyId) {
+    const p = _proyectosCache[proyId];
+    if (!p) return;
+    if (typeof generarPDFAvance !== 'function') { alert('No se pudo cargar el generador de PDF.'); return; }
+    generarPDFAvance(p, _perfil?.nombre || _perfil?.empresaNombre || undefined);
+  };
 
   function renderDocumentos(p) {
     const docs = p.documentos || [];
