@@ -364,12 +364,44 @@
     
     <!-- TAB: Actividades -->
     <div id="tab-act" class="tab-pane">
+      <div class="flex justify-end mb-2">
+        <button onclick="exportarPDFAvance()"
+          class="text-xs bg-white border border-green-700 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-50 font-semibold">
+          <i class="fas fa-file-pdf mr-1"></i> Exportar avance (PDF)
+        </button>
+      </div>
       <!-- Formulario nueva actividad (solo staff) -->
       <div id="act-form-wrap" class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Nueva actividad</p>
         <textarea id="act-texto" rows="2"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-green-500"
           placeholder="Describe la actividad realizada o pendiente…"></textarea>
+        <div class="grid grid-cols-3 gap-2 mb-2">
+          <select id="act-categoria" class="border border-gray-300 rounded-lg px-2 py-2 text-xs">
+            <option value="">Categoría / fase…</option>
+            <option>Preliminares</option>
+            <option>Cimentación</option>
+            <option>Estructura</option>
+            <option>Mampostería</option>
+            <option>Instalaciones</option>
+            <option>Acabados</option>
+            <option>Pintura</option>
+            <option>Aseo y entrega</option>
+            <option>Otro</option>
+          </select>
+          <input id="act-cantidad" type="number" min="0" step="any" placeholder="Cantidad"
+            class="border border-gray-300 rounded-lg px-2 py-2 text-xs">
+          <select id="act-unidad" class="border border-gray-300 rounded-lg px-2 py-2 text-xs">
+            <option value="m2">m²</option>
+            <option value="ml">ml</option>
+            <option value="un">un</option>
+            <option value="kg">kg</option>
+            <option value="glb">glb</option>
+            <option value="m3">m³</option>
+            <option value="hr">hr</option>
+            <option value="día">día</option>
+          </select>
+        </div>
         <button onclick="agregarActividad()"
           class="text-xs bg-green-700 text-white px-4 py-1.5 rounded-lg hover:bg-green-800 font-semibold">
           + Agregar actividad
@@ -523,6 +555,9 @@
 <script src="js/security.js"></script>
 <script src="js/roles.js"></script>
 <script src="js/auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="js/pdf-avance.js"></script>
 <script src="js/proyectos.js"></script>
 </body>
 </html>
