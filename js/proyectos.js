@@ -882,33 +882,61 @@ window.filtrarContactosCliente = function(q) {
     return `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${m.cls}">${m.label}</span>`;
   }
 
+  let _chartActProgreso = null;
+
+  function drawActProgresoChart(lista) {
+    const canvas = document.getElementById("chart-act-progreso");
+    if (!canvas || typeof Chart === "undefined") return;
+    const counts = { pendiente: 0, ejecutado: 0, validado: 0, objetado: 0 };
+    lista.forEach(a => { const e = estadoActividad(a); counts[e] = (counts[e] || 0) + 1; });
+    if (_chartActProgreso) _chartActProgreso.destroy();
+    _chartActProgreso = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Pendiente", "Por validar", "Validado", "Objetado"],
+        datasets: [{
+          data: [counts.pendiente, counts.ejecutado, counts.validado, counts.objetado],
+          backgroundColor: ["#e5e7eb", "#fbbf24", "#16a34a", "#dc2626"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: "68%",
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } } }
+      }
+    });
+  }
+
   function renderActividades(lista) {
     const el = document.getElementById("detalle-actividades");
     if (!el) return;
     if (!lista.length) {
       el.innerHTML = `<p class="text-gray-400 text-sm">Sin actividades registradas.</p>`;
+      if (_chartActProgreso) { _chartActProgreso.destroy(); _chartActProgreso = null; }
       return;
     }
     const puedeGestionar = ["admin","comercial","tecnico"].includes(_perfil?.role);
     const esAdmin = _perfil?.role === "admin";
 
-    // Barra de progreso general (validadas / total)
     const total = lista.length;
     const validadas = lista.filter(a => estadoActividad(a) === "validado").length;
     const pct = total ? Math.round((validadas / total) * 100) : 0;
 
-    const barra = `
-      <div class="mb-4">
-        <div class="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Avance validado por el cliente</span>
-          <span class="font-semibold">${validadas}/${total} · ${pct}%</span>
-        </div>
-        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div class="h-full bg-green-600" style="width:${pct}%"></div>
+    const bloqueProgreso = `
+      <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+        <div class="flex items-center gap-4">
+          <div style="width:120px;height:120px;flex-shrink:0">
+            <canvas id="chart-act-progreso"></canvas>
+          </div>
+          <div class="flex-1">
+            <p class="text-xs text-gray-500 mb-1">Avance validado por el cliente</p>
+            <p class="text-2xl font-bold text-green-700">${pct}%</p>
+            <p class="text-xs text-gray-400">${validadas} de ${total} actividades validadas</p>
+          </div>
         </div>
       </div>`;
 
-    el.innerHTML = barra + lista.slice().reverse().map((a, i) => {
+    el.innerHTML = bloqueProgreso + lista.slice().reverse().map((a, i) => {
       const realIdx = lista.length - 1 - i;
       const estado = estadoActividad(a);
       const fecha = a.creadoEn
@@ -933,12 +961,17 @@ window.filtrarContactosCliente = function(q) {
             class="text-[11px] text-gray-400 hover:underline ml-3">Reabrir</button>`;
         }
       }
+      // Eliminar: solo admin, para conservar el rastro de auditoría con el cliente salvo error real
+      const btnEliminar = esAdmin
+        ? `<button onclick="eliminarActividad(${realIdx})" title="Eliminar actividad"
+            class="text-gray-300 hover:text-red-600 text-xs ml-2"><i class="fas fa-trash"></i></button>`
+        : "";
 
       return `
         <div class="py-3 border-b border-gray-100 last:border-0">
           <div class="flex justify-between items-start gap-3">
             <p class="text-sm text-gray-700 ${estado==='validado' ? 'text-gray-500' : ''}">${esc(a.texto)}</p>
-            ${badgeEstadoAct(estado)}
+            <div class="flex items-center flex-shrink-0">${badgeEstadoAct(estado)}${btnEliminar}</div>
           </div>
           ${meta ? `<p class="text-xs text-gray-500 mt-0.5">${meta}</p>` : ""}
           ${estado === "objetado" && a.motivoObjecion ? `<p class="text-xs text-red-600 mt-1">Motivo del cliente: ${esc(a.motivoObjecion)}</p>` : ""}
@@ -949,6 +982,8 @@ window.filtrarContactosCliente = function(q) {
           </p>
         </div>`;
     }).join("");
+
+    drawActProgresoChart(lista);
   }
 
   window.agregarActividad = async function() {
@@ -1015,6 +1050,26 @@ window.filtrarContactosCliente = function(q) {
     if (!_current) return;
     if (typeof generarPDFAvance !== "function") { alert("Falta cargar js/pdf-avance.js"); return; }
     generarPDFAvance(_current);
+  };
+
+  window.eliminarActividad = async function(idx) {
+    if (!_current) return;
+    const actividades = [...(_current.actividades || [])];
+    const act = actividades[idx];
+    if (!act) return;
+    const advertencia = estadoActividad(act) === "validado"
+      ? "Esta actividad ya fue validada por el cliente. Eliminarla borra ese respaldo. ¿Continuar?"
+      : "¿Eliminar esta actividad? Esta acción no se puede deshacer.";
+    if (!confirm(advertencia)) return;
+    actividades.splice(idx, 1);
+    try {
+      await db.collection("proyectos").doc(_current.id).update({ actividades });
+      _current.actividades = actividades;
+      _all = _all.map(p => p.id === _current.id ? { ...p, actividades } : p);
+      renderActividades(actividades);
+    } catch(e) {
+      alert("Error al eliminar: " + (e?.message || e));
+    }
   };
 
   window.revertirActividadPendiente = async function(idx) {
