@@ -852,7 +852,36 @@ window.filtrarContactosCliente = function(q) {
     llenarDetalle(_current);
   }
 
-  /* ── Actividades del proyecto ───────────────────────────── */
+  /* ── Actividades del proyecto (ítems de avance de obra) ────
+     Modelo por ítem:
+       texto, categoria, cantidad, unidad
+       estado: 'pendiente' | 'ejecutado' | 'validado' | 'objetado'
+       autorUid/autorNombre/creadoEn        → quién la creó
+       ejecutadoPorUid/ejecutadoEn          → staff marcó como ejecutada
+       validadoPorUid/validadoPorNombre/validadoEn → cliente validó
+       objetadoEn/motivoObjecion            → cliente objetó
+     Compatibilidad: ítems viejos solo tienen {hecho:boolean}. Se
+     derivan a estado 'validado' (hecho:true) o 'pendiente' (false).
+  ── ───────────────────────────────────────────────────────── */
+  const UNIDADES_ACT = ["m2","ml","un","kg","glb","m3","hr","día"];
+  const CATEGORIAS_ACT = ["Preliminares","Cimentación","Estructura","Mampostería","Instalaciones","Acabados","Pintura","Aseo y entrega","Otro"];
+
+  function estadoActividad(a) {
+    if (a.estado) return a.estado;
+    return a.hecho ? "validado" : "pendiente";
+  }
+
+  function badgeEstadoAct(estado) {
+    const map = {
+      pendiente: { label: "Pendiente",           cls: "bg-gray-100 text-gray-600" },
+      ejecutado: { label: "Ejecutado · por validar", cls: "bg-amber-100 text-amber-700" },
+      validado:  { label: "✓ Validado por cliente",  cls: "bg-green-100 text-green-700" },
+      objetado:  { label: "⚠ Objetado por cliente",  cls: "bg-red-100 text-red-700" }
+    };
+    const m = map[estado] || map.pendiente;
+    return `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${m.cls}">${m.label}</span>`;
+  }
+
   function renderActividades(lista) {
     const el = document.getElementById("detalle-actividades");
     if (!el) return;
@@ -860,38 +889,64 @@ window.filtrarContactosCliente = function(q) {
       el.innerHTML = `<p class="text-gray-400 text-sm">Sin actividades registradas.</p>`;
       return;
     }
-    const puedeToggle = ["admin","comercial","tecnico"].includes(_perfil?.role);
-    el.innerHTML = lista.slice().reverse().map((a, i) => {
+    const puedeGestionar = ["admin","comercial","tecnico"].includes(_perfil?.role);
+    const esAdmin = _perfil?.role === "admin";
+
+    // Barra de progreso general (validadas / total)
+    const total = lista.length;
+    const validadas = lista.filter(a => estadoActividad(a) === "validado").length;
+    const pct = total ? Math.round((validadas / total) * 100) : 0;
+
+    const barra = `
+      <div class="mb-4">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Avance validado por el cliente</span>
+          <span class="font-semibold">${validadas}/${total} · ${pct}%</span>
+        </div>
+        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-full bg-green-600" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+
+    el.innerHTML = barra + lista.slice().reverse().map((a, i) => {
       const realIdx = lista.length - 1 - i;
+      const estado = estadoActividad(a);
       const fecha = a.creadoEn
-        ? new Date(a.creadoEn).toLocaleDateString("es-CO", {day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})
+        ? new Date(a.creadoEn).toLocaleDateString("es-CO", {day:"2-digit",month:"short",year:"numeric"})
         : "";
-      const hechoFecha = a.hechoEn
-        ? new Date(a.hechoEn).toLocaleDateString("es-CO", {day:"2-digit",month:"short"})
-        : "";
+      const cantTxt = a.cantidad ? `${a.cantidad} ${esc(a.unidad || "")}`.trim() : "";
+      const catTxt = a.categoria ? esc(a.categoria) : "";
+      const meta = [catTxt, cantTxt].filter(Boolean).join(" · ");
+
+      let acciones = "";
+      if (puedeGestionar) {
+        if (estado === "pendiente" || estado === "objetado") {
+          acciones += `<button onclick="marcarActividadEjecutada(${realIdx})"
+            class="text-[11px] font-semibold text-green-700 hover:underline">Marcar ejecutado</button>`;
+        }
+        if (estado === "ejecutado" && esAdmin) {
+          acciones += `<button onclick="revertirActividadPendiente(${realIdx})"
+            class="text-[11px] text-gray-400 hover:underline ml-3">Revertir a pendiente</button>`;
+        }
+        if (estado === "validado" && esAdmin) {
+          acciones += `<button onclick="revertirActividadPendiente(${realIdx})"
+            class="text-[11px] text-gray-400 hover:underline ml-3">Reabrir</button>`;
+        }
+      }
+
       return `
-        <div class="flex gap-3 items-start py-3 border-b border-gray-100 last:border-0">
-          <div class="mt-0.5 flex-shrink-0">
-            ${puedeToggle
-              ? `<button onclick="toggleActividad(${realIdx})"
-                  class="w-5 h-5 rounded border-2 flex items-center justify-center text-xs transition-all
-                  ${a.hecho ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 hover:border-green-500'}"
-                  title="${a.hecho ? 'Marcar como pendiente' : 'Marcar como hecha'}">
-                  ${a.hecho ? '✓' : ''}
-                </button>`
-              : `<span class="w-5 h-5 rounded border-2 flex items-center justify-center text-xs
-                  ${a.hecho ? 'bg-green-600 border-green-600 text-white' : 'border-gray-200'}">
-                  ${a.hecho ? '✓' : ''}
-                </span>`
-            }
+        <div class="py-3 border-b border-gray-100 last:border-0">
+          <div class="flex justify-between items-start gap-3">
+            <p class="text-sm text-gray-700 ${estado==='validado' ? 'text-gray-500' : ''}">${esc(a.texto)}</p>
+            ${badgeEstadoAct(estado)}
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm ${a.hecho ? 'line-through text-gray-400' : 'text-gray-700'}">${esc(a.texto)}</p>
-            <p class="text-xs text-gray-400 mt-0.5">
-              ${esc(a.autorNombre || "Staff")} · ${fecha}
-              ${a.hecho ? `<span class="text-green-600 ml-1">✓ Hecho${hechoFecha ? " el " + hechoFecha : ""}</span>` : ""}
-            </p>
-          </div>
+          ${meta ? `<p class="text-xs text-gray-500 mt-0.5">${meta}</p>` : ""}
+          ${estado === "objetado" && a.motivoObjecion ? `<p class="text-xs text-red-600 mt-1">Motivo del cliente: ${esc(a.motivoObjecion)}</p>` : ""}
+          <p class="text-xs text-gray-400 mt-1">
+            ${esc(a.autorNombre || "Staff")} · ${fecha}
+            ${estado === "validado" && a.validadoPorNombre ? `<span class="text-green-600 ml-1">· Validado por ${esc(a.validadoPorNombre)}</span>` : ""}
+            ${acciones ? `<span class="ml-2">${acciones}</span>` : ""}
+          </p>
         </div>`;
     }).join("");
   }
@@ -899,19 +954,26 @@ window.filtrarContactosCliente = function(q) {
   window.agregarActividad = async function() {
     if (!_current) return;
     const input = document.getElementById("act-texto");
+    const catSel = document.getElementById("act-categoria");
+    const cantInput = document.getElementById("act-cantidad");
+    const unidSel = document.getElementById("act-unidad");
     const texto = input?.value?.trim();
     if (!texto) return;
-    const btn = document.querySelector("#act-form-wrap button");
+    const btn = document.querySelector("#act-form-wrap button[onclick='agregarActividad()']");
     if (btn) { btn.disabled = true; btn.textContent = "Guardando…"; }
     try {
       const nuevaAct = {
         texto,
+        categoria: catSel?.value || "",
+        cantidad: cantInput?.value ? Number(cantInput.value) : null,
+        unidad: cantInput?.value ? (unidSel?.value || "") : "",
         autorUid: _perfil?.uid || null,
         autorNombre: _perfil?.nombre || _perfil?.email || "Staff",
         creadoEn: new Date().toISOString(),
-        hecho: false,
-        hechoEn: null,
-        hechoPorUid: null
+        estado: "pendiente",
+        ejecutadoPorUid: null, ejecutadoEn: null,
+        validadoPorUid: null, validadoPorNombre: null, validadoEn: null,
+        objetadoEn: null, motivoObjecion: null
       };
       const actividades = [...(_current.actividades || []), nuevaAct];
       await db.collection("proyectos").doc(_current.id).update({ actividades });
@@ -919,6 +981,7 @@ window.filtrarContactosCliente = function(q) {
       _all = _all.map(p => p.id === _current.id ? { ...p, actividades } : p);
       renderActividades(actividades);
       if (input) input.value = "";
+      if (cantInput) cantInput.value = "";
     } catch(e) {
       alert("Error al agregar actividad: " + (e?.message || e));
     } finally {
@@ -926,16 +989,45 @@ window.filtrarContactosCliente = function(q) {
     }
   };
 
-  window.toggleActividad = async function(idx) {
+  window.marcarActividadEjecutada = async function(idx) {
     if (!_current) return;
     const actividades = [...(_current.actividades || [])];
     if (!actividades[idx]) return;
-    const hecho = !actividades[idx].hecho;
     actividades[idx] = {
       ...actividades[idx],
-      hecho,
-      hechoEn: hecho ? new Date().toISOString() : null,
-      hechoPorUid: hecho ? (_perfil?.uid || null) : null
+      estado: "ejecutado",
+      ejecutadoPorUid: _perfil?.uid || null,
+      ejecutadoEn: new Date().toISOString(),
+      // limpiar objeción previa si la había
+      motivoObjecion: null, objetadoEn: null
+    };
+    try {
+      await db.collection("proyectos").doc(_current.id).update({ actividades });
+      _current.actividades = actividades;
+      _all = _all.map(p => p.id === _current.id ? { ...p, actividades } : p);
+      renderActividades(actividades);
+    } catch(e) {
+      alert("Error: " + (e?.message || e));
+    }
+  };
+
+  window.exportarPDFAvance = function() {
+    if (!_current) return;
+    if (typeof generarPDFAvance !== "function") { alert("Falta cargar js/pdf-avance.js"); return; }
+    generarPDFAvance(_current);
+  };
+
+  window.revertirActividadPendiente = async function(idx) {
+    if (!_current) return;
+    if (!confirm("¿Revertir esta actividad a pendiente?")) return;
+    const actividades = [...(_current.actividades || [])];
+    if (!actividades[idx]) return;
+    actividades[idx] = {
+      ...actividades[idx],
+      estado: "pendiente",
+      ejecutadoPorUid: null, ejecutadoEn: null,
+      validadoPorUid: null, validadoPorNombre: null, validadoEn: null,
+      motivoObjecion: null, objetadoEn: null
     };
     try {
       await db.collection("proyectos").doc(_current.id).update({ actividades });
