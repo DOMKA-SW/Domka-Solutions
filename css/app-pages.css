@@ -349,6 +349,64 @@ tbody tr:hover td { background: var(--bg-alt) !important; }
 #btn-notas-libre { background: var(--green) !important; color: #fff !important; }
 #btn-notas-vinetas { background: var(--bg-alt) !important; color: var(--gray) !important; }
 
+/* Toggle de modo (Materiales: por líneas / texto libre) */
+.modo-toggle-btn {
+  border-radius: 7px !important;
+  font-size: .8rem !important;
+  font-weight: 600 !important;
+  background: var(--bg-alt) !important;
+  color: var(--gray) !important;
+  border: 1.5px solid transparent !important;
+  transition: all .15s !important;
+  cursor: pointer !important;
+}
+.modo-toggle-btn:hover { border-color: var(--green) !important; }
+.modo-toggle-btn.active { background: var(--green) !important; color: #fff !important; }
+
+/* Fila dinámica de material */
+.material-row {
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 10px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.material-row:hover,
+.material-row:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(27,122,81,.08); }
+.material-row .material-input {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  padding: 6px 2px !important;
+  box-shadow: none !important;
+}
+.material-icon { color: var(--green); font-size: .8rem; width: 16px; text-align: center; }
+.material-remove {
+  color: var(--gray-lt);
+  background: transparent;
+  border: none;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.material-remove:hover { background: #fdecea; color: #c0392b; }
+
+.btn-add-dashed {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1.5px dashed var(--line);
+  color: var(--green);
+  background: var(--green-lt);
+  font-weight: 600; font-size: .82rem;
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-add-dashed:hover { border-color: var(--green); background: #dcf0e6; }
+
 /* Radio options */
 .radio-option {
   border: 1.5px solid var(--line) !important;
