@@ -283,12 +283,44 @@
             </div>
           </div>
 
-          <!-- Mostrar documento -->
+          <!-- Materiales a utilizar -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="form-label mb-0">Materiales a utilizar (opcional)</label>
+              <label class="flex items-center gap-1.5 text-xs" style="color:var(--gray)">
+                <input type="checkbox" id="mostrar-materiales" checked style="accent-color:var(--green)">
+                Incluir en el PDF
+              </label>
+            </div>
+            <textarea id="materiales" rows="3" spellcheck="true" lang="es" class="form-input" placeholder="Un material por línea, ej:&#10;50 sacos de cemento gris de 50kg&#10;12 láminas de Superboard 1.22 x 2.44m&#10;Pintura tipo 1 - 5 galones"></textarea>
+            <p class="text-xs mt-1" style="color:var(--gray-lt)">Se mostrará como lista en el PDF y en el portal del cliente. Déjalo vacío si no aplica.</p>
+          </div>
+
+          <!-- Tiempo estimado de ejecución -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="form-label mb-0">Tiempo estimado de ejecución (opcional)</label>
+              <label class="flex items-center gap-1.5 text-xs" style="color:var(--gray)">
+                <input type="checkbox" id="mostrar-tiempo" checked style="accent-color:var(--green)">
+                Incluir en el PDF
+              </label>
+            </div>
+            <input type="text" id="tiempo-estimado" class="form-input" placeholder="Ej: 15 días hábiles, 3 semanas, 2 meses...">
+          </div>
+
+          <!-- Opciones para el PDF -->
           <div class="p-3 rounded-lg" style="background:var(--bg-alt);border:1px solid var(--line)">
-            <label class="flex items-center gap-2" style="font-size:.88rem">
-              <input type="checkbox" id="mostrar-documento" checked style="accent-color:var(--green)">
-              Mostrar numero de documento en el PDF
-            </label>
+            <p class="font-semibold text-sm mb-2" style="color:var(--text)">Opciones para el PDF</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label class="flex items-center gap-2" style="font-size:.88rem">
+                <input type="checkbox" id="mostrar-documento" checked style="accent-color:var(--green)">
+                Número de documento
+              </label>
+              <label class="flex items-center gap-2" style="font-size:.88rem">
+                <input type="checkbox" id="mostrar-valor-letras" checked style="accent-color:var(--green)">
+                Valor total en letras
+              </label>
+            </div>
           </div>
 
           <!-- Anexos -->
@@ -360,14 +392,6 @@
             <input type="number" id="valor-total" class="form-input" value="0" min="0">
           </div>
 
-          <!-- Mostrar letras -->
-          <div class="p-3 rounded-lg" style="background:var(--bg-alt);border:1px solid var(--line)">
-            <label class="flex items-center gap-2" style="font-size:.88rem">
-              <input type="checkbox" id="mostrar-valor-letras" checked style="accent-color:var(--green)">
-              Mostrar valor total en letras en el PDF
-            </label>
-          </div>
-
           <!-- Tabla Ã­tems -->
           <div>
             <div class="flex justify-between items-center mb-4">
@@ -382,6 +406,7 @@
                   <tr>
                     <th class="p-3 text-left">Descripción</th>
                     <th class="p-3 text-center col-cantidad">Cantidad</th>
+                    <th class="p-3 text-center col-unidad">Unidad</th>
                     <th class="p-3 text-right col-precio">Precio</th>
                     <th class="p-3 text-right col-subtotal">Subtotal</th>
                     <th class="p-3 text-center">Acciones</th>
@@ -390,6 +415,19 @@
                 <tbody></tbody>
               </table>
             </div>
+            <datalist id="unidades-comunes">
+              <option value="Un">
+              <option value="m">
+              <option value="m²">
+              <option value="m³">
+              <option value="mL">
+              <option value="Kg">
+              <option value="Ton">
+              <option value="Gl">
+              <option value="Global">
+              <option value="Día">
+              <option value="Viaje">
+            </datalist>
           </div>
 
           <!-- Totales -->
