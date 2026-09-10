@@ -299,12 +299,70 @@ function leerNotasComoArray() {
   }
 }
 
-// 🔹 Materiales a utilizar (texto libre, un material por línea)
+// 🔹 Materiales a utilizar (por líneas, con fallback a texto libre)
 function leerMaterialesComoArray() {
-  const el = document.getElementById("materiales");
-  if (!el) return [];
-  const texto = el.value.trim();
-  return texto ? texto.split("\n").map(l => l.trim()).filter(Boolean) : [];
+  const modoLista = document.getElementById("materiales-modo-lista");
+  if (modoLista && !modoLista.classList.contains("hidden")) {
+    const arr = [];
+    document.querySelectorAll(".material-input").forEach(inp => {
+      if (inp.value.trim()) arr.push(inp.value.trim());
+    });
+    return arr;
+  } else {
+    const el = document.getElementById("materiales");
+    if (!el) return [];
+    const texto = el.value.trim();
+    return texto ? texto.split("\n").map(l => l.trim()).filter(Boolean) : [];
+  }
+}
+
+function crearFilaMaterial(texto = "") {
+  const container = document.getElementById("materiales-lista-container");
+  if (!container) return;
+  const div = document.createElement("div");
+  div.className = "material-row flex items-center gap-2";
+  div.innerHTML = `
+    <span class="material-icon"><i class="fas fa-box"></i></span>
+    <input type="text" class="material-input flex-grow text-sm"
+      placeholder="Ej: 50 sacos de cemento gris de 50kg" value="${texto.replace(/"/g, '&quot;')}"
+      spellcheck="true" lang="es">
+    <button type="button" class="material-remove" title="Eliminar"><i class="fas fa-times"></i></button>
+  `;
+  div.querySelector(".material-remove").addEventListener("click", () => div.remove());
+  container.appendChild(div);
+  return div;
+}
+window.crearFilaMaterial = crearFilaMaterial;
+
+// Toggle de modo: por líneas / texto libre
+const btnMaterialesLista = document.getElementById("btn-materiales-lista");
+const btnMaterialesLibre = document.getElementById("btn-materiales-libre");
+const materialesModoLista = document.getElementById("materiales-modo-lista");
+const materialesModoLibre = document.getElementById("materiales-modo-libre");
+const btnAgregarMaterial = document.getElementById("agregar-material");
+
+if (btnMaterialesLista && btnMaterialesLibre) {
+  btnMaterialesLista.addEventListener("click", () => {
+    materialesModoLista.classList.remove("hidden");
+    materialesModoLibre.classList.add("hidden");
+    btnMaterialesLista.classList.add("active");
+    btnMaterialesLibre.classList.remove("active");
+  });
+  btnMaterialesLibre.addEventListener("click", () => {
+    materialesModoLibre.classList.remove("hidden");
+    materialesModoLista.classList.add("hidden");
+    btnMaterialesLibre.classList.add("active");
+    btnMaterialesLista.classList.remove("active");
+  });
+}
+
+if (btnAgregarMaterial) {
+  btnAgregarMaterial.addEventListener("click", () => crearFilaMaterial());
+}
+
+// Fila inicial lista para escribir (mejor experiencia que empezar vacío)
+if (document.getElementById("materiales-lista-container") && document.getElementById("materiales-lista-container").children.length === 0) {
+  crearFilaMaterial();
 }
 
 function agregarViñeta(texto = "") {
@@ -860,6 +918,18 @@ function cargarCotizacionEnFormulario(id, c) {
   // Materiales
   const materialesEl = document.getElementById("materiales");
   if (materialesEl) materialesEl.value = c.materiales || "";
+  const matContainer = document.getElementById("materiales-lista-container");
+  if (matContainer) {
+    matContainer.innerHTML = "";
+    const listaMateriales = c.materialesArray?.length > 0
+      ? c.materialesArray
+      : (c.materiales ? c.materiales.split("\n").filter(l => l.trim()) : []);
+    if (listaMateriales.length > 0) {
+      listaMateriales.forEach(m => crearFilaMaterial(m));
+    } else {
+      crearFilaMaterial();
+    }
+  }
 
   // Tiempo estimado
   const tiempoEl = document.getElementById("tiempo-estimado");
@@ -890,6 +960,11 @@ window.cancelarEdicionCotizacion = function() {
     submitBtn.classList.add("bg-green-700");
   }
   if (tablaItems) tablaItems.innerHTML = "";
+  const matContainer = document.getElementById("materiales-lista-container");
+  if (matContainer) {
+    matContainer.innerHTML = "";
+    crearFilaMaterial();
+  }
 };
 
 // Buscar al escribir
