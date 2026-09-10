@@ -292,8 +292,28 @@
                 Incluir en el PDF
               </label>
             </div>
-            <textarea id="materiales" rows="3" spellcheck="true" lang="es" class="form-input" placeholder="Un material por línea, ej:&#10;50 sacos de cemento gris de 50kg&#10;12 láminas de Superboard 1.22 x 2.44m&#10;Pintura tipo 1 - 5 galones"></textarea>
-            <p class="text-xs mt-1" style="color:var(--gray-lt)">Se mostrará como lista en el PDF y en el portal del cliente. Déjalo vacío si no aplica.</p>
+
+            <div class="flex gap-2 mb-3">
+              <button type="button" id="btn-materiales-lista" class="modo-toggle-btn active px-3 py-1.5">
+                <i class="fas fa-list-ul"></i> Por líneas
+              </button>
+              <button type="button" id="btn-materiales-libre" class="modo-toggle-btn px-3 py-1.5">
+                <i class="fas fa-align-left"></i> Texto libre
+              </button>
+            </div>
+
+            <div id="materiales-modo-lista">
+              <div id="materiales-lista-container" class="space-y-2 mb-2"></div>
+              <button type="button" id="agregar-material" class="btn-add-dashed">
+                <i class="fas fa-plus"></i> Agregar material
+              </button>
+            </div>
+
+            <div id="materiales-modo-libre" class="hidden">
+              <textarea id="materiales" rows="3" spellcheck="true" lang="es" class="form-input" placeholder="Un material por línea, ej:&#10;50 sacos de cemento gris de 50kg&#10;12 láminas de Superboard 1.22 x 2.44m&#10;Pintura tipo 1 - 5 galones"></textarea>
+            </div>
+
+            <p class="text-xs mt-2" style="color:var(--gray-lt)">Se mostrará como lista en el PDF y en el portal del cliente. Déjalo vacío si no aplica.</p>
           </div>
 
           <!-- Tiempo estimado de ejecución -->
