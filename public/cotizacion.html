@@ -453,6 +453,13 @@
         </div>
       </div>
 
+      <!-- Materiales a utilizar -->
+      <div id="materiales-wrap" style="display:none">
+        <hr class="hr-green">
+        <p class="slabel">Materiales a utilizar</p>
+        <div class="notas-box"><ul id="materiales-list"></ul></div>
+      </div>
+
       <!-- Notas -->
       <div id="notas-wrap" style="display:none">
         <hr class="hr-green">
@@ -486,7 +493,7 @@
 
     <!-- Footer -->
     <div class="footer" style="margin-top:56px">
-      <p>DOMKA Construcciones SAS &amp; · <a href="mailto:contacto@domkaconstrucciones.com">contacto@domkaconstrucciones.com</a> · +57 305 811 4595</p>
+      <p>DOMKA Construcciones SAS &amp; Diseño · <a href="mailto:contacto@domkaconstrucciones.com">contacto@domkaconstrucciones.com</a> · +57 305 811 4595</p>
       <p>© 2026 DOMKA · Colombia</p>
     </div>
 
@@ -576,6 +583,7 @@
         ...(c.ubicacion?[{label:"Ubicación",value:c.ubicacion}]:[]),
         {label:"Tipo",          value: tipoMap[c.tipo]||c.tipo||"—"},
         {label:"Forma de pago", value: pagoMap[c.formaPago]||c.formaPago||"—"},
+        ...(c.tiempoEstimado && c.mostrarTiempo!==false?[{label:"Tiempo estimado", value: c.tiempoEstimado}]:[]),
         ...(c.mostrarDocumento!==false&&c.clienteNit?[{label:"NIT",value:c.clienteNit}]:[]),
         ...(c.mostrarDocumento!==false&&c.clienteNumeroDocumento?[{label:"N° Documento",value:c.clienteNumeroDocumento}]:[]),
       ];
@@ -594,7 +602,7 @@
           <td class="col-n">${String(i+1).padStart(2,"0")}</td>
           <td>${it.descripcion||"—"}</td>
           ${esVT?"":` <td class="col-r">${fmtM(it.precio)}</td>
-                       <td class="col-r">${it.cantidad||1}</td>
+                       <td class="col-r">${it.cantidad||1}${it.unidad?` ${it.unidad}`:''}</td>
                        <td class="col-green">${fmtM(it.subtotal)}</td>`}
         </tr>`).join("");
 
@@ -625,6 +633,13 @@
       // Términos de pago
       if (c.formaPago!=="contado") {
         document.getElementById("term-pago").textContent = "Se requiere anticipo para iniciar según el plan de pagos acordado. Cualquier trabajo adicional no contemplado generará un cobro extra.";
+      }
+
+      // Materiales a utilizar
+      const materiales = (c.mostrarMateriales !== false) ? (c.materialesArray?.length>0 ? c.materialesArray : (c.materiales?c.materiales.split("\n").filter(l=>l.trim()):[])) : [];
+      if (materiales.length>0) {
+        document.getElementById("materiales-wrap").style.display="block";
+        document.getElementById("materiales-list").innerHTML = materiales.map(m=>`<li>${m}</li>`).join("");
       }
 
       // Notas
