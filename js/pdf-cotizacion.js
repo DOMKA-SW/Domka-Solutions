@@ -103,6 +103,8 @@ async function generarPDFCotizacion(cotizacion, nombreCliente = "Cliente") {
   const {
     items = [], subtotal = 0, total = 0,
     notas = "", notasArray = null,
+    materiales = "", materialesArray = null,
+    tiempoEstimado = "", mostrarMateriales = true, mostrarTiempo = true,
     tipo = "mano-obra", formaPago = "contado", planPagos = [],
     fecha = new Date(), mostrarValorLetras = true,
     id = "", firmaAprobacion = null, fechaAprobacion = null,
@@ -210,6 +212,9 @@ async function generarPDFCotizacion(cotizacion, nombreCliente = "Cliente") {
             sLabel("DETALLES"),
             { text: tipoTexto,     fontSize: 9.5, color: P.black, font: "Roboto", margin: [0,0,0,3] },
             { text: formaPagoTexto, fontSize: 9,  color: P.gray,  font: "Roboto", margin: [0,0,0,3] },
+            ...(tiempoEstimado && mostrarTiempo !== false
+              ? [{ text: `Tiempo estimado: ${tiempoEstimado}`, fontSize: 9, color: P.gray, font: "Roboto", margin: [0,0,0,3] }]
+              : []),
             { text: "Validez: 30 días", fontSize: 9, color: P.gray, font: "Roboto" }
           ],
           fillColor: P.bg, border: [false,false,false,false], margin: [16, 14, 0, 14]
@@ -261,22 +266,24 @@ async function generarPDFCotizacion(cotizacion, nombreCliente = "Cliente") {
   } else {
     tablaItems = {
       table: {
-        widths: [28, "*", 72, 34, 82],
+        widths: [24, "*", 34, 36, 60, 76],
         body: [
           [
-            th("N°",         "center",  8,  8),
+            th("N°",         "center",  6,  6),
             th("DESCRIPCIÓN","left",   12,  8),
-            th("PRECIO",     "right",   8,  8),
             th("CANT.",      "center",  4,  4),
+            th("UNIDAD",     "center",  4,  4),
+            th("PRECIO",     "right",   8,  8),
             th("TOTAL",      "right",   8, 12)
           ],
           ...items.map((it, i) => {
             const bg = i % 2 === 0 ? P.bg : P.bgRow;
             return [
-              cell(String(i + 1).padStart(2, "0"), { align: "center", color: P.grayLight, fill: bg, margin: [8,9,8,9]  }),
+              cell(String(i + 1).padStart(2, "0"), { align: "center", color: P.grayLight, fill: bg, margin: [6,9,6,9]  }),
               cell(it.descripcion || "—",          { fill: bg, margin: [12,9,8,9] }),
-              cell(fmtM(it.precio),               { align: "right", color: P.gray, fill: bg, margin: [8,9,8,9] }),
               cell(String(it.cantidad || 1),       { align: "center", color: P.gray, fill: bg, margin: [4,9,4,9] }),
+              cell(it.unidad || "Un",              { align: "center", color: P.gray, fill: bg, margin: [4,9,4,9] }),
+              cell(fmtM(it.precio),               { align: "right", color: P.gray, fill: bg, margin: [8,9,8,9] }),
               cell(fmtM(it.subtotal),             { align: "right", bold: true, color: P.green, fill: bg, margin: [8,9,12,9] })
             ];
           })
@@ -424,6 +431,21 @@ const bloqueTotales = {
 //    }
 //  }
 //];
+
+  // ════════════════════════════════════════════════════════════
+  // BLOQUE 7.5 · MATERIALES A UTILIZAR (texto libre, varía por obra)
+  // ════════════════════════════════════════════════════════════
+  const materialesLineas = (() => {
+    if (materialesArray && materialesArray.length > 0) return materialesArray.map(m => m.trim()).filter(Boolean);
+    if (materiales) return materiales.split("\n").map(l => l.trim()).filter(Boolean);
+    return [];
+  })();
+
+  const bloqueMateriales = (materialesLineas.length > 0 && mostrarMateriales !== false) ? [
+    hr(),
+    sLabel("MATERIALES A UTILIZAR"),
+    { ul: materialesLineas, fontSize: 9.5, color: P.black, font: "Roboto", lineHeight: 1.5, markerColor: P.green }
+  ] : [];
 
   // ════════════════════════════════════════════════════════════
   // BLOQUE 8 · NOTAS
@@ -609,6 +631,7 @@ const bloqueTotales = {
       bloqueTotales,
       ...bloquePagos,
       // ...bloquePago,
+      ...bloqueMateriales,
       ...bloqueNotas,
       ...bloqueTerminos,
       //...bloqueAprobacion,
