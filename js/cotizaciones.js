@@ -87,29 +87,32 @@ async function procesarAnexos() {
 function toggleColumnasItems() {
   const headers = document.querySelectorAll("#tabla-items th");
   const cells = document.querySelectorAll("#tabla-items td");
-  
+  const COLS = 6; // Descripción, Cantidad, Unidad, Precio, Subtotal, Acciones
+
   if (tipoCalculo === "valor-total") {
     headers[1].classList.add("hidden");
     headers[2].classList.add("hidden");
     headers[3].classList.add("hidden");
-    
+    headers[4].classList.add("hidden");
+
     for (let i = 0; i < cells.length; i++) {
-      const position = i % 5;
-      if (position === 1 || position === 2 || position === 3) {
+      const position = i % COLS;
+      if (position === 1 || position === 2 || position === 3 || position === 4) {
         cells[i].classList.add("hidden");
       }
     }
-    
+
     document.getElementById("agregar-item").textContent = "+ Agregar Descripción";
   } else {
     headers[1].classList.remove("hidden");
     headers[2].classList.remove("hidden");
     headers[3].classList.remove("hidden");
-    
+    headers[4].classList.remove("hidden");
+
     for (let i = 0; i < cells.length; i++) {
       cells[i].classList.remove("hidden");
     }
-    
+
     document.getElementById("agregar-item").textContent = "+ Agregar Ítem";
   }
 }
@@ -191,13 +194,19 @@ inputValorTotal.addEventListener("input", recalcular);
 // ============================
 // 🔹 Ítems dinámicos
 // ============================
-document.getElementById("agregar-item").addEventListener("click", () => {
+function crearFilaItem(it = {}) {
   const row = document.createElement("tr");
 
+  const desc = it.descripcion || "";
+  const cant = it.cantidad != null ? it.cantidad : 1;
+  const unidad = it.unidad || "Un";
+  const precio = it.precio != null ? it.precio : 0;
+
   row.innerHTML = `
-    <td><input type="text" class="desc border p-1 w-full" placeholder="Descripción" spellcheck="true" lang="es"></td>
-    <td><input type="number" class="cant border p-1 w-full" value="1" min="1"></td>
-    <td><input type="number" class="precio border p-1 w-full" value="0" min="0" placeholder="Precio"></td>
+    <td><input type="text" class="desc border p-1 w-full" placeholder="Descripción" spellcheck="true" lang="es" value="${String(desc).replace(/"/g, '&quot;')}"></td>
+    <td><input type="number" class="cant border p-1 w-full" value="${cant}" min="1"></td>
+    <td><input type="text" class="unidad border p-1 w-full" list="unidades-comunes" placeholder="Un" value="${String(unidad).replace(/"/g, '&quot;')}"></td>
+    <td><input type="number" class="precio border p-1 w-full" value="${precio}" min="0" placeholder="Precio"></td>
     <td class="subtotal text-right p-2">0</td>
     <td><button type="button" class="text-red-600">Eliminar</button></td>
   `;
@@ -212,6 +221,12 @@ document.getElementById("agregar-item").addEventListener("click", () => {
   tablaItems.appendChild(row);
   toggleColumnasItems();
   recalcular();
+  return row;
+}
+window.agregarItem = crearFilaItem;
+
+document.getElementById("agregar-item").addEventListener("click", () => {
+  crearFilaItem();
 });
 
 function recalcular() {
@@ -224,11 +239,12 @@ function recalcular() {
     tablaItems.querySelectorAll("tr").forEach(tr => {
       const desc = tr.querySelector(".desc").value;
       const cant = Number(tr.querySelector(".cant").value) || 0;
+      const unidad = tr.querySelector(".unidad")?.value.trim() || "Un";
       const precio = Number(tr.querySelector(".precio").value) || 0;
       const sub = cant * precio;
       tr.querySelector(".subtotal").textContent = sub.toLocaleString("es-CO");
       subtotal += sub;
-      items.push({ descripcion: desc, cantidad: cant, precio, subtotal: sub });
+      items.push({ descripcion: desc, cantidad: cant, unidad, precio, subtotal: sub });
     });
     
     total = subtotal;
@@ -238,11 +254,12 @@ function recalcular() {
     tablaItems.querySelectorAll("tr").forEach(tr => {
       const desc = tr.querySelector(".desc").value;
       const cant = Number(tr.querySelector(".cant").value) || 0;
+      const unidad = tr.querySelector(".unidad")?.value.trim() || "Un";
       const precio = Number(tr.querySelector(".precio").value) || 0;
       const sub = cant * precio;
       
       tr.querySelector(".subtotal").textContent = sub.toLocaleString("es-CO");
-      items.push({ descripcion: desc, cantidad: cant, precio, subtotal: sub });
+      items.push({ descripcion: desc, cantidad: cant, unidad, precio, subtotal: sub });
     });
     
     subtotal = total;
@@ -282,6 +299,14 @@ function leerNotasComoArray() {
   }
 }
 
+// 🔹 Materiales a utilizar (texto libre, un material por línea)
+function leerMaterialesComoArray() {
+  const el = document.getElementById("materiales");
+  if (!el) return [];
+  const texto = el.value.trim();
+  return texto ? texto.split("\n").map(l => l.trim()).filter(Boolean) : [];
+}
+
 function agregarViñeta(texto = "") {
   const container = document.getElementById("notas-vinetas-container");
   if (!container) return;
@@ -309,6 +334,21 @@ form.addEventListener("submit", async (e) => {
   // 🔹 Leer notas (soporte viñetas)
   const notasArray = leerNotasComoArray();
   const notas = notasArray.join("\n"); // guardamos como texto separado por saltos
+
+  // 🔹 Leer materiales (texto libre, un material por línea)
+  const materialesArray = leerMaterialesComoArray();
+  const materiales = materialesArray.join("\n");
+
+  // 🔹 Tiempo estimado de ejecución
+  const tiempoEstimado = (document.getElementById("tiempo-estimado")?.value || "").trim();
+
+  // 🔹 Toggles de secciones opcionales del PDF
+  const mostrarMateriales = document.getElementById("mostrar-materiales")
+    ? document.getElementById("mostrar-materiales").checked
+    : true;
+  const mostrarTiempo = document.getElementById("mostrar-tiempo")
+    ? document.getElementById("mostrar-tiempo").checked
+    : true;
 
   const ubicacion = document.getElementById("ubicacion").value || "";
   const tipoCotizacion = document.querySelector('input[name="tipo"]:checked').value;
@@ -409,6 +449,11 @@ form.addEventListener("submit", async (e) => {
     mostrarDocumento,
     notas,
     notasArray,                 // 🔹 NUEVO: guardamos también el array
+    materiales,
+    materialesArray,
+    tiempoEstimado,
+    mostrarMateriales,
+    mostrarTiempo,
     ubicacion,
     tipo: tipoCotizacion,
     formaPago,
@@ -474,6 +519,11 @@ form.addEventListener("submit", async (e) => {
     mostrarDocumento,
     notas,
     notasArray,
+    materiales,
+    materialesArray,
+    tiempoEstimado,
+    mostrarMateriales,
+    mostrarTiempo,
     ubicacion,
     tipo: tipoCotizacion,
     formaPago,
@@ -806,6 +856,20 @@ function cargarCotizacionEnFormulario(id, c) {
   // Notas
   const notasEl = document.getElementById("notas");
   if (notasEl) notasEl.value = c.notas || "";
+
+  // Materiales
+  const materialesEl = document.getElementById("materiales");
+  if (materialesEl) materialesEl.value = c.materiales || "";
+
+  // Tiempo estimado
+  const tiempoEl = document.getElementById("tiempo-estimado");
+  if (tiempoEl) tiempoEl.value = c.tiempoEstimado || "";
+
+  // Toggles de secciones opcionales del PDF (por defecto activados si nunca se guardaron)
+  const mMateriales = document.getElementById("mostrar-materiales");
+  if (mMateriales) mMateriales.checked = c.mostrarMateriales !== false;
+  const mTiempo = document.getElementById("mostrar-tiempo");
+  if (mTiempo) mTiempo.checked = c.mostrarTiempo !== false;
 
   // Mostrar valor letras
   const mvl = document.getElementById("mostrar-valor-letras");
