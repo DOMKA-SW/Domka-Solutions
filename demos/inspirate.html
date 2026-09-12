@@ -1,49 +1,18 @@
 <!DOCTYPE html>
-<!--
-  ============================================================================
-  DOMKA CONSTRUCCIONES — "INSPÍRATE"
-  ============================================================================
-  Colores y tipografía tomados directamente del repo DOMKA-SW/Domka-Solutions
-  (index.html de la landing pública): verde #1C5C3C como color de marca
-  (no naranja/terracota), tipografía Cormorant Garamond + Outfit, radios
-  redondeados (6/12/20px) y sombras iguales a las que ya usa tu sitio real.
-  Si cambias esos tokens en tu sitio, actualiza el bloque :root de aquí abajo
-  para que esta página seguga en sintonía.
-
-  El visitante elige un espacio y PINTA en vivo pared, piso y el mueble
-  protagonista, sobre un dibujo isométrico hecho en SVG (sin fotos ni
-  renders). 5 espacios: Cocina, Habitación, Sala, Terraza, Oficina/Estudio.
-
-  CÓMO FUNCIONA EL DIBUJO:
-  Cada espacio se define en ROOMS (dentro del <script>) como una lista de
-  "cajas" (muebles) con posición y tamaño en una cuadrícula isométrica.
-  cajaSVG() las convierte en polígonos con sombreado automático. Pintable:
-    - pared (siempre)
-    - piso (siempre)
-    - un mueble protagonista por espacio (accentTag/accentLabel/accentDefaultId):
-        Cocina → Gabinetes · Habitación → Ropa de cama · Sala → Sofá
-        Terraza → Muebles de exterior · Oficina → Escritorio
-  El resto (ventana, cortinas, cuadros, alfombra, plantas, lámpara, vigas)
-  es decoración fija — no necesita imágenes, son formas calculadas igual
-  que los muebles.
-
-  CONFIGURACIÓN PENDIENTE (buscar más abajo en el <script>):
-    EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, WHATSAPP_NUMERO
-  ============================================================================
--->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inspírate — Domka Construcciones</title>
 <meta name="description" content="Elige tu espacio y píntalo a tu gusto. Descubre cómo se vería tu remodelación con Domka Construcciones.">
+<link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
-    /* tomado de domkaconstrucciones.com/index.html */
     --black:#0A0A0A;
     --white:#FFFFFF;
     --gray-50:#F8F8F6;
@@ -96,21 +65,31 @@
   .angosto{max-width:640px;}
 
   header.marca{
-    padding:18px 20px;
+    padding:14px 20px;
     display:flex;
     align-items:center;
     justify-content:space-between;
     border-bottom:1px solid var(--gray-200);
     background:var(--white);
   }
+  header.marca .marca-izq{display:flex; align-items:center; gap:10px; text-decoration:none;}
+  header.marca .nav-logo-img{height:40px; width:40px; object-fit:cover; border-radius:8px; flex-shrink:0;}
   header.marca .nombre{
     font-family:var(--font-display);
     font-weight:600;
-    font-size:1.15rem;
+    font-size:1.1rem;
     color:var(--green);
-    text-decoration:none;
   }
+  header.marca .marca-der{display:flex; align-items:center; gap:16px;}
   header.marca .nit{font-size:.72rem; color:var(--gray-500);}
+  header.marca .btn-inicio{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:.82rem; font-weight:600; color:var(--gray-700);
+    text-decoration:none; padding:8px 14px; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm);
+    transition:border-color .15s ease, color .15s ease;
+  }
+  header.marca .btn-inicio:hover{border-color:var(--green); color:var(--green);}
+  @media (max-width:480px){ header.marca .nit{display:none;} }
 
   .hero{padding:56px 0 44px;}
   .hero h1{font-size:2.15rem; line-height:1.12; color:var(--gray-900); max-width:13ch;}
@@ -253,14 +232,35 @@
   #exito p{max-width:36ch; color:var(--gray-700);}
   #exito .boton{margin-top:18px;}
 
-  footer{padding:26px 0 40px; text-align:center; font-size:.78rem; color:var(--gray-500);}
+  footer{background:var(--gray-900); color:rgba(255,255,255,.6); padding:44px 0 26px; margin-top:20px;}
+  .footer-brand{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .footer-brand img{height:44px; width:44px; object-fit:cover; border-radius:8px; flex-shrink:0;}
+  .footer-brand span{font-family:var(--font-display); font-weight:600; font-size:1.1rem; color:var(--white);}
+  .footer-desc{max-width:46ch; font-size:.85rem; line-height:1.6; margin:0 0 18px;}
+  .footer-social{display:flex; gap:10px;}
+  .footer-social a{
+    width:36px; height:36px; border:1px solid rgba(255,255,255,.15); border-radius:8px;
+    display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.7);
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .footer-social a:hover{border-color:var(--green-light); color:var(--green-light);}
+  .footer-bottom{
+    max-width:960px; margin:30px auto 0; padding:18px 20px 0; border-top:1px solid rgba(255,255,255,.1);
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; font-size:.75rem;
+  }
 </style>
 </head>
 <body>
 
 <header class="marca">
-  <a href="https://domkaconstrucciones.com" class="nombre">Domka Construcciones</a>
-  <span class="nit">NIT 902.083.143-2</span>
+  <a href="../index.html" class="marca-izq">
+    <img src="../img/Logo.png" alt="DOMKA CONSTRUCCIONES logo" class="nav-logo-img">
+    <span class="nombre">Domka Construcciones</span>
+  </a>
+  <div class="marca-der">
+    <span class="nit">NIT 902.083.143-2</span>
+    <a href="../index.html" class="btn-inicio"><i class="fas fa-arrow-left"></i> Inicio</a>
+  </div>
 </header>
 
 <div class="envoltura">
@@ -351,14 +351,27 @@
 
 </div>
 
-<footer>Domka Construcciones · NIT 902.083.143-2 · domkaconstrucciones.com</footer>
+<footer>
+  <div class="envoltura">
+    <div class="footer-brand">
+      <img src="../img/Logo.png" alt="DOMKA CONSTRUCCIONES logo">
+      <span>DOMKA CONSTRUCCIONES</span>
+    </div>
+    <p class="footer-desc">Soluciones integrales de construcción, remodelación y mantenimiento para hogares y empresas en Colombia. Calidad, experiencia y confianza en cada obra.</p>
+    <div class="footer-social">
+      <a href="https://www.linkedin.com/company/domkaconstrucciones" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+      <a href="https://wa.link/54lg8f" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 DOMKA CONSTRUCCIONES S.A.S. · NIT 902.083.143-2</span>
+    <a href="../index.html" style="color:inherit;">domkaconstrucciones.com</a>
+  </div>
+</footer>
 
 <script>
 (function(){
 
-  /* =========================================================
-     CONFIGURACIÓN — reemplaza antes de publicar
-     ========================================================= */
   const EMAILJS_PUBLIC_KEY   = "TU_PUBLIC_KEY";
   const EMAILJS_SERVICE_ID   = "TU_SERVICE_ID";
   const EMAILJS_TEMPLATE_ID  = "TU_TEMPLATE_ID";
@@ -366,9 +379,6 @@
 
   if (window.emailjs) { emailjs.init(EMAILJS_PUBLIC_KEY); }
 
-  /* =========================================================
-     PALETA DE COLORES — nombres genéricos, sin marca
-     ========================================================= */
   const COLORES = [
     { id:"blanco-calido",  nombre:"Blanco cálido",  hex:"#f4efe3" },
     { id:"beige-arena",    nombre:"Beige arena",    hex:"#d8c9ae" },
@@ -389,9 +399,6 @@
   const COLOR_POR_ID = {};
   COLORES.forEach(c => COLOR_POR_ID[c.id] = c);
 
-  /* =========================================================
-     MOTOR ISOMÉTRICO — genérico, sirve para cualquier espacio
-     ========================================================= */
   const COS30 = Math.cos(Math.PI/6);
   const S = 40, OX = 300, OY = 175;
 
@@ -419,9 +426,6 @@
     return poligono(arriba, matizar(color,10)) + poligono(frente, matizar(color,-14)) + poligono(derecha, matizar(color,-28));
   }
 
-  /* =========================================================
-     DEFINICIÓN DE ESPACIOS
-     ========================================================= */
   const ROOMS = {
     cocina: {
       nombre:"Cocina",
@@ -523,9 +527,6 @@
 
   const estado = { espacio:null, colorParedId:null, colorPisoId:null, colorAccentId:null };
 
-  /* =========================================================
-     PASO 1 — TARJETAS DE ESPACIO
-     ========================================================= */
   const listaEspacios = document.getElementById("lista-espacios");
   Object.keys(ROOMS).forEach(id => {
     const r = ROOMS[id];
@@ -576,9 +577,6 @@
     el.classList.add(clase);
   }
 
-  /* =========================================================
-     SELECTORES DE COLOR (pared / piso / mueble protagonista)
-     ========================================================= */
   function construirSelectorColor(contenedorId, campoEstado){
     const contenedor = document.getElementById(contenedorId);
     contenedor.innerHTML = "";
@@ -596,9 +594,6 @@
     });
   }
 
-  /* =========================================================
-     DECORACIÓN: ventana, cortinas, cuadros, alfombra, plantas, lámpara, vigas
-     ========================================================= */
   function dibujarVentana(room){
     if (!room.decorVentana) return "";
     const v = room.decorVentana;
@@ -645,9 +640,6 @@
     return room.vigas.map(v => cajaSVG(0, v.y, room.height, room.width, 0.14, 0.1, "#8a6a45")).join("");
   }
 
-  /* =========================================================
-     DIBUJO DE LA ESCENA (se repinta completa en cada cambio)
-     ========================================================= */
   function dibujarEscena(){
     const room = ROOMS[estado.espacio];
     const colorPared = COLOR_POR_ID[estado.colorParedId].hex;
@@ -678,18 +670,12 @@
     document.getElementById("ficha-accent").textContent = COLOR_POR_ID[estado.colorAccentId].nombre;
   }
 
-  /* =========================================================
-     PASO A FORMULARIO
-     ========================================================= */
   document.getElementById("btn-quiero-obra").addEventListener("click", () => {
     const form = document.getElementById("formulario");
     form.style.display = "block";
     form.scrollIntoView({behavior:"smooth", block:"start"});
   });
 
-  /* =========================================================
-     ENVÍO DEL FORMULARIO
-     ========================================================= */
   document.getElementById("form-lead").addEventListener("submit", function(ev){
     ev.preventDefault();
     const btn = document.getElementById("btn-enviar");
