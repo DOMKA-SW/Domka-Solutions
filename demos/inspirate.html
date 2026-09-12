@@ -3,35 +3,29 @@
   ============================================================================
   DOMKA CONSTRUCCIONES — "INSPÍRATE"
   ============================================================================
-  Página pensada para llegar desde un QR (volante de feria). El visitante
-  elige un espacio y luego PINTA en vivo la pared y el mueble principal sobre
-  un dibujo isométrico (todo generado con SVG + JS, sin fotos). Termina
-  dejando sus datos con el botón "Así quiero mi obra".
+  Colores y tipografía tomados directamente del repo DOMKA-SW/Domka-Solutions
+  (index.html de la landing pública): verde #1C5C3C como color de marca
+  (no naranja/terracota), tipografía Cormorant Garamond + Outfit, radios
+  redondeados (6/12/20px) y sombras iguales a las que ya usa tu sitio real.
+  Si cambias esos tokens en tu sitio, actualiza el bloque :root de aquí abajo
+  para que esta página seguga en sintonía.
+
+  El visitante elige un espacio y PINTA en vivo pared, piso y el mueble
+  protagonista, sobre un dibujo isométrico hecho en SVG (sin fotos ni
+  renders). 5 espacios: Cocina, Habitación, Sala, Terraza, Oficina/Estudio.
 
   CÓMO FUNCIONA EL DIBUJO:
-  Cada espacio (cocina, habitación...) se define en el objeto ROOMS más abajo
-  en el <script>, como una lista de "cajas" (muebles) con posición y tamaño
-  en una cuadrícula isométrica. Una función genérica (isoBox) las convierte
-  en polígonos SVG con sombreado automático (cara de arriba más clara, caras
-  de lado más oscuras) — así se ve con volumen sin necesitar imágenes.
-  Dos elementos son pintables por el usuario:
-    - la pared (siempre)
-    - un mueble "protagonista" por espacio: gabinetes en cocina, ropa de
-      cama en habitación (se define con accentTag / accentLabel por sala).
-  El resto de los muebles (nevera, mesa, lámpara, etc.) quedan con color fijo
-  para que la escena no se vea vacía.
-
-  CÓMO AGREGAR MÁS ESPACIOS (sala, terraza, oficina):
-  Copia el patrón de "cocina" u "habitacion" dentro de ROOMS: define ancho,
-  profundidad, alto, color de pared por defecto, el mueble protagonista
-  (accentTag/accentLabel/accentDefault) y la lista de furniture. No hace
-  falta ninguna imagen. Por ahora esos 3 espacios se muestran como
-  "muy pronto" en el paso 1 — puedo ayudarte a construirlos cuando quieras.
-
-  NOTA — si más adelante prefieres renders fotográficos reales (3D
-  prerenderizados) en vez de este dibujo vectorial, es un mecanismo distinto
-  (swap de imágenes por combinación); dímelo y lo agregamos como una segunda
-  modalidad.
+  Cada espacio se define en ROOMS (dentro del <script>) como una lista de
+  "cajas" (muebles) con posición y tamaño en una cuadrícula isométrica.
+  cajaSVG() las convierte en polígonos con sombreado automático. Pintable:
+    - pared (siempre)
+    - piso (siempre)
+    - un mueble protagonista por espacio (accentTag/accentLabel/accentDefaultId):
+        Cocina → Gabinetes · Habitación → Ropa de cama · Sala → Sofá
+        Terraza → Muebles de exterior · Oficina → Escritorio
+  El resto (ventana, cortinas, cuadros, alfombra, plantas, lámpara, vigas)
+  es decoración fija — no necesita imágenes, son formas calculadas igual
+  que los muebles.
 
   CONFIGURACIÓN PENDIENTE (buscar más abajo en el <script>):
     EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, WHATSAPP_NUMERO
@@ -45,20 +39,33 @@
 <meta name="description" content="Elige tu espacio y píntalo a tu gusto. Descubre cómo se vería tu remodelación con Domka Construcciones.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
-    --ink:#211d16;
-    --paper:#ece5d6;
-    --paper-2:#e0d7c2;
-    --green:#2f4a3d;
-    --green-dark:#1d3129;
-    --brick:#b3502e;
-    --brick-dark:#8c3c21;
-    --line:#c7bca2;
-    --white:#fffcf6;
-    --radius:3px;
+    /* tomado de domkaconstrucciones.com/index.html */
+    --black:#0A0A0A;
+    --white:#FFFFFF;
+    --gray-50:#F8F8F6;
+    --gray-100:#F0F0ED;
+    --gray-200:#E2E2DE;
+    --gray-400:#ABABAB;
+    --gray-500:#7A7A7A;
+    --gray-700:#3D3D3D;
+    --gray-900:#1A1A1A;
+    --green:#1C5C3C;
+    --green-mid:#267A50;
+    --green-light:#3A9E6A;
+    --green-pale:#E8F3EE;
+    --green-glow:rgba(28,92,60,.15);
+    --shadow-sm:0 2px 8px rgba(0,0,0,.06);
+    --shadow-md:0 8px 32px rgba(0,0,0,.1);
+    --shadow-lg:0 20px 60px rgba(0,0,0,.15);
+    --radius-sm:6px;
+    --radius-md:12px;
+    --radius-lg:20px;
+    --font-display:'Cormorant Garamond', Georgia, serif;
+    --font-body:'Outfit', system-ui, sans-serif;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -68,182 +75,199 @@
   }
   body{
     margin:0;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Work Sans', sans-serif;
+    background:var(--gray-50);
+    color:var(--gray-900);
+    font-family:var(--font-body);
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
   }
   h1,h2,h3{
-    font-family:'Fraunces', serif;
-    font-weight:600;
+    font-family:var(--font-display);
+    font-weight:500;
     margin:0 0 .4em 0;
     letter-spacing:-0.01em;
   }
-  a{color:var(--brick);}
-  :focus-visible{outline:2px solid var(--brick); outline-offset:3px;}
+  h1 em, h2 em{font-style:italic; color:var(--green);}
+  a{color:var(--green);}
+  :focus-visible{outline:2px solid var(--green); outline-offset:3px;}
   img{max-width:100%; display:block;}
 
-  .envoltura{max-width:680px; margin:0 auto; padding:0 20px;}
+  .envoltura{max-width:960px; margin:0 auto; padding:0 20px;}
+  .angosto{max-width:640px;}
 
   header.marca{
     padding:18px 20px;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    border-bottom:1px solid var(--line);
+    border-bottom:1px solid var(--gray-200);
+    background:var(--white);
   }
   header.marca .nombre{
-    font-family:'Fraunces', serif;
+    font-family:var(--font-display);
     font-weight:600;
-    font-size:1.05rem;
-    color:var(--green-dark);
+    font-size:1.15rem;
+    color:var(--green);
     text-decoration:none;
   }
-  header.marca .nit{font-size:.72rem; opacity:.55;}
+  header.marca .nit{font-size:.72rem; color:var(--gray-500);}
 
-  .hero{padding:52px 0 40px;}
-  .hero h1{font-size:2.15rem; line-height:1.12; color:var(--green-dark); max-width:12ch;}
-  .hero p{max-width:40ch; font-size:1.02rem; opacity:.85; margin:0 0 26px 0;}
+  .hero{padding:56px 0 44px;}
+  .hero h1{font-size:2.15rem; line-height:1.12; color:var(--gray-900); max-width:13ch;}
+  .hero p{max-width:40ch; font-size:1.02rem; color:var(--gray-700); margin:0 0 26px 0;}
+  @media (min-width:820px){
+    .hero{padding:76px 0 56px;}
+    .hero h1{font-size:2.9rem;}
+    .hero p{font-size:1.1rem;}
+  }
+
   .boton{
-    display:inline-block;
-    background:var(--brick);
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--green);
     color:var(--white);
     border:none;
-    font-family:'Work Sans', sans-serif;
+    font-family:var(--font-body);
     font-weight:600;
-    font-size:.98rem;
-    padding:14px 26px;
-    border-radius:var(--radius);
+    font-size:.95rem;
+    padding:14px 28px;
+    border-radius:var(--radius-sm);
     cursor:pointer;
     text-decoration:none;
-    transition:background .15s ease;
+    letter-spacing:.02em;
+    box-shadow:0 4px 20px var(--green-glow);
+    transition:background .2s ease, transform .15s ease, box-shadow .2s ease;
   }
-  .boton:hover{background:var(--brick-dark);}
-  .boton.secundario{background:transparent; color:var(--green-dark); border:1.5px solid var(--green-dark);}
-  .boton.secundario:hover{background:var(--green-dark); color:var(--white);}
-  .boton.chico{padding:9px 16px; font-size:.85rem;}
+  .boton:hover{background:var(--green-mid); transform:translateY(-2px); box-shadow:0 8px 28px rgba(28,92,60,.25);}
+  .boton.secundario{background:transparent; color:var(--green); border:1.5px solid var(--gray-200);}
+  .boton.secundario:hover{border-color:var(--green); background:transparent; color:var(--green); box-shadow:none;}
   .boton:disabled{opacity:.55; cursor:default;}
 
   .barra{
     position:sticky; top:0; z-index:5;
-    background:var(--paper);
-    border-bottom:1px solid var(--line);
+    background:rgba(248,248,246,.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--gray-200);
     padding:12px 0;
   }
-  .barra ol{list-style:none; display:flex; gap:0; margin:0; padding:0;}
+  .barra ol{list-style:none; display:flex; gap:0; margin:0 auto; padding:0; max-width:640px;}
   .barra li{
     flex:1; text-align:center; font-size:.72rem; font-weight:600;
-    color:var(--ink); opacity:.4; position:relative; padding-top:12px;
+    color:var(--gray-500); position:relative; padding-top:12px;
   }
-  .barra li::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--line);}
-  .barra li.activo{opacity:1; color:var(--green-dark);}
-  .barra li.activo::before{background:var(--brick);}
-  .barra li.hecho::before{background:var(--green);}
+  .barra li::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--gray-200); border-radius:3px;}
+  .barra li.activo{color:var(--green-mid);}
+  .barra li.activo::before{background:var(--green);}
+  .barra li.hecho::before{background:var(--green-light);}
 
-  .paso{padding:38px 0; border-bottom:1px solid var(--line);}
+  .paso{padding:38px 0; border-bottom:1px solid var(--gray-200);}
   .paso.bloqueado{display:none;}
-  .paso .rotulo{font-size:.78rem; font-weight:600; color:var(--brick); margin-bottom:6px;}
-  .paso h2{font-size:1.4rem; color:var(--green-dark);}
+  .paso .rotulo{font-size:.75rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--green); margin-bottom:6px;}
+  .paso h2{font-size:1.4rem; color:var(--gray-900);}
+  @media (min-width:820px){ .paso h2{font-size:1.7rem;} }
 
-  .cuadricula{display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-top:20px;}
-  .tarjeta{
-    background:var(--white); border:1.5px solid var(--line); border-radius:var(--radius);
-    padding:16px 12px; text-align:center; cursor:pointer; position:relative;
-    transition:border-color .15s ease;
+  .cuadricula{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:12px;
+    margin-top:20px;
   }
-  .tarjeta:hover{border-color:var(--green);}
-  .tarjeta svg{width:40px; height:40px; stroke:var(--green-dark); margin:0 auto 10px;}
-  .tarjeta span{display:block; font-weight:600; font-size:.9rem;}
-  .tarjeta.seleccionada{border-color:var(--brick); background:#f8f1e6;}
-  .tarjeta.seleccionada svg{stroke:var(--brick);}
-  .tarjeta.proximamente{cursor:default; opacity:.5;}
-  .tarjeta.proximamente:hover{border-color:var(--line);}
-  .insignia{
-    position:absolute; top:8px; right:8px;
-    font-size:.62rem; font-weight:600;
-    background:var(--paper-2); color:var(--ink);
-    padding:2px 6px; border-radius:20px;
+  .tarjeta{
+    background:var(--white); border:1px solid var(--gray-200); border-radius:var(--radius-md);
+    padding:18px 12px; text-align:center; cursor:pointer;
+    box-shadow:var(--shadow-sm);
+    transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+  .tarjeta:hover{border-color:transparent; transform:translateY(-3px); box-shadow:var(--shadow-md);}
+  .tarjeta svg{width:40px; height:40px; stroke:var(--gray-700); margin:0 auto 10px;}
+  .tarjeta span{display:block; font-weight:600; font-size:.9rem; color:var(--gray-900);}
+  .tarjeta.seleccionada{border-color:var(--green); background:var(--green-pale);}
+  .tarjeta.seleccionada svg{stroke:var(--green);}
+
+  .personaliza-grid{display:grid; grid-template-columns:1fr; gap:22px; margin-top:20px; align-items:start;}
+  @media (min-width:840px){
+    .personaliza-grid{grid-template-columns:1.15fr .85fr; gap:28px;}
+  }
+
+  .cambiar-espacio{
+    display:inline-block; margin-top:6px; font-size:.82rem; font-weight:600;
+    color:var(--green); cursor:pointer; text-decoration:underline;
   }
 
   .lienzo-caja{
     background:var(--white);
-    border:1.5px solid var(--line);
-    border-radius:var(--radius);
+    border:1px solid var(--gray-200);
+    border-radius:var(--radius-md);
     padding:14px;
-    margin-top:20px;
+    box-shadow:var(--shadow-sm);
   }
-  .lienzo-caja p.pista{font-size:.8rem; opacity:.65; margin:0 0 10px;}
+  .lienzo-caja p.pista{font-size:.8rem; color:var(--gray-500); margin:0 0 10px;}
   #lienzo-svg{width:100%; height:auto; display:block;}
 
-  .pintores{margin-top:22px;}
-  .grupo-color{margin-bottom:20px;}
-  .grupo-color h3{font-size:.85rem; font-family:'Work Sans', sans-serif; font-weight:600; margin:0 0 10px;}
-  .colores{display:flex; flex-wrap:wrap; gap:16px;}
-  .color-op{text-align:center; cursor:pointer; width:64px;}
+  .pintores{
+    background:var(--white);
+    border:1px solid var(--gray-200);
+    border-radius:var(--radius-md);
+    padding:16px;
+    box-shadow:var(--shadow-sm);
+  }
+  .grupo-color{margin-bottom:18px;}
+  .grupo-color:last-child{margin-bottom:0;}
+  .grupo-color h3{font-size:.82rem; font-family:var(--font-body); font-weight:600; margin:0 0 10px; color:var(--gray-900);}
+  .colores{display:flex; flex-wrap:wrap; gap:11px;}
+  .color-op{text-align:center; cursor:pointer; width:52px;}
   .color-op .bola{
-    width:44px; height:44px; border-radius:50%;
-    border:2px solid rgba(0,0,0,.1); margin:0 auto 6px;
-    transition:box-shadow .15s ease;
+    width:36px; height:36px; border-radius:50%;
+    border:2px solid rgba(0,0,0,.08); margin:0 auto 6px;
+    transition:box-shadow .15s ease, transform .12s ease;
   }
-  .color-op.seleccionada .bola{box-shadow:0 0 0 3px var(--white), 0 0 0 5px var(--brick);}
-  .color-op span{font-size:.68rem; font-weight:500;}
+  .color-op:hover .bola{transform:scale(1.08);}
+  .color-op.seleccionada .bola{box-shadow:0 0 0 3px var(--white), 0 0 0 5px var(--green); transform:scale(1.05);}
+  .color-op span{font-size:.62rem; font-weight:500; line-height:1.2; display:block; color:var(--gray-700);}
 
-  .ficha{
-    margin-top:20px;
-    border-top:1px solid var(--line);
-    padding-top:14px;
-  }
-  .ficha .fila{
-    display:flex; justify-content:space-between; padding:7px 0;
-    font-size:.9rem; border-bottom:1px dashed var(--line);
-  }
+  .ficha{margin-top:22px; border-top:1px solid var(--gray-200); padding-top:14px; max-width:640px;}
+  .ficha .fila{display:flex; justify-content:space-between; padding:7px 0; font-size:.9rem; border-bottom:1px dashed var(--gray-200);}
   .ficha .fila:last-child{border-bottom:none;}
-  .ficha .fila b{color:var(--green-dark);}
+  .ficha .fila b{color:var(--gray-900);}
 
-  .cambiar-espacio{
-    display:inline-block; margin-top:6px; font-size:.82rem; font-weight:600;
-    color:var(--green-dark); cursor:pointer; text-decoration:underline;
-  }
-
-  .cta-final{margin-top:24px;}
-  .cta-final .boton{width:100%; text-align:center; padding:16px; font-size:1.05rem;}
+  .cta-final{margin-top:24px; max-width:420px;}
+  .cta-final .boton{width:100%; justify-content:center; padding:16px; font-size:1.02rem;}
 
   #formulario{display:none; padding:34px 0 50px;}
-  #formulario h2{font-size:1.3rem; color:var(--green-dark);}
-  #formulario label{display:block; font-size:.85rem; font-weight:600; margin:16px 0 6px;}
+  #formulario h2{font-size:1.3rem; color:var(--gray-900);}
+  #formulario label{display:block; font-size:.85rem; font-weight:600; margin:16px 0 6px; color:var(--gray-900);}
   #formulario input{
-    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:var(--radius);
-    font-family:'Work Sans', sans-serif; font-size:.95rem; background:var(--white);
+    width:100%; padding:12px 16px; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm);
+    font-family:var(--font-body); font-size:.95rem; color:var(--gray-900); background:var(--white);
+    transition:border-color .15s ease, box-shadow .15s ease; outline:none;
   }
-  #formulario input:focus{border-color:var(--green);}
-  #formulario .boton{margin-top:22px; width:100%;}
-  .aviso{font-size:.78rem; opacity:.65; margin-top:10px;}
+  #formulario input:focus{border-color:var(--green); box-shadow:0 0 0 3px var(--green-glow);}
+  #formulario .boton{margin-top:22px; width:100%; justify-content:center;}
+  .aviso{font-size:.78rem; color:var(--gray-500); margin-top:10px;}
   .error-envio{
-    display:none; background:#f6e3da; border:1px solid var(--brick); color:var(--brick-dark);
-    padding:10px 14px; border-radius:var(--radius); font-size:.85rem; margin-top:14px;
+    display:none; background:#fbeceb; border:1px solid #c0503f; color:#8c3c2f;
+    padding:10px 14px; border-radius:var(--radius-sm); font-size:.85rem; margin-top:14px;
   }
 
   #exito{display:none; padding:50px 0 60px;}
-  #exito h2{color:var(--green-dark); font-size:1.5rem;}
-  #exito p{max-width:36ch; opacity:.85;}
+  #exito h2{color:var(--gray-900); font-size:1.5rem;}
+  #exito p{max-width:36ch; color:var(--gray-700);}
   #exito .boton{margin-top:18px;}
 
-  footer{padding:26px 0 40px; text-align:center; font-size:.78rem; opacity:.55;}
+  footer{padding:26px 0 40px; text-align:center; font-size:.78rem; color:var(--gray-500);}
 </style>
 </head>
 <body>
 
 <header class="marca">
   <a href="https://domkaconstrucciones.com" class="nombre">Domka Construcciones</a>
-    <a class="back" href="/index.html">Volver al inicio</a>
+  <span class="nit">NIT 902.083.143-2</span>
 </header>
 
 <div class="envoltura">
 
-  <section class="hero">
-    <h1>Antes de construirlo, imagínalo.</h1>
-    <p>Elige tu espacio y píntalo a tu gusto: pared y muebles. Así de fácil es empezar a imaginar tu remodelación.</p>
+  <section class="hero angosto">
+    <h1>Antes de construirlo, <em>imagínalo</em>.</h1>
+    <p>Elige tu espacio y píntalo a tu gusto: pared, piso y muebles. Así de fácil es empezar a imaginar tu remodelación.</p>
     <a href="#configurador" class="boton">Empezar</a>
   </section>
 
@@ -255,39 +279,44 @@
     </ol>
   </nav>
 
-  <!-- PASO 1: ESPACIO -->
   <section class="paso" id="paso-espacio">
     <div class="rotulo">Paso 1</div>
     <h2>¿Qué espacio quieres transformar?</h2>
     <div class="cuadricula" id="lista-espacios"></div>
   </section>
 
-  <!-- PASO 2: PERSONALIZA (lienzo + pintura en vivo) -->
   <section class="paso bloqueado" id="paso-personaliza">
     <div class="rotulo">Paso 2</div>
     <h2>Píntalo a tu gusto</h2>
     <span class="cambiar-espacio" id="btn-cambiar-espacio">Cambiar espacio</span>
 
-    <div class="lienzo-caja">
-      <p class="pista">Toca un color para pintar la pared o el mueble principal.</p>
-      <svg id="lienzo-svg" viewBox="0 0 640 560" xmlns="http://www.w3.org/2000/svg"></svg>
-    </div>
-
-    <div class="pintores">
-      <div class="grupo-color">
-        <h3>Color de pared</h3>
-        <div class="colores" id="lista-colores-pared"></div>
+    <div class="personaliza-grid">
+      <div class="lienzo-caja">
+        <p class="pista">Toca un color para pintar la pared, el piso o el mueble principal.</p>
+        <svg id="lienzo-svg" viewBox="0 0 640 560" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
-      <div class="grupo-color">
-        <h3 id="titulo-accent">Color de muebles</h3>
-        <div class="colores" id="lista-colores-accent"></div>
+
+      <div class="pintores">
+        <div class="grupo-color">
+          <h3>Color de pared</h3>
+          <div class="colores" id="lista-colores-pared"></div>
+        </div>
+        <div class="grupo-color">
+          <h3>Color de piso</h3>
+          <div class="colores" id="lista-colores-piso"></div>
+        </div>
+        <div class="grupo-color">
+          <h3 id="titulo-accent">Color de muebles</h3>
+          <div class="colores" id="lista-colores-accent"></div>
+        </div>
       </div>
     </div>
 
     <div class="ficha">
       <div class="fila"><span>Espacio</span><b id="ficha-espacio">—</b></div>
       <div class="fila"><span>Color de pared</span><b id="ficha-pared">—</b></div>
-      <div class="fila" id="fila-accent"><span id="ficha-accent-label">Muebles</span><b id="ficha-accent">—</b></div>
+      <div class="fila"><span>Color de piso</span><b id="ficha-piso">—</b></div>
+      <div class="fila"><span id="ficha-accent-label">Muebles</span><b id="ficha-accent">—</b></div>
     </div>
 
     <div class="cta-final">
@@ -295,10 +324,9 @@
     </div>
   </section>
 
-  <!-- FORMULARIO -->
-  <section id="formulario">
+  <section id="formulario" class="angosto">
     <h2>Cuéntanos cómo contactarte</h2>
-    <p style="opacity:.75; font-size:.9rem; margin:0;">Con esto, uno de nuestros asesores te escribe para armar tu cotización real.</p>
+    <p style="color:var(--gray-700); font-size:.9rem; margin:0;">Con esto, uno de nuestros asesores te escribe para armar tu cotización real.</p>
     <form id="form-lead">
       <label for="campo-nombre">Nombre completo</label>
       <input type="text" id="campo-nombre" name="nombre" required autocomplete="name">
@@ -315,8 +343,7 @@
     </form>
   </section>
 
-  <!-- ÉXITO -->
-  <section id="exito">
+  <section id="exito" class="angosto">
     <h2 id="exito-titulo">¡Listo!</h2>
     <p>Ya tenemos tu idea guardada. Uno de nuestros asesores te escribe muy pronto para convertirla en una cotización real.</p>
     <a class="boton secundario" id="link-whatsapp" target="_blank" rel="noopener">Escribir ahora por WhatsApp</a>
@@ -340,15 +367,24 @@
   if (window.emailjs) { emailjs.init(EMAILJS_PUBLIC_KEY); }
 
   /* =========================================================
-     PALETA DE COLORES (para pared y para el mueble protagonista)
+     PALETA DE COLORES — nombres genéricos, sin marca
      ========================================================= */
   const COLORES = [
     { id:"blanco-calido",  nombre:"Blanco cálido",  hex:"#f4efe3" },
-    { id:"verde-salvia",   nombre:"Verde salvia",   hex:"#8a9a82" },
+    { id:"beige-arena",    nombre:"Beige arena",    hex:"#d8c9ae" },
+    { id:"gris-perla",     nombre:"Gris perla",     hex:"#c9c4b8" },
+    { id:"rosa-palo",      nombre:"Rosa palo",      hex:"#c9a0a0" },
+    { id:"mostaza",        nombre:"Mostaza",        hex:"#c98a2c" },
     { id:"terracota",      nombre:"Terracota",      hex:"#b3502e" },
+    { id:"verde-salvia",   nombre:"Verde salvia",   hex:"#8a9a82" },
+    { id:"verde-oliva",    nombre:"Verde oliva",    hex:"#6b7052" },
+    { id:"verde-bosque",   nombre:"Verde bosque",   hex:"#1c5c3c" },
+    { id:"azul-grisaceo",  nombre:"Azul grisáceo",  hex:"#6d8a96" },
     { id:"azul-petroleo",  nombre:"Azul petróleo",  hex:"#2b4b54" },
+    { id:"vino-tinto",     nombre:"Vino tinto",     hex:"#6b2c3a" },
     { id:"gris-carbon",    nombre:"Gris carbón",    hex:"#3b3b3b" },
-    { id:"beige-arena",    nombre:"Beige arena",    hex:"#d8c9ae" }
+    { id:"madera-clara",   nombre:"Madera clara",   hex:"#c9a06a" },
+    { id:"madera-oscura",  nombre:"Madera oscura",  hex:"#6b4a2c" }
   ];
   const COLOR_POR_ID = {};
   COLORES.forEach(c => COLOR_POR_ID[c.id] = c);
@@ -357,11 +393,10 @@
      MOTOR ISOMÉTRICO — genérico, sirve para cualquier espacio
      ========================================================= */
   const COS30 = Math.cos(Math.PI/6);
-  const SIN30 = 0.5;
-  const S = 40, OX = 290, OY = 180; // escala y origen del dibujo
+  const S = 40, OX = 300, OY = 175;
 
   function proyectar(x,y,z){
-    return [ OX + (x-y)*COS30*S, OY + (x+y)*SIN30*S - z*S ];
+    return [ OX + (x-y)*COS30*S, OY + (x+y)*0.5*S - z*S ];
   }
   function matizar(hex, porcentaje){
     const num = parseInt(hex.replace('#',''),16);
@@ -372,15 +407,15 @@
     b = Math.min(255, Math.max(0, b+ajuste));
     return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
   }
-  function poligono(puntos, relleno){
-    return `<polygon points="${puntos.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${relleno}" stroke="rgba(0,0,0,0.12)" stroke-width="0.6"/>`;
+  function pts(lista){ return lista.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '); }
+  function poligono(puntos, relleno, borde){
+    return `<polygon points="${pts(puntos)}" fill="${relleno}" stroke="${borde||'rgba(0,0,0,0.12)'}" stroke-width="0.6"/>`;
   }
-  // Caja 3D simple: cara de arriba, cara frontal (y+d) y cara derecha (x+w)
   function cajaSVG(x,y,z,w,d,h,color){
     const z1 = z+h;
-    const arriba = [proyectar(x,y,z1),proyectar(x+w,y,z1),proyectar(x+w,y+d,z1),proyectar(x,y+d,z1)];
+    const arriba  = [proyectar(x,y,z1),proyectar(x+w,y,z1),proyectar(x+w,y+d,z1),proyectar(x,y+d,z1)];
     const derecha = [proyectar(x+w,y,z),proyectar(x+w,y,z1),proyectar(x+w,y+d,z1),proyectar(x+w,y+d,z)];
-    const frente = [proyectar(x,y+d,z),proyectar(x,y+d,z1),proyectar(x+w,y+d,z1),proyectar(x+w,y+d,z)];
+    const frente  = [proyectar(x,y+d,z),proyectar(x,y+d,z1),proyectar(x+w,y+d,z1),proyectar(x+w,y+d,z)];
     return poligono(arriba, matizar(color,10)) + poligono(frente, matizar(color,-14)) + poligono(derecha, matizar(color,-28));
   }
 
@@ -391,48 +426,102 @@
     cocina: {
       nombre:"Cocina",
       iconoSvg:'<rect x="8" y="10" width="48" height="18" rx="1"/><circle cx="20" cy="19" r="4"/><circle cx="34" cy="19" r="4"/><rect x="8" y="36" width="48" height="16" rx="1"/>',
-      disponible:true,
       width:9, depth:7, height:4,
-      wallDefaultId:"blanco-calido",
-      accentTag:"gabinete",
-      accentLabel:"Gabinetes",
-      accentDefaultId:"verde-salvia",
+      wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
+      accentTag:"gabinete", accentLabel:"Gabinetes", accentDefaultId:"verde-salvia",
+      decorVentana:{y0:3.6, y1:5.8, z0:2.2, z1:3.4},
+      alfombra:{x:2.6, y:3.3, w:2.6, d:2.2, color:"#e3dcc9"},
+      lampara:{x:4.1, y:4.2},
       furniture:[
-        {tag:"fijo",     x:0.3, y:0.3, z:0,   w:1.3, d:1.3, h:3.2, color:"#cfd3d6"}, // nevera
-        {tag:"gabinete", x:1.9, y:0.3, z:0,   w:2.6, d:1.1, h:1.6, color:"#8a9a82"}, // bajo 1
-        {tag:"gabinete", x:4.7, y:0.3, z:0,   w:2.6, d:1.1, h:1.6, color:"#8a9a82"}, // bajo 2
-        {tag:"fijo",     x:1.9, y:0.3, z:1.6, w:5.4, d:1.15,h:0.12,color:"#f5f2ea"}, // encimera
-        {tag:"gabinete", x:1.9, y:0.3, z:2.5, w:2.4, d:0.6, h:1.0, color:"#8a9a82"}, // alacena
-        {tag:"fijo",     x:5.2, y:0.35,z:1.9, w:0.9, d:0.5, h:1.2, color:"#9a9d9f"}, // campana
-        {tag:"fijo",     x:3.4, y:3.7, z:0,   w:1.5, d:1.0, h:0.9, color:"#c9a06a"}, // mesa
-        {tag:"fijo",     x:2.7, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"}, // banco 1
-        {tag:"fijo",     x:4.5, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"}  // banco 2
+        {tag:"fijo",     x:0.3, y:0.3, z:0,   w:1.3, d:1.3, h:3.2, color:"#cfd3d6"},
+        {tag:"gabinete", x:1.9, y:0.3, z:0,   w:2.6, d:1.1, h:1.6, color:"#8a9a82"},
+        {tag:"gabinete", x:4.7, y:0.3, z:0,   w:2.6, d:1.1, h:1.6, color:"#8a9a82"},
+        {tag:"fijo",     x:1.9, y:0.3, z:1.6, w:5.4, d:1.15,h:0.12,color:"#f5f2ea"},
+        {tag:"gabinete", x:1.9, y:0.3, z:2.5, w:2.4, d:0.6, h:1.0, color:"#8a9a82"},
+        {tag:"fijo",     x:5.2, y:0.35,z:1.9, w:0.9, d:0.5, h:1.2, color:"#9a9d9f"},
+        {tag:"planta",   x:2.5, y:0.4, z:1.72,w:0.28,d:0.28,h:0.22,color:"#6b4a2c"},
+        {tag:"fijo",     x:3.4, y:3.7, z:0,   w:1.5, d:1.0, h:0.9, color:"#c9a06a"},
+        {tag:"fijo",     x:2.7, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"},
+        {tag:"fijo",     x:4.5, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"}
       ]
     },
     habitacion: {
       nombre:"Habitación",
       iconoSvg:'<rect x="14" y="10" width="36" height="44" rx="2"/><line x1="14" y1="22" x2="50" y2="22"/><rect x="18" y="12" width="10" height="8"/><rect x="36" y="12" width="10" height="8"/>',
-      disponible:true,
       width:8, depth:7, height:4,
-      wallDefaultId:"blanco-calido",
-      accentTag:"cama",
-      accentLabel:"Ropa de cama",
-      accentDefaultId:"azul-petroleo",
+      wallDefaultId:"blanco-calido", floorDefaultId:"madera-clara",
+      accentTag:"cama", accentLabel:"Ropa de cama", accentDefaultId:"azul-petroleo",
+      decorVentana:{y0:3.0, y1:5.6, z0:1.0, z1:3.0},
+      decorCortinas:true,
+      decorCuadros:[{x0:5.5,x1:6.2,z0:2.1,z1:2.9},{x0:6.4,x1:7.1,z0:2.1,z1:2.9}],
+      alfombra:{x:0.6, y:3.7, w:5.4, d:1.8, color:"#e9e2d1"},
       furniture:[
-        {tag:"fijo", x:1.0, y:0.35,z:0,    w:4.2, d:0.15, h:1.6, color:"#2f2c29"}, // cabecero
-        {tag:"fijo", x:1.0, y:0.4, z:0,    w:4.2, d:3.2,  h:0.6, color:"#3d3a36"}, // base cama
-        {tag:"cama", x:1.0, y:0.4, z:0.6,  w:4.2, d:3.2,  h:0.32,color:"#2b4b54"}, // ropa de cama
-        {tag:"fijo", x:5.6, y:0.4, z:0,    w:1.0, d:1.0,  h:0.9, color:"#3a352f"}, // mesita
-        {tag:"fijo", x:5.85,y:0.65,z:0.9,  w:0.35,d:0.35, h:0.5, color:"#e7c873"}, // lámpara
-        {tag:"fijo", x:0.3, y:5.2, z:0,    w:0.5, d:0.5,  h:0.05,color:"#6b4a2c"}  // maceta (base)
+        {tag:"fijo", x:1.0, y:0.35,z:0,   w:4.2, d:0.15, h:1.6, color:"#2f2c29"},
+        {tag:"fijo", x:1.0, y:0.4, z:0,   w:4.2, d:3.2,  h:0.6, color:"#3d3a36"},
+        {tag:"cama", x:1.0, y:0.4, z:0.6, w:4.2, d:3.2,  h:0.32,color:"#2b4b54"},
+        {tag:"fijo", x:1.6, y:3.7, z:0,   w:2.6, d:0.6,  h:0.45,color:"#5a4632"},
+        {tag:"fijo", x:5.6, y:0.4, z:0,   w:1.0, d:1.0,  h:0.9, color:"#3a352f"},
+        {tag:"fijo", x:5.85,y:0.65,z:0.9, w:0.35,d:0.35, h:0.5, color:"#e7c873"},
+        {tag:"planta", x:0.2, y:5.2,z:0,  w:0.55,d:0.55, h:0.4, color:"#8a5a3a"}
       ]
     },
-    sala:      { nombre:"Sala",             iconoSvg:'<rect x="8" y="14" width="48" height="14" rx="3"/><rect x="20" y="36" width="24" height="14" rx="2"/>', disponible:false },
-    terraza:   { nombre:"Terraza",          iconoSvg:'<line x1="10" y1="8" x2="10" y2="56"/><line x1="10" y1="8" x2="54" y2="8"/><line x1="18" y1="8" x2="18" y2="56"/><line x1="26" y1="8" x2="26" y2="56"/><circle cx="44" cy="40" r="8"/>', disponible:false },
-    oficina:   { nombre:"Oficina / Estudio",iconoSvg:'<rect x="10" y="14" width="44" height="18" rx="1"/><rect x="24" y="38" width="16" height="14" rx="2"/>', disponible:false }
+    sala: {
+      nombre:"Sala",
+      iconoSvg:'<rect x="8" y="14" width="48" height="14" rx="3"/><rect x="20" y="36" width="24" height="14" rx="2"/>',
+      width:9, depth:7, height:4,
+      wallDefaultId:"blanco-calido", floorDefaultId:"madera-clara",
+      accentTag:"sofa", accentLabel:"Sofá", accentDefaultId:"azul-grisaceo",
+      decorVentana:{y0:0.8, y1:3.8, z0:1.0, z1:3.2},
+      decorCuadros:[{x0:1.4,x1:2.9,z0:2.1,z1:3.0}],
+      lampara:{x:0.7, y:5.6},
+      furniture:[
+        {tag:"sofa", x:1.0, y:0.3, z:0,   w:4.6, d:1.3,  h:0.9,  color:"#6d8a96"},
+        {tag:"fijo", x:2.3, y:2.4, z:0,   w:2.0, d:1.1,  h:0.45, color:"#c9a06a"},
+        {tag:"fijo", x:6.3, y:0.3, z:0,   w:2.2, d:0.55, h:0.9,  color:"#3a352f"},
+        {tag:"fijo", x:6.4, y:0.45,z:0.9, w:0.4, d:0.3,  h:0.35, color:"#6b2c3a"},
+        {tag:"fijo", x:1.6, y:1.7, z:0,   w:3.6, d:2.6,  h:0.03, color:"#d8c9ae"},
+        {tag:"planta", x:7.4, y:5.0, z:0, w:0.55,d:0.55, h:0.4,  color:"#8a5a3a"}
+      ]
+    },
+    terraza: {
+      nombre:"Terraza",
+      iconoSvg:'<line x1="10" y1="8" x2="10" y2="56"/><line x1="10" y1="8" x2="54" y2="8"/><line x1="18" y1="8" x2="18" y2="56"/><line x1="26" y1="8" x2="26" y2="56"/><circle cx="44" cy="40" r="8"/>',
+      width:9, depth:7, height:1.3,
+      wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
+      accentTag:"mueble_exterior", accentLabel:"Muebles de exterior", accentDefaultId:"verde-oliva",
+      alfombra:{x:0.6, y:0.2, w:3.6, d:1.7, color:"#cdbfa0"},
+      vigas:[{y:1.0},{y:3.2},{y:5.4}],
+      furniture:[
+        {tag:"mueble_exterior", x:1.0, y:0.4, z:0, w:3.2, d:1.3, h:0.55, color:"#6b7052"},
+        {tag:"fijo",   x:4.6, y:0.6, z:0, w:0.8, d:0.8, h:0.45, color:"#e9e4d8"},
+        {tag:"planta", x:6.9, y:0.4, z:0, w:0.7, d:0.7, h:0.5,  color:"#b3502e"},
+        {tag:"planta", x:0.3, y:5.1, z:0, w:0.55,d:0.55,h:0.4,  color:"#b3502e"},
+        {tag:"planta", x:6.9, y:4.9, z:0, w:0.5, d:0.5, h:0.35, color:"#b3502e"}
+      ]
+    },
+    oficina: {
+      nombre:"Oficina / Estudio",
+      iconoSvg:'<rect x="10" y="14" width="44" height="18" rx="1"/><rect x="24" y="38" width="16" height="14" rx="2"/>',
+      width:8, depth:7, height:4,
+      wallDefaultId:"blanco-calido", floorDefaultId:"madera-oscura",
+      accentTag:"escritorio", accentLabel:"Escritorio", accentDefaultId:"gris-perla",
+      decorVentana:{y0:3.2, y1:5.5, z0:1.0, z1:2.8},
+      decorCuadros:[{x0:5.0,x1:6.2,z0:2.2,z1:3.0}],
+      alfombra:{x:0.6, y:0.3, w:4.2, d:2.2, color:"#e3dcc9"},
+      furniture:[
+        {tag:"escritorio", x:1.0, y:0.4, z:0,    w:3.4, d:1.1, h:0.75, color:"#c9c4b8"},
+        {tag:"fijo",       x:2.0, y:0.55,z:0.75, w:0.5, d:0.05,h:0.35, color:"#2a2a2a"},
+        {tag:"fijo",       x:1.7, y:1.7, z:0,    w:0.8, d:0.8, h:0.9,  color:"#2f2c29"},
+        {tag:"fijo",       x:0.2, y:3.6, z:0,    w:0.4, d:2.2, h:2.6,  color:"#8a5a3a"},
+        {tag:"fijo",       x:0.28,y:3.7, z:1.7,  w:0.24,d:0.4, h:0.18, color:"#6d8a96"},
+        {tag:"fijo",       x:0.28,y:4.2, z:1.7,  w:0.24,d:0.4, h:0.18, color:"#b3502e"},
+        {tag:"fijo",       x:3.9, y:0.55,z:0.75, w:0.3, d:0.3, h:0.4,  color:"#e7c873"},
+        {tag:"planta",     x:6.8, y:5.0, z:0,    w:0.55,d:0.55,h:0.4,  color:"#8a5a3a"}
+      ]
+    }
   };
 
-  const estado = { espacio:null, colorParedId:null, colorAccentId:null };
+  const estado = { espacio:null, colorParedId:null, colorPisoId:null, colorAccentId:null };
 
   /* =========================================================
      PASO 1 — TARJETAS DE ESPACIO
@@ -441,11 +530,9 @@
   Object.keys(ROOMS).forEach(id => {
     const r = ROOMS[id];
     const div = document.createElement("div");
-    div.className = "tarjeta" + (r.disponible ? "" : " proximamente");
-    div.innerHTML = `<svg viewBox="0 0 64 64" fill="none" stroke-width="1.6">${r.iconoSvg}</svg><span>${r.nombre}</span>` + (r.disponible ? "" : '<span class="insignia">Muy pronto</span>');
-    if (r.disponible){
-      div.addEventListener("click", () => elegirEspacio(id, div));
-    }
+    div.className = "tarjeta";
+    div.innerHTML = `<svg viewBox="0 0 64 64" fill="none" stroke-width="1.6">${r.iconoSvg}</svg><span>${r.nombre}</span>`;
+    div.addEventListener("click", () => elegirEspacio(id, div));
     listaEspacios.appendChild(div);
   });
 
@@ -456,6 +543,7 @@
 
     const room = ROOMS[id];
     estado.colorParedId = room.wallDefaultId;
+    estado.colorPisoId = room.floorDefaultId;
     estado.colorAccentId = room.accentDefaultId;
 
     document.getElementById("paso-personaliza").classList.remove("bloqueado");
@@ -467,6 +555,7 @@
     document.getElementById("ficha-espacio").textContent = room.nombre;
 
     construirSelectorColor("lista-colores-pared", "colorParedId");
+    construirSelectorColor("lista-colores-piso", "colorPisoId");
     construirSelectorColor("lista-colores-accent", "colorAccentId");
 
     dibujarEscena();
@@ -488,7 +577,7 @@
   }
 
   /* =========================================================
-     SELECTORES DE COLOR (pared / mueble protagonista)
+     SELECTORES DE COLOR (pared / piso / mueble protagonista)
      ========================================================= */
   function construirSelectorColor(contenedorId, campoEstado){
     const contenedor = document.getElementById(contenedorId);
@@ -508,32 +597,84 @@
   }
 
   /* =========================================================
+     DECORACIÓN: ventana, cortinas, cuadros, alfombra, plantas, lámpara, vigas
+     ========================================================= */
+  function dibujarVentana(room){
+    if (!room.decorVentana) return "";
+    const v = room.decorVentana;
+    const marco = [proyectar(0,v.y0,v.z0),proyectar(0,v.y1,v.z0),proyectar(0,v.y1,v.z1),proyectar(0,v.y0,v.z1)];
+    return `<polygon points="${pts(marco)}" fill="#cfe3ea" stroke="#fdfaf3" stroke-width="4"/>`;
+  }
+  function dibujarCortinas(room){
+    if (!room.decorCortinas || !room.decorVentana) return "";
+    const v = room.decorVentana, tela = 0.32;
+    const izq = [proyectar(0,v.y0-tela,0.25),proyectar(0,v.y0,0.25),proyectar(0,v.y0,v.z1+0.35),proyectar(0,v.y0-tela,v.z1+0.35)];
+    const der = [proyectar(0,v.y1,0.25),proyectar(0,v.y1+tela,0.25),proyectar(0,v.y1+tela,v.z1+0.35),proyectar(0,v.y1,v.z1+0.35)];
+    return poligono(izq,"#ece3d3") + poligono(der,"#ece3d3");
+  }
+  function dibujarCuadros(room){
+    if (!room.decorCuadros) return "";
+    return room.decorCuadros.map(c => {
+      const marco = [proyectar(c.x0,0,c.z0),proyectar(c.x1,0,c.z0),proyectar(c.x1,0,c.z1),proyectar(c.x0,0,c.z1)];
+      return `<polygon points="${pts(marco)}" fill="#e9e2d3" stroke="#8a5a3a" stroke-width="3"/>`;
+    }).join("");
+  }
+  function dibujarAlfombra(room){
+    if (!room.alfombra) return "";
+    const a = room.alfombra;
+    const p = [proyectar(a.x,a.y,0.015),proyectar(a.x+a.w,a.y,0.015),proyectar(a.x+a.w,a.y+a.d,0.015),proyectar(a.x,a.y+a.d,0.015)];
+    return poligono(p, a.color, "rgba(0,0,0,0.08)");
+  }
+  function dibujarFollaje(f){
+    const cx = f.x + f.w/2, cy = f.y + f.d/2;
+    const p = proyectar(cx, cy, f.z + f.h + 0.35);
+    return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="16" fill="#5f7a4e"/>` +
+           `<circle cx="${(p[0]-10).toFixed(1)}" cy="${(p[1]+6).toFixed(1)}" r="12" fill="#6f8f5a"/>` +
+           `<circle cx="${(p[0]+10).toFixed(1)}" cy="${(p[1]+4).toFixed(1)}" r="12" fill="#4d6640"/>`;
+  }
+  function dibujarLampara(room){
+    if (!room.lampara) return "";
+    const l = room.lampara;
+    const techo = proyectar(l.x, l.y, room.height);
+    const bombilla = proyectar(l.x, l.y, room.height - 0.55);
+    return `<line x1="${techo[0].toFixed(1)}" y1="${techo[1].toFixed(1)}" x2="${bombilla[0].toFixed(1)}" y2="${bombilla[1].toFixed(1)}" stroke="#8a8378" stroke-width="1.5"/>` +
+           `<circle cx="${bombilla[0].toFixed(1)}" cy="${bombilla[1].toFixed(1)}" r="10" fill="#f5deac" stroke="#c9a06a" stroke-width="1.5"/>`;
+  }
+  function dibujarVigas(room){
+    if (!room.vigas) return "";
+    return room.vigas.map(v => cajaSVG(0, v.y, room.height, room.width, 0.14, 0.1, "#8a6a45")).join("");
+  }
+
+  /* =========================================================
      DIBUJO DE LA ESCENA (se repinta completa en cada cambio)
      ========================================================= */
   function dibujarEscena(){
     const room = ROOMS[estado.espacio];
     const colorPared = COLOR_POR_ID[estado.colorParedId].hex;
+    const colorPiso = COLOR_POR_ID[estado.colorPisoId].hex;
     const colorAccent = COLOR_POR_ID[estado.colorAccentId].hex;
 
     let svg = "";
-
-    // piso
-    svg += poligono([proyectar(0,0,0),proyectar(room.width,0,0),proyectar(room.width,room.depth,0),proyectar(0,room.depth,0)], "#e7e0cd");
-
-    // pared del fondo (y=0) y pared lateral (x=0)
+    svg += poligono([proyectar(0,0,0),proyectar(room.width,0,0),proyectar(room.width,room.depth,0),proyectar(0,room.depth,0)], colorPiso);
+    svg += dibujarAlfombra(room);
     svg += poligono([proyectar(0,0,0),proyectar(room.width,0,0),proyectar(room.width,0,room.height),proyectar(0,0,room.height)], matizar(colorPared,-6));
     svg += poligono([proyectar(0,0,0),proyectar(0,room.depth,0),proyectar(0,room.depth,room.height),proyectar(0,0,room.height)], matizar(colorPared,-20));
+    svg += dibujarVentana(room);
+    svg += dibujarCortinas(room);
+    svg += dibujarCuadros(room);
 
-    // muebles, ordenados de más lejos a más cerca para que se tapen bien
     const piezas = room.furniture
       .map(f => f.tag === room.accentTag ? Object.assign({}, f, {color:colorAccent}) : f)
       .sort((a,b) => (a.x+a.y) - (b.x+b.y));
 
     piezas.forEach(f => { svg += cajaSVG(f.x, f.y, f.z, f.w, f.d, f.h, f.color); });
+    piezas.filter(f => f.tag === "planta").forEach(f => { svg += dibujarFollaje(f); });
+    svg += dibujarLampara(room);
+    svg += dibujarVigas(room);
 
     document.getElementById("lienzo-svg").innerHTML = svg;
-
     document.getElementById("ficha-pared").textContent = COLOR_POR_ID[estado.colorParedId].nombre;
+    document.getElementById("ficha-piso").textContent = COLOR_POR_ID[estado.colorPisoId].nombre;
     document.getElementById("ficha-accent").textContent = COLOR_POR_ID[estado.colorAccentId].nombre;
   }
 
@@ -569,6 +710,7 @@
       ciudad: ciudad,
       espacio: room.nombre,
       color_pared: COLOR_POR_ID[estado.colorParedId].nombre,
+      color_piso: COLOR_POR_ID[estado.colorPisoId].nombre,
       color_accent_label: room.accentLabel,
       color_accent: COLOR_POR_ID[estado.colorAccentId].nombre,
       origen: "Landing Inspírate (QR feria)"
@@ -578,7 +720,7 @@
       document.getElementById("formulario").style.display = "none";
       document.getElementById("exito-titulo").textContent = `¡Listo, ${nombre.split(" ")[0]}!`;
       const linkWa = document.getElementById("link-whatsapp");
-      const texto = encodeURIComponent(`Hola, soy ${nombre}. Quiero mi obra: ${datos.espacio}, pared ${datos.color_pared}, ${datos.color_accent_label.toLowerCase()} ${datos.color_accent}.`);
+      const texto = encodeURIComponent(`Hola, soy ${nombre}. Quiero mi obra: ${datos.espacio}, pared ${datos.color_pared}, piso ${datos.color_piso}, ${datos.color_accent_label.toLowerCase()} ${datos.color_accent}.`);
       linkWa.href = `https://wa.me/${WHATSAPP_NUMERO}?text=${texto}`;
       document.getElementById("exito").style.display = "block";
       document.getElementById("exito").scrollIntoView({behavior:"smooth", block:"start"});
