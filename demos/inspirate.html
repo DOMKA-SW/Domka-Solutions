@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  DOMKA CONSTRUCCIONES — "INSPÍRATE"
+  ============================================================================
+  Página pensada para llegar desde un QR (volante de feria). El visitante
+  elige un espacio y luego PINTA en vivo la pared y el mueble principal sobre
+  un dibujo isométrico (todo generado con SVG + JS, sin fotos). Termina
+  dejando sus datos con el botón "Así quiero mi obra".
+
+  CÓMO FUNCIONA EL DIBUJO:
+  Cada espacio (cocina, habitación...) se define en el objeto ROOMS más abajo
+  en el <script>, como una lista de "cajas" (muebles) con posición y tamaño
+  en una cuadrícula isométrica. Una función genérica (isoBox) las convierte
+  en polígonos SVG con sombreado automático (cara de arriba más clara, caras
+  de lado más oscuras) — así se ve con volumen sin necesitar imágenes.
+  Dos elementos son pintables por el usuario:
+    - la pared (siempre)
+    - un mueble "protagonista" por espacio: gabinetes en cocina, ropa de
+      cama en habitación (se define con accentTag / accentLabel por sala).
+  El resto de los muebles (nevera, mesa, lámpara, etc.) quedan con color fijo
+  para que la escena no se vea vacía.
+
+  CÓMO AGREGAR MÁS ESPACIOS (sala, terraza, oficina):
+  Copia el patrón de "cocina" u "habitacion" dentro de ROOMS: define ancho,
+  profundidad, alto, color de pared por defecto, el mueble protagonista
+  (accentTag/accentLabel/accentDefault) y la lista de furniture. No hace
+  falta ninguna imagen. Por ahora esos 3 espacios se muestran como
+  "muy pronto" en el paso 1 — puedo ayudarte a construirlos cuando quieras.
+
+  NOTA — si más adelante prefieres renders fotográficos reales (3D
+  prerenderizados) en vez de este dibujo vectorial, es un mecanismo distinto
+  (swap de imágenes por combinación); dímelo y lo agregamos como una segunda
+  modalidad.
+
+  CONFIGURACIÓN PENDIENTE (buscar más abajo en el <script>):
+    EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, WHATSAPP_NUMERO
+  ============================================================================
+-->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspírate — Domka Construcciones</title>
+<meta name="description" content="Elige tu espacio y píntalo a tu gusto. Descubre cómo se vería tu remodelación con Domka Construcciones.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root{
+    --ink:#211d16;
+    --paper:#ece5d6;
+    --paper-2:#e0d7c2;
+    --green:#2f4a3d;
+    --green-dark:#1d3129;
+    --brick:#b3502e;
+    --brick-dark:#8c3c21;
+    --line:#c7bca2;
+    --white:#fffcf6;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    margin:0 0 .4em 0;
+    letter-spacing:-0.01em;
+  }
+  a{color:var(--brick);}
+  :focus-visible{outline:2px solid var(--brick); outline-offset:3px;}
+  img{max-width:100%; display:block;}
+
+  .envoltura{max-width:680px; margin:0 auto; padding:0 20px;}
+
+  header.marca{
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid var(--line);
+  }
+  header.marca .nombre{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--green-dark);
+    text-decoration:none;
+  }
+  header.marca .nit{font-size:.72rem; opacity:.55;}
+
+  .hero{padding:52px 0 40px;}
+  .hero h1{font-size:2.15rem; line-height:1.12; color:var(--green-dark); max-width:12ch;}
+  .hero p{max-width:40ch; font-size:1.02rem; opacity:.85; margin:0 0 26px 0;}
+  .boton{
+    display:inline-block;
+    background:var(--brick);
+    color:var(--white);
+    border:none;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:.98rem;
+    padding:14px 26px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    text-decoration:none;
+    transition:background .15s ease;
+  }
+  .boton:hover{background:var(--brick-dark);}
+  .boton.secundario{background:transparent; color:var(--green-dark); border:1.5px solid var(--green-dark);}
+  .boton.secundario:hover{background:var(--green-dark); color:var(--white);}
+  .boton.chico{padding:9px 16px; font-size:.85rem;}
+  .boton:disabled{opacity:.55; cursor:default;}
+
+  .barra{
+    position:sticky; top:0; z-index:5;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    padding:12px 0;
+  }
+  .barra ol{list-style:none; display:flex; gap:0; margin:0; padding:0;}
+  .barra li{
+    flex:1; text-align:center; font-size:.72rem; font-weight:600;
+    color:var(--ink); opacity:.4; position:relative; padding-top:12px;
+  }
+  .barra li::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--line);}
+  .barra li.activo{opacity:1; color:var(--green-dark);}
+  .barra li.activo::before{background:var(--brick);}
+  .barra li.hecho::before{background:var(--green);}
+
+  .paso{padding:38px 0; border-bottom:1px solid var(--line);}
+  .paso.bloqueado{display:none;}
+  .paso .rotulo{font-size:.78rem; font-weight:600; color:var(--brick); margin-bottom:6px;}
+  .paso h2{font-size:1.4rem; color:var(--green-dark);}
+
+  .cuadricula{display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-top:20px;}
+  .tarjeta{
+    background:var(--white); border:1.5px solid var(--line); border-radius:var(--radius);
+    padding:16px 12px; text-align:center; cursor:pointer; position:relative;
+    transition:border-color .15s ease;
+  }
+  .tarjeta:hover{border-color:var(--green);}
+  .tarjeta svg{width:40px; height:40px; stroke:var(--green-dark); margin:0 auto 10px;}
+  .tarjeta span{display:block; font-weight:600; font-size:.9rem;}
+  .tarjeta.seleccionada{border-color:var(--brick); background:#f8f1e6;}
+  .tarjeta.seleccionada svg{stroke:var(--brick);}
+  .tarjeta.proximamente{cursor:default; opacity:.5;}
+  .tarjeta.proximamente:hover{border-color:var(--line);}
+  .insignia{
+    position:absolute; top:8px; right:8px;
+    font-size:.62rem; font-weight:600;
+    background:var(--paper-2); color:var(--ink);
+    padding:2px 6px; border-radius:20px;
+  }
+
+  .lienzo-caja{
+    background:var(--white);
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-top:20px;
+  }
+  .lienzo-caja p.pista{font-size:.8rem; opacity:.65; margin:0 0 10px;}
+  #lienzo-svg{width:100%; height:auto; display:block;}
+
+  .pintores{margin-top:22px;}
+  .grupo-color{margin-bottom:20px;}
+  .grupo-color h3{font-size:.85rem; font-family:'Work Sans', sans-serif; font-weight:600; margin:0 0 10px;}
+  .colores{display:flex; flex-wrap:wrap; gap:16px;}
+  .color-op{text-align:center; cursor:pointer; width:64px;}
+  .color-op .bola{
+    width:44px; height:44px; border-radius:50%;
+    border:2px solid rgba(0,0,0,.1); margin:0 auto 6px;
+    transition:box-shadow .15s ease;
+  }
+  .color-op.seleccionada .bola{box-shadow:0 0 0 3px var(--white), 0 0 0 5px var(--brick);}
+  .color-op span{font-size:.68rem; font-weight:500;}
+
+  .ficha{
+    margin-top:20px;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+  .ficha .fila{
+    display:flex; justify-content:space-between; padding:7px 0;
+    font-size:.9rem; border-bottom:1px dashed var(--line);
+  }
+  .ficha .fila:last-child{border-bottom:none;}
+  .ficha .fila b{color:var(--green-dark);}
+
+  .cambiar-espacio{
+    display:inline-block; margin-top:6px; font-size:.82rem; font-weight:600;
+    color:var(--green-dark); cursor:pointer; text-decoration:underline;
+  }
+
+  .cta-final{margin-top:24px;}
+  .cta-final .boton{width:100%; text-align:center; padding:16px; font-size:1.05rem;}
+
+  #formulario{display:none; padding:34px 0 50px;}
+  #formulario h2{font-size:1.3rem; color:var(--green-dark);}
+  #formulario label{display:block; font-size:.85rem; font-weight:600; margin:16px 0 6px;}
+  #formulario input{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:var(--radius);
+    font-family:'Work Sans', sans-serif; font-size:.95rem; background:var(--white);
+  }
+  #formulario input:focus{border-color:var(--green);}
+  #formulario .boton{margin-top:22px; width:100%;}
+  .aviso{font-size:.78rem; opacity:.65; margin-top:10px;}
+  .error-envio{
+    display:none; background:#f6e3da; border:1px solid var(--brick); color:var(--brick-dark);
+    padding:10px 14px; border-radius:var(--radius); font-size:.85rem; margin-top:14px;
+  }
+
+  #exito{display:none; padding:50px 0 60px;}
+  #exito h2{color:var(--green-dark); font-size:1.5rem;}
+  #exito p{max-width:36ch; opacity:.85;}
+  #exito .boton{margin-top:18px;}
+
+  footer{padding:26px 0 40px; text-align:center; font-size:.78rem; opacity:.55;}
+</style>
+</head>
+<body>
+
+<header class="marca">
+  <a href="https://domkaconstrucciones.com" class="nombre">Domka Construcciones</a>
+  <span class="nit">NIT 902.083.143-2</span>
+</header>
+
+<div class="envoltura">
+
+  <section class="hero">
+    <h1>Antes de construirlo, imagínalo.</h1>
+    <p>Elige tu espacio y píntalo a tu gusto: pared y muebles. Así de fácil es empezar a imaginar tu remodelación.</p>
+    <a href="#configurador" class="boton">Empezar</a>
+  </section>
+
+  <nav class="barra" id="configurador">
+    <ol>
+      <li id="ind-espacio" class="activo">Espacio</li>
+      <li id="ind-personaliza">Personaliza</li>
+      <li id="ind-contacto">Tu obra</li>
+    </ol>
+  </nav>
+
+  <!-- PASO 1: ESPACIO -->
+  <section class="paso" id="paso-espacio">
+    <div class="rotulo">Paso 1</div>
+    <h2>¿Qué espacio quieres transformar?</h2>
+    <div class="cuadricula" id="lista-espacios"></div>
+  </section>
+
+  <!-- PASO 2: PERSONALIZA (lienzo + pintura en vivo) -->
+  <section class="paso bloqueado" id="paso-personaliza">
+    <div class="rotulo">Paso 2</div>
+    <h2>Píntalo a tu gusto</h2>
+    <span class="cambiar-espacio" id="btn-cambiar-espacio">Cambiar espacio</span>
+
+    <div class="lienzo-caja">
+      <p class="pista">Toca un color para pintar la pared o el mueble principal.</p>
+      <svg id="lienzo-svg" viewBox="0 0 640 560" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div class="pintores">
+      <div class="grupo-color">
+        <h3>Color de pared</h3>
+        <div class="colores" id="lista-colores-pared"></div>
+      </div>
+      <div class="grupo-color">
+        <h3 id="titulo-accent">Color de muebles</h3>
+        <div class="colores" id="lista-colores-accent"></div>
+      </div>
+    </div>
+
+    <div class="ficha">
+      <div class="fila"><span>Espacio</span><b id="ficha-espacio">—</b></div>
+      <div class="fila"><span>Color de pared</span><b id="ficha-pared">—</b></div>
+      <div class="fila" id="fila-accent"><span id="ficha-accent-label">Muebles</span><b id="ficha-accent">—</b></div>
+    </div>
+
+    <div class="cta-final">
+      <button class="boton" id="btn-quiero-obra">Así quiero mi obra</button>
+    </div>
+  </section>
+
+  <!-- FORMULARIO -->
+  <section id="formulario">
+    <h2>Cuéntanos cómo contactarte</h2>
+    <p style="opacity:.75; font-size:.9rem; margin:0;">Con esto, uno de nuestros asesores te escribe para armar tu cotización real.</p>
+    <form id="form-lead">
+      <label for="campo-nombre">Nombre completo</label>
+      <input type="text" id="campo-nombre" name="nombre" required autocomplete="name">
+
+      <label for="campo-whatsapp">WhatsApp</label>
+      <input type="tel" id="campo-whatsapp" name="whatsapp" required autocomplete="tel" placeholder="Ej: 3001234567">
+
+      <label for="campo-ciudad">Ciudad</label>
+      <input type="text" id="campo-ciudad" name="ciudad" required autocomplete="address-level2">
+
+      <button type="submit" class="boton" id="btn-enviar">Enviar mis datos</button>
+      <p class="aviso">Al enviar aceptas que te contactemos sobre tu proyecto. No compartimos tus datos con terceros.</p>
+      <div class="error-envio" id="mensaje-error">No pudimos enviar tus datos. Intenta de nuevo o escríbenos directo por WhatsApp.</div>
+    </form>
+  </section>
+
+  <!-- ÉXITO -->
+  <section id="exito">
+    <h2 id="exito-titulo">¡Listo!</h2>
+    <p>Ya tenemos tu idea guardada. Uno de nuestros asesores te escribe muy pronto para convertirla en una cotización real.</p>
+    <a class="boton secundario" id="link-whatsapp" target="_blank" rel="noopener">Escribir ahora por WhatsApp</a>
+  </section>
+
+</div>
+
+<footer>Domka Construcciones · NIT 902.083.143-2 · domkaconstrucciones.com</footer>
+
+<script>
+(function(){
+
+  /* =========================================================
+     CONFIGURACIÓN — reemplaza antes de publicar
+     ========================================================= */
+  const EMAILJS_PUBLIC_KEY   = "TU_PUBLIC_KEY";
+  const EMAILJS_SERVICE_ID   = "TU_SERVICE_ID";
+  const EMAILJS_TEMPLATE_ID  = "TU_TEMPLATE_ID";
+  const WHATSAPP_NUMERO      = "573000000000";
+
+  if (window.emailjs) { emailjs.init(EMAILJS_PUBLIC_KEY); }
+
+  /* =========================================================
+     PALETA DE COLORES (para pared y para el mueble protagonista)
+     ========================================================= */
+  const COLORES = [
+    { id:"blanco-calido",  nombre:"Blanco cálido",  hex:"#f4efe3" },
+    { id:"verde-salvia",   nombre:"Verde salvia",   hex:"#8a9a82" },
+    { id:"terracota",      nombre:"Terracota",      hex:"#b3502e" },
+    { id:"azul-petroleo",  nombre:"Azul petróleo",  hex:"#2b4b54" },
+    { id:"gris-carbon",    nombre:"Gris carbón",    hex:"#3b3b3b" },
+    { id:"beige-arena",    nombre:"Beige arena",    hex:"#d8c9ae" }
+  ];
+  const COLOR_POR_ID = {};
+  COLORES.forEach(c => COLOR_POR_ID[c.id] = c);
+
+  /* =========================================================
+     MOTOR ISOMÉTRICO — genérico, sirve para cualquier espacio
+     ========================================================= */
+  const COS30 = Math.cos(Math.PI/6);
+  const SIN30 = 0.5;
+  const S = 40, OX = 290, OY = 180; // escala y origen del dibujo
+
+  function proyectar(x,y,z){
+    return [ OX + (x-y)*COS30*S, OY + (x+y)*SIN30*S - z*S ];
+  }
+  function matizar(hex, porcentaje){
+    const num = parseInt(hex.replace('#',''),16);
+    let r=(num>>16)&0xff, g=(num>>8)&0xff, b=num&0xff;
+    const ajuste = Math.round(255*(porcentaje/100));
+    r = Math.min(255, Math.max(0, r+ajuste));
+    g = Math.min(255, Math.max(0, g+ajuste));
+    b = Math.min(255, Math.max(0, b+ajuste));
+    return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+  }
+  function poligono(puntos, relleno){
+    return `<polygon points="${puntos.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${relleno}" stroke="rgba(0,0,0,0.12)" stroke-width="0.6"/>`;
+  }
+  // Caja 3D simple: cara de arriba, cara frontal (y+d) y cara derecha (x+w)
+  function cajaSVG(x,y,z,w,d,h,color){
+    const z1 = z+h;
+    const arriba = [proyectar(x,y,z1),proyectar(x+w,y,z1),proyectar(x+w,y+d,z1),proyectar(x,y+d,z1)];
+    const derecha = [proyectar(x+w,y,z),proyectar(x+w,y,z1),proyectar(x+w,y+d,z1),proyectar(x+w,y+d,z)];
+    const frente = [proyectar(x,y+d,z),proyectar(x,y+d,z1),proyectar(x+w,y+d,z1),proyectar(x+w,y+d,z)];
+    return poligono(arriba, matizar(color,10)) + poligono(frente, matizar(color,-14)) + poligono(derecha, matizar(color,-28));
+  }
+
+  /* =========================================================
+     DEFINICIÓN DE ESPACIOS
+     ========================================================= */
+  const ROOMS = {
+    cocina: {
+      nombre:"Cocina",
+      iconoSvg:'<rect x="8" y="10" width="48" height="18" rx="1"/><circle cx="20" cy="19" r="4"/><circle cx="34" cy="19" r="4"/><rect x="8" y="36" width="48" height="16" rx="1"/>',
+      disponible:true,
+      width:9, depth:7, height:4,
+      wallDefaultId:"blanco-calido",
+      accentTag:"gabinete",
+      accentLabel:"Gabinetes",
+      accentDefaultId:"verde-salvia",
+      furniture:[
+        {tag:"fijo",     x:0.3, y:0.3, z:0,   w:1.3, d:1.3, h:3.2, color:"#cfd3d6"}, // nevera
+        {tag:"gabinete", x:1.9, y:0.3, z:0,   w:2.6, d:1.1, h:1.6, color:"#8a9a82"}, // bajo 1
+        {tag:"gabinete", x:4.7, y:0.3, z:0,   w:2.6, d:1.1, h:1.6, color:"#8a9a82"}, // bajo 2
+        {tag:"fijo",     x:1.9, y:0.3, z:1.6, w:5.4, d:1.15,h:0.12,color:"#f5f2ea"}, // encimera
+        {tag:"gabinete", x:1.9, y:0.3, z:2.5, w:2.4, d:0.6, h:1.0, color:"#8a9a82"}, // alacena
+        {tag:"fijo",     x:5.2, y:0.35,z:1.9, w:0.9, d:0.5, h:1.2, color:"#9a9d9f"}, // campana
+        {tag:"fijo",     x:3.4, y:3.7, z:0,   w:1.5, d:1.0, h:0.9, color:"#c9a06a"}, // mesa
+        {tag:"fijo",     x:2.7, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"}, // banco 1
+        {tag:"fijo",     x:4.5, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"}  // banco 2
+      ]
+    },
+    habitacion: {
+      nombre:"Habitación",
+      iconoSvg:'<rect x="14" y="10" width="36" height="44" rx="2"/><line x1="14" y1="22" x2="50" y2="22"/><rect x="18" y="12" width="10" height="8"/><rect x="36" y="12" width="10" height="8"/>',
+      disponible:true,
+      width:8, depth:7, height:4,
+      wallDefaultId:"blanco-calido",
+      accentTag:"cama",
+      accentLabel:"Ropa de cama",
+      accentDefaultId:"azul-petroleo",
+      furniture:[
+        {tag:"fijo", x:1.0, y:0.35,z:0,    w:4.2, d:0.15, h:1.6, color:"#2f2c29"}, // cabecero
+        {tag:"fijo", x:1.0, y:0.4, z:0,    w:4.2, d:3.2,  h:0.6, color:"#3d3a36"}, // base cama
+        {tag:"cama", x:1.0, y:0.4, z:0.6,  w:4.2, d:3.2,  h:0.32,color:"#2b4b54"}, // ropa de cama
+        {tag:"fijo", x:5.6, y:0.4, z:0,    w:1.0, d:1.0,  h:0.9, color:"#3a352f"}, // mesita
+        {tag:"fijo", x:5.85,y:0.65,z:0.9,  w:0.35,d:0.35, h:0.5, color:"#e7c873"}, // lámpara
+        {tag:"fijo", x:0.3, y:5.2, z:0,    w:0.5, d:0.5,  h:0.05,color:"#6b4a2c"}  // maceta (base)
+      ]
+    },
+    sala:      { nombre:"Sala",             iconoSvg:'<rect x="8" y="14" width="48" height="14" rx="3"/><rect x="20" y="36" width="24" height="14" rx="2"/>', disponible:false },
+    terraza:   { nombre:"Terraza",          iconoSvg:'<line x1="10" y1="8" x2="10" y2="56"/><line x1="10" y1="8" x2="54" y2="8"/><line x1="18" y1="8" x2="18" y2="56"/><line x1="26" y1="8" x2="26" y2="56"/><circle cx="44" cy="40" r="8"/>', disponible:false },
+    oficina:   { nombre:"Oficina / Estudio",iconoSvg:'<rect x="10" y="14" width="44" height="18" rx="1"/><rect x="24" y="38" width="16" height="14" rx="2"/>', disponible:false }
+  };
+
+  const estado = { espacio:null, colorParedId:null, colorAccentId:null };
+
+  /* =========================================================
+     PASO 1 — TARJETAS DE ESPACIO
+     ========================================================= */
+  const listaEspacios = document.getElementById("lista-espacios");
+  Object.keys(ROOMS).forEach(id => {
+    const r = ROOMS[id];
+    const div = document.createElement("div");
+    div.className = "tarjeta" + (r.disponible ? "" : " proximamente");
+    div.innerHTML = `<svg viewBox="0 0 64 64" fill="none" stroke-width="1.6">${r.iconoSvg}</svg><span>${r.nombre}</span>` + (r.disponible ? "" : '<span class="insignia">Muy pronto</span>');
+    if (r.disponible){
+      div.addEventListener("click", () => elegirEspacio(id, div));
+    }
+    listaEspacios.appendChild(div);
+  });
+
+  function elegirEspacio(id, elemento){
+    estado.espacio = id;
+    document.querySelectorAll("#lista-espacios .tarjeta").forEach(n => n.classList.remove("seleccionada"));
+    elemento.classList.add("seleccionada");
+
+    const room = ROOMS[id];
+    estado.colorParedId = room.wallDefaultId;
+    estado.colorAccentId = room.accentDefaultId;
+
+    document.getElementById("paso-personaliza").classList.remove("bloqueado");
+    marcarIndicador("ind-espacio", "hecho");
+    marcarIndicador("ind-personaliza", "activo");
+
+    document.getElementById("titulo-accent").textContent = "Color de " + room.accentLabel.toLowerCase();
+    document.getElementById("ficha-accent-label").textContent = room.accentLabel;
+    document.getElementById("ficha-espacio").textContent = room.nombre;
+
+    construirSelectorColor("lista-colores-pared", "colorParedId");
+    construirSelectorColor("lista-colores-accent", "colorAccentId");
+
+    dibujarEscena();
+    document.getElementById("paso-personaliza").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  document.getElementById("btn-cambiar-espacio").addEventListener("click", () => {
+    document.getElementById("paso-personaliza").classList.add("bloqueado");
+    document.querySelectorAll("#lista-espacios .tarjeta").forEach(n => n.classList.remove("seleccionada"));
+    marcarIndicador("ind-espacio", "activo");
+    document.getElementById("ind-personaliza").classList.remove("activo","hecho");
+    document.getElementById("paso-espacio").scrollIntoView({behavior:"smooth", block:"start"});
+  });
+
+  function marcarIndicador(id, clase){
+    const el = document.getElementById(id);
+    el.classList.remove("activo","hecho");
+    el.classList.add(clase);
+  }
+
+  /* =========================================================
+     SELECTORES DE COLOR (pared / mueble protagonista)
+     ========================================================= */
+  function construirSelectorColor(contenedorId, campoEstado){
+    const contenedor = document.getElementById(contenedorId);
+    contenedor.innerHTML = "";
+    COLORES.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "color-op" + (estado[campoEstado] === c.id ? " seleccionada" : "");
+      div.innerHTML = `<div class="bola" style="background:${c.hex}"></div><span>${c.nombre}</span>`;
+      div.addEventListener("click", () => {
+        estado[campoEstado] = c.id;
+        contenedor.querySelectorAll(".color-op").forEach(n => n.classList.remove("seleccionada"));
+        div.classList.add("seleccionada");
+        dibujarEscena();
+      });
+      contenedor.appendChild(div);
+    });
+  }
+
+  /* =========================================================
+     DIBUJO DE LA ESCENA (se repinta completa en cada cambio)
+     ========================================================= */
+  function dibujarEscena(){
+    const room = ROOMS[estado.espacio];
+    const colorPared = COLOR_POR_ID[estado.colorParedId].hex;
+    const colorAccent = COLOR_POR_ID[estado.colorAccentId].hex;
+
+    let svg = "";
+
+    // piso
+    svg += poligono([proyectar(0,0,0),proyectar(room.width,0,0),proyectar(room.width,room.depth,0),proyectar(0,room.depth,0)], "#e7e0cd");
+
+    // pared del fondo (y=0) y pared lateral (x=0)
+    svg += poligono([proyectar(0,0,0),proyectar(room.width,0,0),proyectar(room.width,0,room.height),proyectar(0,0,room.height)], matizar(colorPared,-6));
+    svg += poligono([proyectar(0,0,0),proyectar(0,room.depth,0),proyectar(0,room.depth,room.height),proyectar(0,0,room.height)], matizar(colorPared,-20));
+
+    // muebles, ordenados de más lejos a más cerca para que se tapen bien
+    const piezas = room.furniture
+      .map(f => f.tag === room.accentTag ? Object.assign({}, f, {color:colorAccent}) : f)
+      .sort((a,b) => (a.x+a.y) - (b.x+b.y));
+
+    piezas.forEach(f => { svg += cajaSVG(f.x, f.y, f.z, f.w, f.d, f.h, f.color); });
+
+    document.getElementById("lienzo-svg").innerHTML = svg;
+
+    document.getElementById("ficha-pared").textContent = COLOR_POR_ID[estado.colorParedId].nombre;
+    document.getElementById("ficha-accent").textContent = COLOR_POR_ID[estado.colorAccentId].nombre;
+  }
+
+  /* =========================================================
+     PASO A FORMULARIO
+     ========================================================= */
+  document.getElementById("btn-quiero-obra").addEventListener("click", () => {
+    const form = document.getElementById("formulario");
+    form.style.display = "block";
+    form.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+
+  /* =========================================================
+     ENVÍO DEL FORMULARIO
+     ========================================================= */
+  document.getElementById("form-lead").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    const btn = document.getElementById("btn-enviar");
+    const errorBox = document.getElementById("mensaje-error");
+    errorBox.style.display = "none";
+
+    const nombre    = document.getElementById("campo-nombre").value.trim();
+    const whatsapp  = document.getElementById("campo-whatsapp").value.trim();
+    const ciudad    = document.getElementById("campo-ciudad").value.trim();
+    const room      = ROOMS[estado.espacio];
+
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+
+    const datos = {
+      nombre: nombre,
+      whatsapp: whatsapp,
+      ciudad: ciudad,
+      espacio: room.nombre,
+      color_pared: COLOR_POR_ID[estado.colorParedId].nombre,
+      color_accent_label: room.accentLabel,
+      color_accent: COLOR_POR_ID[estado.colorAccentId].nombre,
+      origen: "Landing Inspírate (QR feria)"
+    };
+
+    function mostrarExito(){
+      document.getElementById("formulario").style.display = "none";
+      document.getElementById("exito-titulo").textContent = `¡Listo, ${nombre.split(" ")[0]}!`;
+      const linkWa = document.getElementById("link-whatsapp");
+      const texto = encodeURIComponent(`Hola, soy ${nombre}. Quiero mi obra: ${datos.espacio}, pared ${datos.color_pared}, ${datos.color_accent_label.toLowerCase()} ${datos.color_accent}.`);
+      linkWa.href = `https://wa.me/${WHATSAPP_NUMERO}?text=${texto}`;
+      document.getElementById("exito").style.display = "block";
+      document.getElementById("exito").scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    if (window.emailjs && EMAILJS_SERVICE_ID !== "TU_SERVICE_ID"){
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, datos)
+        .then(mostrarExito)
+        .catch(() => {
+          errorBox.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Enviar mis datos";
+        });
+    } else {
+      mostrarExito();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
