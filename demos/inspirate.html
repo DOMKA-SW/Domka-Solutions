@@ -372,12 +372,7 @@
 <script>
 (function(){
 
-  const EMAILJS_PUBLIC_KEY   = "TU_PUBLIC_KEY";
-  const EMAILJS_SERVICE_ID   = "TU_SERVICE_ID";
-  const EMAILJS_TEMPLATE_ID  = "TU_TEMPLATE_ID";
-  const WHATSAPP_NUMERO      = "573000000000";
-
-  if (window.emailjs) { emailjs.init(EMAILJS_PUBLIC_KEY); }
+  const WHATSAPP_NUMERO = "573173562747";
 
   const COLORES = [
     { id:"blanco-calido",  nombre:"Blanco cálido",  hex:"#f4efe3" },
@@ -522,8 +517,27 @@
         {tag:"fijo",       x:3.9, y:0.55,z:0.75, w:0.3, d:0.3, h:0.4,  color:"#e7c873"},
         {tag:"planta",     x:6.8, y:5.0, z:0,    w:0.55,d:0.55,h:0.4,  color:"#8a5a3a"}
       ]
+    },
+    bano: {
+      nombre:"Baño",
+      iconoSvg:'<rect x="8" y="10" width="24" height="38" rx="8"/><ellipse cx="46" cy="40" rx="10" ry="13"/><rect x="38" y="10" width="18" height="13" rx="3"/>',
+      width:7, depth:6, height:4,
+      wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
+      accentTag:"gabinete_bano", accentLabel:"Mueble de baño", accentDefaultId:"azul-grisaceo",
+      decorVentana:{y0:4.0, y1:5.4, z0:2.5, z1:3.4},
+      decorEspejo:{x0:3.3, x1:5.0, z0:1.15, z1:2.05},
+      alfombra:{x:1.0, y:3.0, w:1.7, d:1.0, color:"#e9e2d3"},
+      furniture:[
+        {tag:"fijo",          x:0.4, y:0.35,z:0,    w:2.4, d:1.1, h:0.55, color:"#f0f0ed"},
+        {tag:"gabinete_bano", x:3.2, y:0.35,z:0,    w:2.2, d:0.85,h:0.85, color:"#6d8a96"},
+        {tag:"fijo",          x:0.4, y:2.6, z:0,    w:0.7, d:0.85,h:0.42, color:"#f8f8f6"},
+        {tag:"fijo",          x:0.4, y:2.7, z:0.42, w:0.7, d:0.22,h:0.35, color:"#f8f8f6"},
+        {tag:"fijo",          x:2.75,y:0.42,z:0.9,  w:0.15,d:0.5, h:0.35, color:"#c9a0a0"},
+        {tag:"planta",        x:5.6, y:4.6, z:0,    w:0.4, d:0.4, h:0.3,  color:"#8a5a3a"}
+      ]
     }
   };
+
 
   const estado = { espacio:null, colorParedId:null, colorPisoId:null, colorAccentId:null };
 
@@ -607,6 +621,12 @@
     const der = [proyectar(0,v.y1,0.25),proyectar(0,v.y1+tela,0.25),proyectar(0,v.y1+tela,v.z1+0.35),proyectar(0,v.y1,v.z1+0.35)];
     return poligono(izq,"#ece3d3") + poligono(der,"#ece3d3");
   }
+  function dibujarEspejo(room){
+    if (!room.decorEspejo) return "";
+    const e = room.decorEspejo;
+    const marco = [proyectar(e.x0,0,e.z0),proyectar(e.x1,0,e.z0),proyectar(e.x1,0,e.z1),proyectar(e.x0,0,e.z1)];
+    return `<polygon points="${pts(marco)}" fill="#dfe6e6" stroke="#c9c4b8" stroke-width="3"/>`;
+  }
   function dibujarCuadros(room){
     if (!room.decorCuadros) return "";
     return room.decorCuadros.map(c => {
@@ -654,6 +674,7 @@
     svg += dibujarVentana(room);
     svg += dibujarCortinas(room);
     svg += dibujarCuadros(room);
+    svg += dibujarEspejo(room);
 
     const piezas = room.furniture
       .map(f => f.tag === room.accentTag ? Object.assign({}, f, {color:colorAccent}) : f)
@@ -676,7 +697,7 @@
     form.scrollIntoView({behavior:"smooth", block:"start"});
   });
 
-  document.getElementById("form-lead").addEventListener("submit", function(ev){
+  document.getElementById("form-lead").addEventListener("submit", async function(ev){
     ev.preventDefault();
     const btn = document.getElementById("btn-enviar");
     const errorBox = document.getElementById("mensaje-error");
@@ -686,46 +707,93 @@
     const whatsapp  = document.getElementById("campo-whatsapp").value.trim();
     const ciudad    = document.getElementById("campo-ciudad").value.trim();
     const room      = ROOMS[estado.espacio];
+    const colorPared  = COLOR_POR_ID[estado.colorParedId].nombre;
+    const colorPiso   = COLOR_POR_ID[estado.colorPisoId].nombre;
+    const colorAccent = COLOR_POR_ID[estado.colorAccentId].nombre;
+    const descripcion = `Espacio: ${room.nombre} · Pared: ${colorPared} · Piso: ${colorPiso} · ${room.accentLabel}: ${colorAccent} · Ciudad: ${ciudad}`;
 
     btn.disabled = true;
     btn.textContent = "Enviando...";
 
     const datos = {
       nombre: nombre,
-      whatsapp: whatsapp,
-      ciudad: ciudad,
-      espacio: room.nombre,
-      color_pared: COLOR_POR_ID[estado.colorParedId].nombre,
-      color_piso: COLOR_POR_ID[estado.colorPisoId].nombre,
-      color_accent_label: room.accentLabel,
-      color_accent: COLOR_POR_ID[estado.colorAccentId].nombre,
-      origen: "Landing Inspírate (QR feria)"
+      email: "",
+      telefono: whatsapp,
+      empresa: "",
+      servicio: "Inspírate",
+      descripcion: descripcion,
+      origen: "inspirate-landing"
     };
 
     function mostrarExito(){
       document.getElementById("formulario").style.display = "none";
       document.getElementById("exito-titulo").textContent = `¡Listo, ${nombre.split(" ")[0]}!`;
       const linkWa = document.getElementById("link-whatsapp");
-      const texto = encodeURIComponent(`Hola, soy ${nombre}. Quiero mi obra: ${datos.espacio}, pared ${datos.color_pared}, piso ${datos.color_piso}, ${datos.color_accent_label.toLowerCase()} ${datos.color_accent}.`);
+      const texto = encodeURIComponent(`Hola, soy ${nombre}. Quiero mi obra: ${room.nombre}, pared ${colorPared}, piso ${colorPiso}, ${room.accentLabel.toLowerCase()} ${colorAccent}.`);
       linkWa.href = `https://wa.me/${WHATSAPP_NUMERO}?text=${texto}`;
       document.getElementById("exito").style.display = "block";
       document.getElementById("exito").scrollIntoView({behavior:"smooth", block:"start"});
     }
 
-    if (window.emailjs && EMAILJS_SERVICE_ID !== "TU_SERVICE_ID"){
-      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, datos)
-        .then(mostrarExito)
-        .catch(() => {
-          errorBox.style.display = "block";
-          btn.disabled = false;
-          btn.textContent = "Enviar mis datos";
+    try {
+      if (window.__domkaFirebaseReady) { await Promise.resolve(window.__domkaFirebaseReady); }
+      if (window.db) {
+        await window.db.collection("leads").add({
+          nombre: datos.nombre,
+          email: datos.email,
+          telefono: datos.telefono,
+          empresa: datos.empresa,
+          servicio: datos.servicio,
+          descripcion: datos.descripcion,
+          origen: datos.origen,
+          espacio: room.nombre,
+          color_pared: colorPared,
+          color_piso: colorPiso,
+          color_accent: colorAccent,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-    } else {
+      }
+      if (typeof notificarLeadPorCorreo === "function") { notificarLeadPorCorreo(datos); }
       mostrarExito();
+    } catch (err) {
+      console.error("Error guardando lead:", err);
+      errorBox.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Enviar mis datos";
     }
   });
 
 })();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/firebase.js"></script>
+
+<script>
+(function () {
+  const cfg = window.DOMKA_CONFIG?.EMAILJS;
+  if (window.emailjs && cfg?.PUBLIC_KEY) {
+    emailjs.init({ publicKey: cfg.PUBLIC_KEY });
+  }
+})();
+
+function notificarLeadPorCorreo(datos) {
+  const cfg = window.DOMKA_CONFIG?.EMAILJS;
+  if (!window.emailjs || !cfg?.SERVICE_ID || !cfg?.TEMPLATE_ID) return;
+  emailjs.send(cfg.SERVICE_ID, cfg.TEMPLATE_ID, {
+    to_email: cfg.NOTIFY_TO || "contacto@domkaconstrucciones.com",
+    nombre: datos.nombre || "",
+    email: datos.email || "",
+    telefono: datos.telefono || "",
+    empresa: datos.empresa || "",
+    servicio: datos.servicio || "",
+    descripcion: datos.descripcion || "",
+    origen: datos.origen || "inspirate-landing"
+  }).catch(err => console.error("Error notificando lead por correo:", err));
+}
 </script>
 </body>
 </html>
