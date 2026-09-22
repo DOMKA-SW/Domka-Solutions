@@ -121,11 +121,42 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div><img src="img/Logo.png" alt="DOMKA" style="height:28px;margin-bottom:8px" onerror="this.style.display='none'"></div>
-      <h2>DOMKA</h2>
-      <span>Panel de control</span>
-    </div>
+<div class="sidebar-brand" style="padding: 20px 15px; text-align: center;">
+
+    <picture>
+        <source media="(max-width: 480px)" srcset="img/Logo.png">
+
+        <img
+            src="img/Logo.png"
+            alt="DOMKA"
+            style="
+                width: auto;
+                height: 42px;
+                max-width: 90%;
+                object-fit: contain;
+                margin-bottom: 12px;
+            "
+            onerror="this.style.display='none'"
+        >
+    </picture>
+
+    <h2 style="
+        margin: 0 0 5px;
+        font-size: 21px;
+        line-height: 1.2;
+    ">
+        DOMKA
+    </h2>
+
+    <span style="
+        display: block;
+        font-size: 13px;
+        line-height: 1.4;
+    ">
+        Panel de control
+    </span>
+
+</div>
 
     <nav class="sidebar-nav">
       <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
