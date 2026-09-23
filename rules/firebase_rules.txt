@@ -93,7 +93,7 @@ service cloud.firestore {
                'evidencias', 'documentos',
                'cotizacionId', 'totalCotizado', 'planPagos', 'cotizacionEstado',
                'creadoPor', 'creadoEn', 'createdAt', 'updatedAt',
-               'etapa', 'avance', 'notas'
+               'etapa', 'avance', 'notas', 'actividades'
              ]);
     }
 
@@ -110,8 +110,8 @@ service cloud.firestore {
 
     // ── users ────────────────────────────────────────────────
     match /users/{uid} {
-      allow get:    if isAuth() && (request.auth.uid == uid || roleIs(["admin"]));
-      allow list:   if roleIs(["admin"]);
+      allow get:    if isAuth() && (request.auth.uid == uid || isStaff());
+      allow list:   if isStaff();
       allow create: if roleIs(["admin"]);
       allow update: if (roleIs(["admin"]) || (isAuth() && request.auth.uid == uid))
                     && validUserUpdate(request.resource.data);
@@ -150,8 +150,20 @@ service cloud.firestore {
       allow list:   if isStaff() || isClient();
       allow create: if roleIs(["admin", "comercial"])
                     && validCotizacion(request.resource.data);
-      allow update: if (roleIs(["admin", "comercial", "tecnico"]) || isClient())
-                    && validCotizacion(request.resource.data);
+      // 3 casos de update:
+      // 1) Staff completo → requiere esquema validCotizacion completo
+      // 2) Staff cambia estado (aprobar/rechazar) → solo campos afectados con affectedKeys
+      // 3) Cliente aprueba → solo sus 3 campos, sobre su clienteId, estado=aprobada
+      allow update: if (roleIs(["admin", "comercial"]) && validCotizacion(request.resource.data))
+                    || (isStaff()
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['estado','aprobadoPor','aprobadoEn',
+                                     'rechazadoPor','rechazadoEn','comentarioAprobacion','updatedAt']))
+                    || (isClient()
+                        && resource.data.clienteId == myClientId()
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['estado','aprobadoPor','aprobadoEn'])
+                        && request.resource.data.estado == 'aprobada');
       allow delete: if roleIs(["admin"]);
     }
 
@@ -160,7 +172,6 @@ service cloud.firestore {
       allow get:    if resource.data.enabled == true;
       allow list:   if false;
       allow create: if roleIs(["admin", "comercial"]);
-      // Cliente solo puede actualizar la quote de su propio clienteId (para aprobar)
       allow update: if roleIs(["admin", "comercial"])
                     || (isClient() && resource.data.clienteId == myClientId());
       allow delete: if roleIs(["admin"]);
@@ -172,8 +183,14 @@ service cloud.firestore {
       allow list:   if isStaff() || isClient();
       allow create: if roleIs(["admin", "comercial", "tecnico"])
                     && validProyecto(request.resource.data);
+      // 2 casos: update completo con esquema, O update parcial de campos operativos
       allow update: if (roleIs(["admin","comercial","tecnico"]) || clienteOwns(resource))
-                    && validProyecto(request.resource.data);
+                    && (validProyecto(request.resource.data)
+                        || (isStaff()
+                            && request.resource.data.diff(resource.data).affectedKeys()
+                               .hasOnly(['estado','usuariosAsociados','aprobadores',
+                                         'uidsAsociados','evidencias','documentos',
+                                         'avance','notas','updatedAt','actividades'])));
       allow delete: if roleIs(["admin"]);
     }
 
