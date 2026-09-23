@@ -67,6 +67,8 @@ service cloud.firestore {
                'subtotal', 'total', 'monto', 'moneda',
                'mostrarValorLetras', 'anexos',
                'numero', 'titulo', 'servicio', 'descripcion',
+               'materiales', 'materialesArray', 'tiempoEstimado',
+               'mostrarMateriales', 'mostrarTiempo',
                'estado', 'validoHasta', 'fecha',
                'linkPublico', 'linkWhatsApp',
                'aprobadores',
@@ -114,7 +116,10 @@ service cloud.firestore {
       allow list:   if isStaff();
       allow create: if roleIs(["admin"]);
       allow update: if (roleIs(["admin"]) || (isAuth() && request.auth.uid == uid))
-                    && validUserUpdate(request.resource.data);
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['nombre', 'apellido', 'telefono', 'foto',
+                                 'activo', 'role', 'clienteId', 'empresaId',
+                                 'updatedAt', 'lastLogin']);
       allow delete: if roleIs(["admin"]);
     }
 
