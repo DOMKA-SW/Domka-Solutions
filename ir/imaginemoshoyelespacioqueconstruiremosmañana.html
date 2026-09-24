@@ -1,0 +1,681 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="DOMKA CONSTRUCCIONES — Remodelación, adecuación, mantenimiento y construcción para instituciones educativas.">
+
+    <title>DOMKA CONSTRUCCIONES | Transformamos espacios</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4efe7;
+            color: #222;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ================================
+           HEADER
+        ================================= */
+
+        header {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e4dd;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-inner {
+            min-height: 82px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .logo img {
+            display: block;
+            width: 145px;
+            height: auto;
+        }
+
+        /* ================================
+           MENU
+        ================================= */
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 28px;
+        }
+
+        nav a {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: #222;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: #1b7a51;
+        }
+
+        nav .separator {
+            color: #b5b0a8;
+            font-weight: 400;
+            margin: 0 -16px;
+        }
+
+        /* ================================
+           HERO
+        ================================= */
+
+        .hero {
+            padding: 75px 0 45px;
+            text-align: center;
+            background: #f4efe7;
+        }
+
+        .hero h1 {
+            max-width: 850px;
+            margin: 0 auto 20px;
+            color: #1b7a51;
+            font-size: clamp(30px, 5vw, 52px);
+            line-height: 1.08;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            max-width: 750px;
+            margin: 0 auto;
+            font-size: 18px;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        /* ================================
+           VIDEO
+        ================================= */
+
+        .video-section {
+            padding: 25px 0 65px;
+            background: #f4efe7;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.14);
+        }
+
+        .video-wrapper video {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 520px;
+            object-fit: contain;
+            background: #000;
+        }
+
+        /* ================================
+           NOSOTROS
+        ================================= */
+
+        .content-section {
+            background: #ffffff;
+            padding: 70px 0;
+        }
+
+        .content-box {
+            max-width: 850px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .content-box h2 {
+            color: #1b7a51;
+            font-size: 32px;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .content-box p {
+            color: #555;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        /* ================================
+           BOTONES
+        ================================= */
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 48px;
+            padding: 13px 28px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #1b7a51;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #145c3d;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #222;
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            background: #000;
+            transform: translateY(-1px);
+        }
+
+        /* ================================
+           DEMO
+        ================================= */
+
+        .demo-section {
+            background: #f4efe7;
+            padding: 70px 0;
+            text-align: center;
+        }
+
+        .demo-section h2 {
+            color: #1b7a51;
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .demo-section p {
+            max-width: 700px;
+            margin: 0 auto 25px;
+            color: #555;
+            font-size: 17px;
+        }
+
+        /* ================================
+           CONTACTO
+        ================================= */
+
+        .contact-section {
+            background: #1b7a51;
+            color: #ffffff;
+            padding: 70px 0;
+            text-align: center;
+        }
+
+        .contact-section h2 {
+            font-size: 34px;
+            margin-bottom: 15px;
+        }
+
+        .contact-section p {
+            max-width: 700px;
+            margin: 0 auto 25px;
+            font-size: 17px;
+            opacity: 0.95;
+        }
+
+        .contact-section .btn {
+            background: #ffffff;
+            color: #1b7a51;
+        }
+
+        .contact-section .btn:hover {
+            background: #f4efe7;
+        }
+
+        /* ================================
+           FOOTER
+        ================================= */
+
+        footer {
+            background: #ffffff;
+            padding: 35px 0;
+            border-top: 1px solid #e8e4dd;
+            text-align: center;
+        }
+
+        footer img {
+            width: 125px;
+            height: auto;
+            margin-bottom: 12px;
+        }
+
+        footer p {
+            color: #777;
+            font-size: 12px;
+        }
+
+        /* ================================
+           RESPONSIVE
+        ================================= */
+
+        @media (max-width: 768px) {
+
+            .header-inner {
+                min-height: 72px;
+                gap: 15px;
+            }
+
+            .logo img {
+                width: 115px;
+            }
+
+            nav {
+                gap: 12px;
+            }
+
+            nav a {
+                font-size: 10px;
+                letter-spacing: 0.4px;
+            }
+
+            nav .separator {
+                margin: 0 -7px;
+            }
+
+            .hero {
+                padding: 50px 0 30px;
+            }
+
+            .hero h1 {
+                font-size: 34px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .video-section {
+                padding: 15px 0 45px;
+            }
+
+            .video-wrapper {
+                width: 100%;
+                border-radius: 12px;
+            }
+
+            .video-wrapper video {
+                max-height: 350px;
+            }
+
+            .content-section,
+            .demo-section,
+            .contact-section {
+                padding: 55px 0;
+            }
+
+            .content-box h2,
+            .demo-section h2 {
+                font-size: 27px;
+            }
+
+            .contact-section h2 {
+                font-size: 29px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .container {
+                width: 90%;
+            }
+
+            .header-inner {
+                gap: 8px;
+            }
+
+            .logo img {
+                width: 100px;
+            }
+
+            nav {
+                gap: 7px;
+            }
+
+            nav a {
+                font-size: 9px;
+            }
+
+            nav .separator {
+                margin: 0 -4px;
+            }
+
+            .hero h1 {
+                font-size: 29px;
+            }
+
+            .hero p {
+                font-size: 15px;
+            }
+
+            .video-wrapper video {
+                max-height: 280px;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- ================================
+         HEADER
+    ================================= -->
+
+    <header>
+
+        <div class="container header-inner">
+
+            <a
+                href="https://www.domkaconstrucciones.com/"
+                class="logo"
+                aria-label="DOMKA CONSTRUCCIONES">
+
+                <img
+                    src="https://www.domkaconstrucciones.com/img/logo.png"
+                    alt="DOMKA CONSTRUCCIONES">
+
+            </a>
+
+            <nav aria-label="Navegación principal">
+
+                <a href="#nosotros">
+                    NOSOTROS
+                </a>
+
+                <span class="separator">|</span>
+
+                <a href="#contacto">
+                    CONTACTO
+                </a>
+
+                <span class="separator">|</span>
+
+                <a href="https://www.domkaconstrucciones.com/demos/inspirate.html">
+                    DEMO
+                </a>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================================
+         CONTENIDO PRINCIPAL
+    ================================= -->
+
+    <main>
+
+        <!-- HERO -->
+
+        <section class="hero">
+
+            <div class="container">
+
+                <h1>
+                    ¿ES MOMENTO DE TRANSFORMAR SUS ESPACIOS?
+                </h1>
+
+                <p>
+                    En DOMKA CONSTRUCCIONES desarrollamos proyectos de
+                    remodelación, adecuación, mantenimiento y construcción,
+                    adaptados a las necesidades de cada institución educativa.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- VIDEO -->
+
+        <section class="video-section">
+
+            <div class="container">
+
+                <div class="video-wrapper">
+
+                    <video
+                        controls
+                        playsinline
+                        preload="metadata"
+                        poster="https://www.domkaconstrucciones.com/img/campana/email/2026_09/fondo.png">
+
+                        <source
+                            src="https://www.domkaconstrucciones.com/img/campana/email/2026_09/video.mp4"
+                            type="video/mp4">
+
+                        Su navegador no soporta la reproducción de video.
+
+                    </video>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- NOSOTROS -->
+
+        <section
+            class="content-section"
+            id="nosotros">
+
+            <div class="container">
+
+                <div class="content-box">
+
+                    <h2>
+                        Espacios pensados para avanzar
+                    </h2>
+
+                    <p>
+                        En DOMKA CONSTRUCCIONES acompañamos a nuestros
+                        clientes en la transformación de sus espacios,
+                        desde la planificación hasta la ejecución de
+                        cada proyecto.
+                    </p>
+
+                    <p>
+                        Nuestro trabajo integra construcción,
+                        remodelación, adecuación y mantenimiento,
+                        buscando soluciones funcionales y acordes
+                        con las necesidades de cada institución.
+                    </p>
+
+                    <div class="buttons">
+
+                        <a
+                            href="https://www.domkaconstrucciones.com/#contacto"
+                            class="btn btn-primary">
+
+                            HABLEMOS DE SU PROYECTO
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- DEMO -->
+
+        <section class="demo-section">
+
+            <div class="container">
+
+                <h2>
+                    CONOZCA NUESTRA DEMO
+                </h2>
+
+                <p>
+                    Explore una muestra de cómo podemos visualizar
+                    y presentar proyectos de transformación de espacios.
+                </p>
+
+                <div class="buttons">
+
+                    <a
+                        href="https://www.domkaconstrucciones.com/demos/inspirate.html"
+                        class="btn btn-primary">
+
+                        VER DEMO
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CONTACTO -->
+
+        <section
+            class="contact-section"
+            id="contacto">
+
+            <div class="container">
+
+                <h2>
+                    HABLEMOS DE SU PROYECTO
+                </h2>
+
+                <p>
+                    Cuéntenos qué espacio desea transformar
+                    y conversemos sobre las posibilidades.
+                </p>
+
+                <div class="buttons">
+
+                    <a
+                        href="https://www.domkaconstrucciones.com/#contacto"
+                        class="btn">
+
+                        CONTACTAR A DOMKA
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ================================
+         FOOTER
+    ================================= -->
+
+    <footer>
+
+        <div class="container">
+
+            <a href="https://www.domkaconstrucciones.com/">
+
+                <img
+                    src="https://www.domkaconstrucciones.com/img/logo.png"
+                    alt="DOMKA CONSTRUCCIONES">
+
+            </a>
+
+            <p>
+                © 2026 DOMKA CONSTRUCCIONES.
+                Todos los derechos reservados.
+            </p>
+
+        </div>
+
+    </footer>
+
+</div>
+
+</body>
+</html>
+```
