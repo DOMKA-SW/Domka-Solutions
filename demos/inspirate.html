@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <style>
   :root{
     --black:#0A0A0A;
@@ -150,7 +152,41 @@
     gap:12px;
     margin-top:20px;
   }
+  .recorrido-track{max-width:960px; margin:0 auto 28px; padding:0 20px;}
+  .recorrido-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
+  .recorrido-head span:first-child{font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--gray-500);}
+  .recorrido-head span:last-child{font-family:var(--font-display); font-size:1.1rem; font-weight:600; color:var(--green);}
+  .recorrido-chips{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch;}
+  .recorrido-chip{
+    flex:0 0 auto; display:flex; align-items:center; gap:8px;
+    background:var(--white); border:1.5px solid var(--gray-200); border-radius:20px;
+    padding:8px 14px 8px 10px; cursor:pointer; transition:border-color .15s ease, background .15s ease;
+  }
+  .recorrido-chip svg{width:22px; height:22px; stroke:var(--gray-500);}
+  .recorrido-chip span{font-size:.8rem; font-weight:600; color:var(--gray-700); white-space:nowrap;}
+  .recorrido-chip.actual{border-color:var(--green);}
+  .recorrido-chip.visitado{background:var(--green-pale); border-color:var(--green-pale);}
+  .recorrido-chip.visitado svg{stroke:var(--green);}
+  .recorrido-chip.visitado span{color:var(--green);}
+  .recorrido-chip.visitado::after{content:'✓'; color:var(--green); font-weight:700; font-size:.75rem;}
+
+  .tarjeta.visitada::after{
+    content:'✓'; position:absolute; top:10px; right:10px;
+    width:18px; height:18px; border-radius:50%; background:var(--green); color:var(--white);
+    font-size:.65rem; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+
+  .info-hotspot{
+    margin-top:12px; padding:12px 14px; background:var(--green-pale); border-radius:var(--radius-sm);
+    font-size:.85rem; color:var(--gray-900); min-height:20px;
+  }
+  .info-hotspot strong{display:block; margin-bottom:3px; color:var(--green);}
+  .info-hotspot p{margin:0; color:var(--gray-700); line-height:1.5;}
+  @keyframes pulso{ 0%,100%{box-shadow:0 0 0 0 rgba(28,92,60,.35);} 50%{box-shadow:0 0 0 6px rgba(28,92,60,0);} }
+  @media (prefers-reduced-motion: reduce){ .hotspot-marker-html{animation:none;} }
+
   .tarjeta{
+    position:relative;
     background:var(--white); border:1px solid var(--gray-200); border-radius:var(--radius-md);
     padding:18px 12px; text-align:center; cursor:pointer;
     box-shadow:var(--shadow-sm);
@@ -180,7 +216,29 @@
     box-shadow:var(--shadow-sm);
   }
   .lienzo-caja p.pista{font-size:.8rem; color:var(--gray-500); margin:0 0 10px;}
-  #lienzo-svg{width:100%; height:auto; display:block;}
+  .lienzo-3d{
+    position:relative; width:100%; aspect-ratio:8/7; border-radius:var(--radius-sm);
+    overflow:hidden; background:linear-gradient(180deg,#eef0ea,#e0ddd0);
+    cursor:grab; touch-action:none; transition:opacity .25s ease;
+  }
+  .lienzo-3d:active{cursor:grabbing;}
+  .lienzo-3d canvas{position:absolute; inset:0; width:100% !important; height:100% !important; display:block;}
+  .overlay-hotspots{position:absolute; inset:0; pointer-events:none;}
+  .hotspot-marker-html{
+    position:absolute; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%;
+    background:#ffffff; border:2px solid var(--green); color:var(--green);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;
+    cursor:pointer; pointer-events:auto; font-family:var(--font-body);
+    animation:pulso 2s ease-in-out infinite; transition:transform .12s ease, background .15s ease, color .15s ease;
+  }
+  .hotspot-marker-html:hover{transform:scale(1.15);}
+  .hotspot-marker-html.visto{background:var(--green); color:#fff; animation:none;}
+  .pista-arrastrar{
+    position:absolute; left:10px; bottom:10px; background:rgba(255,255,255,.92);
+    padding:6px 12px; border-radius:20px; font-size:.72rem; font-weight:600; color:var(--gray-700);
+    box-shadow:var(--shadow-sm); pointer-events:none; transition:opacity .3s ease;
+  }
+  .pista-arrastrar.oculto{opacity:0;}
 
   .pintores{
     background:var(--white);
@@ -271,6 +329,14 @@
     <a href="#configurador" class="boton">Empezar</a>
   </section>
 
+  <div class="recorrido-track">
+    <div class="recorrido-head">
+      <span>Tu recorrido</span>
+      <span id="recorrido-puntos">0 pts</span>
+    </div>
+    <div class="recorrido-chips" id="recorrido-chips"></div>
+  </div>
+
   <nav class="barra" id="configurador">
     <ol>
       <li id="ind-espacio" class="activo">Espacio</li>
@@ -292,8 +358,14 @@
 
     <div class="personaliza-grid">
       <div class="lienzo-caja">
-        <p class="pista">Toca un color para pintar la pared, el piso o el mueble principal.</p>
-        <svg id="lienzo-svg" viewBox="0 0 640 560" xmlns="http://www.w3.org/2000/svg"></svg>
+        <p class="pista">Arrastra para mirar alrededor. Toca un color para pintar la pared, el piso o el mueble principal — los puntos + tienen detalles de materiales.</p>
+        <div class="lienzo-3d" id="lienzo-3d">
+          <div class="overlay-hotspots" id="overlay-hotspots"></div>
+          <span class="pista-arrastrar" id="pista-arrastrar"><i class="fas fa-arrows-alt"></i> Arrastra para mirar</span>
+        </div>
+        <div class="info-hotspot" id="info-hotspot">
+          <p class="pista" style="margin:0;">Toca los puntos <b>+</b> sobre el dibujo para ver detalles de materiales.</p>
+        </div>
       </div>
 
       <div class="pintores">
@@ -394,12 +466,13 @@
   const COLOR_POR_ID = {};
   COLORES.forEach(c => COLOR_POR_ID[c.id] = c);
 
-  const COS30 = Math.cos(Math.PI/6);
-  const S = 40, OX = 300, OY = 175;
+  let renderer, scene, camera, controls;
+  let contenedor3D, overlayHotspots;
+  let escenaActual = { grupo:null, refs:{}, hotspotEls:[] };
+  let autoRotateTimer = null;
 
-  function proyectar(x,y,z){
-    return [ OX + (x-y)*COS30*S, OY + (x+y)*0.5*S - z*S ];
-  }
+  function mapear(x,y,z){ return new THREE.Vector3(x, z, y); }
+
   function matizar(hex, porcentaje){
     const num = parseInt(hex.replace('#',''),16);
     let r=(num>>16)&0xff, g=(num>>8)&0xff, b=num&0xff;
@@ -409,16 +482,130 @@
     b = Math.min(255, Math.max(0, b+ajuste));
     return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
   }
-  function pts(lista){ return lista.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '); }
-  function poligono(puntos, relleno, borde){
-    return `<polygon points="${pts(puntos)}" fill="${relleno}" stroke="${borde||'rgba(0,0,0,0.12)'}" stroke-width="0.6"/>`;
+
+  function iniciar3D(){
+    contenedor3D = document.getElementById("lienzo-3d");
+    overlayHotspots = document.getElementById("overlay-hotspots");
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xeef0ea);
+
+    camera = new THREE.PerspectiveCamera(42, contenedor3D.clientWidth / Math.max(contenedor3D.clientHeight,1), 0.1, 100);
+
+    renderer = new THREE.WebGLRenderer({ antialias:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    contenedor3D.insertBefore(renderer.domElement, overlayHotspots);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.42);
+    scene.add(ambient);
+    const hemi = new THREE.HemisphereLight(0xf5f2ea, 0x55503f, 0.45);
+    scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xfff4e0, 0.8);
+    dir.position.set(6, 9, 7);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(1024, 1024);
+    dir.shadow.camera.left = -9; dir.shadow.camera.right = 9;
+    dir.shadow.camera.top = 9; dir.shadow.camera.bottom = -9;
+    dir.shadow.camera.far = 26;
+    dir.shadow.bias = -0.0015;
+    scene.add(dir);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minPolarAngle = 0.35;
+    controls.maxPolarAngle = 1.45;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.6;
+    controls.addEventListener("start", () => {
+      controls.autoRotate = false;
+      const pista = document.getElementById("pista-arrastrar");
+      if (pista) pista.classList.add("oculto");
+      clearTimeout(autoRotateTimer);
+    });
+    controls.addEventListener("end", () => {
+      clearTimeout(autoRotateTimer);
+      autoRotateTimer = setTimeout(() => { controls.autoRotate = true; }, 6000);
+    });
+
+    ajustarTamano3D();
+    window.addEventListener("resize", ajustarTamano3D);
+    if (window.ResizeObserver) {
+      new ResizeObserver(ajustarTamano3D).observe(contenedor3D);
+    }
+    loopAnimacion3D();
   }
-  function cajaSVG(x,y,z,w,d,h,color){
-    const z1 = z+h;
-    const arriba  = [proyectar(x,y,z1),proyectar(x+w,y,z1),proyectar(x+w,y+d,z1),proyectar(x,y+d,z1)];
-    const derecha = [proyectar(x+w,y,z),proyectar(x+w,y,z1),proyectar(x+w,y+d,z1),proyectar(x+w,y+d,z)];
-    const frente  = [proyectar(x,y+d,z),proyectar(x,y+d,z1),proyectar(x+w,y+d,z1),proyectar(x+w,y+d,z)];
-    return poligono(arriba, matizar(color,10)) + poligono(frente, matizar(color,-14)) + poligono(derecha, matizar(color,-28));
+
+  function ajustarTamano3D(){
+    if (!renderer || !contenedor3D) return;
+    const w = contenedor3D.clientWidth, h = contenedor3D.clientHeight;
+    if (w < 5 || h < 5) return;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+
+  function loopAnimacion3D(){
+    requestAnimationFrame(loopAnimacion3D);
+    if (!renderer) return;
+    controls.update();
+    renderer.render(scene, camera);
+    actualizarPosicionHotspots();
+  }
+
+  function crearCaja(x,y,z,w,d,h,color,opciones){
+    opciones = opciones || {};
+    const geo = new THREE.BoxGeometry(w,h,d);
+    const mat = new THREE.MeshStandardMaterial({
+      color: color,
+      roughness: opciones.roughness != null ? opciones.roughness : 0.82,
+      metalness: opciones.metalness != null ? opciones.metalness : 0.04
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x + w/2, z + h/2, y + d/2);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
+  }
+
+  function opcionesPieza(f){
+    if (f.mat === "metal")  return { roughness:0.35, metalness:0.75 };
+    if (f.mat === "glossy") return { roughness:0.15, metalness:0.08 };
+    return { roughness:0.82, metalness:0.04 };
+  }
+  function opcionesAccent(room){
+    const tela = ["sofa","cama","mueble_exterior"].indexOf(room.accentTag) !== -1;
+    return tela ? { roughness:0.95, metalness:0 } : { roughness:0.5, metalness:0.08 };
+  }
+
+  function crearTexturaPiso(room, colorPiso){
+    const esMadera = (estado.colorPisoId || "").indexOf("madera") === 0;
+    const canvas = document.createElement("canvas");
+    canvas.width = 256; canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = colorPiso;
+    ctx.fillRect(0,0,256,256);
+    ctx.strokeStyle = matizar(colorPiso, -16);
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 2;
+    if (esMadera){
+      for (let i=0; i<=256; i+=26){
+        ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,256); ctx.stroke();
+      }
+    } else {
+      for (let i=0; i<=256; i+=32){
+        ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,256); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(256,i); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(Math.max(room.width/2,1), Math.max(room.depth/2,1));
+    return tex;
   }
 
   const ROOMS = {
@@ -442,6 +629,10 @@
         {tag:"fijo",     x:3.4, y:3.7, z:0,   w:1.5, d:1.0, h:0.9, color:"#c9a06a"},
         {tag:"fijo",     x:2.7, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"},
         {tag:"fijo",     x:4.5, y:5.0, z:0,   w:0.55,d:0.55,h:0.85,color:"#c9a06a"}
+      ],
+      hotspots:[
+        {x:3.2, y:0.9, z:1.4, titulo:"Gabinetes", texto:"A la medida en melamina o MDF, con el acabado y color que elijas."},
+        {x:4.6, y:0.9, z:1.7, titulo:"Encimera", texto:"En granito, cuarzo o laminado — resistente al uso diario de la cocina."}
       ]
     },
     habitacion: {
@@ -462,6 +653,10 @@
         {tag:"fijo", x:5.6, y:0.4, z:0,   w:1.0, d:1.0,  h:0.9, color:"#3a352f"},
         {tag:"fijo", x:5.85,y:0.65,z:0.9, w:0.35,d:0.35, h:0.5, color:"#e7c873"},
         {tag:"planta", x:0.2, y:5.2,z:0,  w:0.55,d:0.55, h:0.4, color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:3.1, y:0.5, z:1.3, titulo:"Cabecero", texto:"Tapizado o en madera, a la medida de tu cuarto y tu estilo."},
+        {x:2.0, y:5.4, z:0.05, titulo:"Piso", texto:"En madera, laminado o vinilo — te ayudamos a elegir el mejor para tu espacio."}
       ]
     },
     sala: {
@@ -480,6 +675,10 @@
         {tag:"fijo", x:6.4, y:0.45,z:0.9, w:0.4, d:0.3,  h:0.35, color:"#6b2c3a"},
         {tag:"fijo", x:1.6, y:1.7, z:0,   w:3.6, d:2.6,  h:0.03, color:"#d8c9ae"},
         {tag:"planta", x:7.4, y:5.0, z:0, w:0.55,d:0.55, h:0.4,  color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:3.3, y:0.95,z:1.1, titulo:"Sofá", texto:"Tapizados a la medida — tú eliges tela, color y comodidad."},
+        {x:7.4, y:0.6, z:1.1, titulo:"Mueble de TV", texto:"Consolas a la medida, integradas con la pared para un look limpio."}
       ]
     },
     terraza: {
@@ -496,6 +695,10 @@
         {tag:"planta", x:6.9, y:0.4, z:0, w:0.7, d:0.7, h:0.5,  color:"#b3502e"},
         {tag:"planta", x:0.3, y:5.1, z:0, w:0.55,d:0.55,h:0.4,  color:"#b3502e"},
         {tag:"planta", x:6.9, y:4.9, z:0, w:0.5, d:0.5, h:0.35, color:"#b3502e"}
+      ],
+      hotspots:[
+        {x:2.6, y:1.05,z:0.6, titulo:"Muebles de exterior", texto:"Resistentes a la intemperie, pensados para el clima de tu ciudad."},
+        {x:8.9, y:0.1, z:0.7, titulo:"Muro / baranda", texto:"En concreto, madera o metal — según el estilo que busques."}
       ]
     },
     oficina: {
@@ -516,6 +719,10 @@
         {tag:"fijo",       x:0.28,y:4.2, z:1.7,  w:0.24,d:0.4, h:0.18, color:"#b3502e"},
         {tag:"fijo",       x:3.9, y:0.55,z:0.75, w:0.3, d:0.3, h:0.4,  color:"#e7c873"},
         {tag:"planta",     x:6.8, y:5.0, z:0,    w:0.55,d:0.55,h:0.4,  color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:2.7, y:0.95,z:0.9, titulo:"Escritorio", texto:"Espacios de trabajo a la medida, optimizando cada metro cuadrado."},
+        {x:0.4, y:4.7, z:1.5, titulo:"Estantería", texto:"Almacenamiento empotrado, hecho a la medida de tu oficina."}
       ]
     },
     bano: {
@@ -534,26 +741,112 @@
         {tag:"fijo",          x:0.4, y:2.7, z:0.42, w:0.7, d:0.22,h:0.35, color:"#f8f8f6"},
         {tag:"fijo",          x:2.75,y:0.42,z:0.9,  w:0.15,d:0.5, h:0.35, color:"#c9a0a0"},
         {tag:"planta",        x:5.6, y:4.6, z:0,    w:0.4, d:0.4, h:0.3,  color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:4.3, y:0.75,z:0.8, titulo:"Mueble de baño", texto:"En materiales resistentes a la humedad, con el color que elijas."},
+        {x:1.5, y:0.45,z:0.5, titulo:"Enchape", texto:"Cerámico o porcelanato — variedad de texturas y colores para tu baño."}
+      ]
+    },
+    salon_clases: {
+      nombre:"Salón de clases",
+      iconoSvg:'<rect x="8" y="10" width="48" height="14" rx="1"/><line x1="14" y1="16" x2="50" y2="16"/><rect x="14" y="34" width="14" height="10" rx="1"/><rect x="36" y="34" width="14" height="10" rx="1"/><rect x="14" y="48" width="14" height="8" rx="1"/><rect x="36" y="48" width="14" height="8" rx="1"/>',
+      width:9, depth:7, height:4,
+      wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
+      accentTag:"pupitre", accentLabel:"Pupitres", accentDefaultId:"madera-clara",
+      decorVentana:{y0:4.6, y1:6.6, z0:1.2, z1:2.8},
+      decorCuadros:[{x0:0.6,x1:1.8,z0:2.0,z1:2.8}],
+      furniture:[
+        {tag:"fijo",    x:1.0, y:0.1, z:1.0, w:5.0, d:0.08, h:1.5,  color:"#e8f3ee", mat:"glossy"},
+        {tag:"fijo",    x:0.7, y:0.4, z:0,   w:1.6, d:0.8,  h:0.75, color:"#8a5a3a"},
+        {tag:"pupitre", x:1.4, y:2.2, z:0,   w:0.9, d:0.7,  h:0.55, color:"#c9a06a"},
+        {tag:"pupitre", x:2.7, y:2.2, z:0,   w:0.9, d:0.7,  h:0.55, color:"#c9a06a"},
+        {tag:"pupitre", x:4.0, y:2.2, z:0,   w:0.9, d:0.7,  h:0.55, color:"#c9a06a"},
+        {tag:"pupitre", x:1.4, y:3.6, z:0,   w:0.9, d:0.7,  h:0.55, color:"#c9a06a"},
+        {tag:"pupitre", x:2.7, y:3.6, z:0,   w:0.9, d:0.7,  h:0.55, color:"#c9a06a"},
+        {tag:"pupitre", x:4.0, y:3.6, z:0,   w:0.9, d:0.7,  h:0.55, color:"#c9a06a"},
+        {tag:"fijo",    x:6.4, y:0.4, z:0,   w:0.9, d:0.9,  h:1.9,  color:"#8a9a82"},
+        {tag:"planta",  x:7.4, y:5.6, z:0,   w:0.5, d:0.5,  h:0.4,  color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:2.7, y:2.55,z:0.55, titulo:"Pupitres", texto:"Resistentes y fáciles de limpiar — los organizamos según el número de estudiantes."},
+        {x:3.5, y:0.15,z:1.7,  titulo:"Tablero", texto:"Tableros y paneles acústicos que mejoran la enseñanza y bajan el ruido del salón."}
+      ]
+    },
+    biblioteca: {
+      nombre:"Biblioteca",
+      iconoSvg:'<rect x="10" y="8" width="44" height="48" rx="2"/><line x1="10" y1="22" x2="54" y2="22"/><line x1="10" y1="36" x2="54" y2="36"/><line x1="20" y1="8" x2="20" y2="22"/><line x1="30" y1="8" x2="30" y2="22"/><line x1="40" y1="8" x2="40" y2="22"/>',
+      width:9, depth:7, height:4,
+      wallDefaultId:"beige-arena", floorDefaultId:"madera-oscura",
+      accentTag:"estanteria", accentLabel:"Estanterías", accentDefaultId:"madera-oscura",
+      decorVentana:{y0:5.2, y1:6.7, z0:1.2, z1:2.8},
+      lampara:{x:4.2, y:3.6},
+      alfombra:{x:2.6, y:2.4, w:3.0, d:2.0, color:"#cdbfa0"},
+      furniture:[
+        {tag:"estanteria", x:0.3, y:0.3, z:0,   w:0.5, d:2.4, h:2.6,  color:"#6b4a2c"},
+        {tag:"estanteria", x:0.3, y:3.0, z:0,   w:0.5, d:2.4, h:2.6,  color:"#6b4a2c"},
+        {tag:"estanteria", x:8.2, y:0.3, z:0,   w:0.5, d:2.4, h:2.6,  color:"#6b4a2c"},
+        {tag:"estanteria", x:8.2, y:3.0, z:0,   w:0.5, d:2.4, h:2.6,  color:"#6b4a2c"},
+        {tag:"fijo",       x:3.0, y:2.8, z:0,   w:2.4, d:1.2, h:0.75, color:"#c9a06a"},
+        {tag:"fijo",       x:3.2, y:4.3, z:0,   w:0.6, d:0.6, h:0.85, color:"#3b3b3b"},
+        {tag:"fijo",       x:4.6, y:4.3, z:0,   w:0.6, d:0.6, h:0.85, color:"#3b3b3b"},
+        {tag:"planta",     x:7.6, y:6.0, z:0,   w:0.5, d:0.5, h:0.4,  color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:0.55,y:1.5, z:1.3,  titulo:"Estanterías", texto:"A la medida, en la cantidad y altura que necesites para tu colección."},
+        {x:4.2, y:3.4, z:0.75, titulo:"Zona de lectura", texto:"Mesas y sillas cómodas, pensadas para la concentración y buena iluminación."}
+      ]
+    },
+    sala_computo: {
+      nombre:"Sala de cómputo",
+      iconoSvg:'<rect x="14" y="10" width="36" height="26" rx="2"/><line x1="24" y1="36" x2="24" y2="44"/><line x1="40" y1="36" x2="40" y2="44"/><rect x="16" y="44" width="32" height="6" rx="1"/><rect x="8" y="52" width="48" height="4" rx="2"/>',
+      width:9, depth:7, height:4,
+      wallDefaultId:"gris-perla", floorDefaultId:"gris-perla",
+      accentTag:"escritorio_computo", accentLabel:"Escritorios", accentDefaultId:"gris-carbon",
+      decorVentana:{y0:5.0, y1:6.7, z0:1.2, z1:2.8},
+      furniture:[
+        {tag:"escritorio_computo", x:0.4, y:0.4, z:0,    w:2.4, d:0.8, h:0.75, color:"#3b3b3b"},
+        {tag:"fijo",               x:0.7, y:0.55,z:0.75, w:0.6, d:0.05,h:0.45, color:"#2a2a2a", mat:"glossy"},
+        {tag:"escritorio_computo", x:3.3, y:0.4, z:0,    w:2.4, d:0.8, h:0.75, color:"#3b3b3b"},
+        {tag:"fijo",               x:3.6, y:0.55,z:0.75, w:0.6, d:0.05,h:0.45, color:"#2a2a2a", mat:"glossy"},
+        {tag:"escritorio_computo", x:6.2, y:0.4, z:0,    w:2.4, d:0.8, h:0.75, color:"#3b3b3b"},
+        {tag:"fijo",               x:6.5, y:0.55,z:0.75, w:0.6, d:0.05,h:0.45, color:"#2a2a2a", mat:"glossy"},
+        {tag:"escritorio_computo", x:0.4, y:4.4, z:0,    w:2.4, d:0.8, h:0.75, color:"#3b3b3b"},
+        {tag:"fijo",               x:0.7, y:4.55,z:0.75, w:0.6, d:0.05,h:0.45, color:"#2a2a2a", mat:"glossy"},
+        {tag:"escritorio_computo", x:3.3, y:4.4, z:0,    w:2.4, d:0.8, h:0.75, color:"#3b3b3b"},
+        {tag:"fijo",               x:3.6, y:4.55,z:0.75, w:0.6, d:0.05,h:0.45, color:"#2a2a2a", mat:"glossy"},
+        {tag:"escritorio_computo", x:6.2, y:4.4, z:0,    w:2.4, d:0.8, h:0.75, color:"#3b3b3b"},
+        {tag:"fijo",               x:6.5, y:4.55,z:0.75, w:0.6, d:0.05,h:0.45, color:"#2a2a2a", mat:"glossy"},
+        {tag:"planta",             x:7.9, y:2.2, z:0,    w:0.5, d:0.5, h:0.4,  color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:1.6, y:0.8, z:0.9,  titulo:"Escritorios", texto:"Escritorios y cableado organizado, listos para equipos de cómputo."},
+        {x:4.7, y:4.9, z:0.05, titulo:"Piso técnico", texto:"Piso técnico y tomas eléctricas suficientes para cada puesto de trabajo."}
       ]
     }
   };
 
 
-  const estado = { espacio:null, colorParedId:null, colorPisoId:null, colorAccentId:null };
+  const estado = { espacio:null, colorParedId:null, colorPisoId:null, colorAccentId:null, visitados:new Set(), hotspotsVistos:new Set() };
 
   const listaEspacios = document.getElementById("lista-espacios");
   Object.keys(ROOMS).forEach(id => {
     const r = ROOMS[id];
     const div = document.createElement("div");
     div.className = "tarjeta";
+    div.dataset.id = id;
     div.innerHTML = `<svg viewBox="0 0 64 64" fill="none" stroke-width="1.6">${r.iconoSvg}</svg><span>${r.nombre}</span>`;
     div.addEventListener("click", () => elegirEspacio(id, div));
     listaEspacios.appendChild(div);
   });
+  renderRecorrido();
 
   function elegirEspacio(id, elemento){
     estado.espacio = id;
-    document.querySelectorAll("#lista-espacios .tarjeta").forEach(n => n.classList.remove("seleccionada"));
+    estado.visitados.add(id);
+    document.querySelectorAll("#lista-espacios .tarjeta").forEach(n => {
+      n.classList.remove("seleccionada");
+      n.classList.toggle("visitada", estado.visitados.has(n.dataset.id));
+    });
     elemento.classList.add("seleccionada");
 
     const room = ROOMS[id];
@@ -569,11 +862,14 @@
     document.getElementById("ficha-accent-label").textContent = room.accentLabel;
     document.getElementById("ficha-espacio").textContent = room.nombre;
 
-    construirSelectorColor("lista-colores-pared", "colorParedId");
-    construirSelectorColor("lista-colores-piso", "colorPisoId");
-    construirSelectorColor("lista-colores-accent", "colorAccentId");
+    construirSelectorColor("lista-colores-pared", "colorParedId", "pared");
+    construirSelectorColor("lista-colores-piso", "colorPisoId", "piso");
+    construirSelectorColor("lista-colores-accent", "colorAccentId", "accent");
 
-    dibujarEscena();
+    if (!renderer) { iniciar3D(); }
+    construirEscena3D(room);
+    renderRecorrido();
+    document.getElementById("info-hotspot").innerHTML = '<p class="pista" style="margin:0;">Toca los puntos <b>+</b> sobre el dibujo para ver detalles de materiales.</p>';
     document.getElementById("paso-personaliza").scrollIntoView({behavior:"smooth", block:"start"});
   }
 
@@ -591,7 +887,7 @@
     el.classList.add(clase);
   }
 
-  function construirSelectorColor(contenedorId, campoEstado){
+  function construirSelectorColor(contenedorId, campoEstado, tipo){
     const contenedor = document.getElementById(contenedorId);
     contenedor.innerHTML = "";
     COLORES.forEach(c => {
@@ -602,93 +898,255 @@
         estado[campoEstado] = c.id;
         contenedor.querySelectorAll(".color-op").forEach(n => n.classList.remove("seleccionada"));
         div.classList.add("seleccionada");
-        dibujarEscena();
+        if (tipo === "pared") repintarPared(c.hex);
+        if (tipo === "piso") repintarPiso();
+        if (tipo === "accent") repintarAccent(c.hex);
+        document.getElementById("ficha-" + tipo).textContent = c.nombre;
       });
       contenedor.appendChild(div);
     });
   }
 
-  function dibujarVentana(room){
-    if (!room.decorVentana) return "";
-    const v = room.decorVentana;
-    const marco = [proyectar(0,v.y0,v.z0),proyectar(0,v.y1,v.z0),proyectar(0,v.y1,v.z1),proyectar(0,v.y0,v.z1)];
-    return `<polygon points="${pts(marco)}" fill="#cfe3ea" stroke="#fdfaf3" stroke-width="4"/>`;
+  function crearVentana(v){
+    const w = v.y1 - v.y0, h = v.z1 - v.z0;
+    const geo = new THREE.PlaneGeometry(w, h);
+    const mat = new THREE.MeshStandardMaterial({ color:0xcfe3ea, roughness:0.1, metalness:0, emissive:0xcfe3ea, emissiveIntensity:0.12, side:THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.y = Math.PI/2;
+    mesh.position.set(0.02, (v.z0+v.z1)/2, (v.y0+v.y1)/2);
+    return mesh;
   }
-  function dibujarCortinas(room){
-    if (!room.decorCortinas || !room.decorVentana) return "";
-    const v = room.decorVentana, tela = 0.32;
-    const izq = [proyectar(0,v.y0-tela,0.25),proyectar(0,v.y0,0.25),proyectar(0,v.y0,v.z1+0.35),proyectar(0,v.y0-tela,v.z1+0.35)];
-    const der = [proyectar(0,v.y1,0.25),proyectar(0,v.y1+tela,0.25),proyectar(0,v.y1+tela,v.z1+0.35),proyectar(0,v.y1,v.z1+0.35)];
-    return poligono(izq,"#ece3d3") + poligono(der,"#ece3d3");
+  function crearCortinas(v){
+    const tela = 0.32, h = (v.z1-v.z0) + 0.35;
+    const geo = new THREE.PlaneGeometry(tela, h);
+    const matIzq = new THREE.MeshStandardMaterial({ color:0xece3d3, roughness:0.95, side:THREE.DoubleSide });
+    const matDer = matIzq.clone();
+    const izq = new THREE.Mesh(geo, matIzq);
+    izq.rotation.y = Math.PI/2;
+    izq.position.set(0.03, v.z0 + h/2 - 0.15, v.y0 - tela/2);
+    izq.receiveShadow = true;
+    const der = new THREE.Mesh(geo, matDer);
+    der.rotation.y = Math.PI/2;
+    der.position.set(0.03, v.z0 + h/2 - 0.15, v.y1 + tela/2);
+    der.receiveShadow = true;
+    return [izq, der];
   }
-  function dibujarEspejo(room){
-    if (!room.decorEspejo) return "";
-    const e = room.decorEspejo;
-    const marco = [proyectar(e.x0,0,e.z0),proyectar(e.x1,0,e.z0),proyectar(e.x1,0,e.z1),proyectar(e.x0,0,e.z1)];
-    return `<polygon points="${pts(marco)}" fill="#dfe6e6" stroke="#c9c4b8" stroke-width="3"/>`;
+  function crearEspejo(e){
+    const w = e.x1 - e.x0, h = e.z1 - e.z0;
+    const geo = new THREE.PlaneGeometry(w, h);
+    const mat = new THREE.MeshStandardMaterial({ color:0xdfe6e6, roughness:0.05, metalness:0.6 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set((e.x0+e.x1)/2, (e.z0+e.z1)/2, 0.02);
+    return mesh;
   }
-  function dibujarCuadros(room){
-    if (!room.decorCuadros) return "";
-    return room.decorCuadros.map(c => {
-      const marco = [proyectar(c.x0,0,c.z0),proyectar(c.x1,0,c.z0),proyectar(c.x1,0,c.z1),proyectar(c.x0,0,c.z1)];
-      return `<polygon points="${pts(marco)}" fill="#e9e2d3" stroke="#8a5a3a" stroke-width="3"/>`;
-    }).join("");
+  function crearCuadro(c){
+    const w = c.x1 - c.x0, h = c.z1 - c.z0;
+    const geo = new THREE.PlaneGeometry(w, h);
+    const mat = new THREE.MeshStandardMaterial({ color:0xe9e2d3, roughness:0.7 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set((c.x0+c.x1)/2, (c.z0+c.z1)/2, 0.02);
+    return mesh;
   }
-  function dibujarAlfombra(room){
-    if (!room.alfombra) return "";
-    const a = room.alfombra;
-    const p = [proyectar(a.x,a.y,0.015),proyectar(a.x+a.w,a.y,0.015),proyectar(a.x+a.w,a.y+a.d,0.015),proyectar(a.x,a.y+a.d,0.015)];
-    return poligono(p, a.color, "rgba(0,0,0,0.08)");
+  function crearAlfombra(a){
+    const geo = new THREE.PlaneGeometry(a.w, a.d);
+    const mat = new THREE.MeshStandardMaterial({ color:a.color, roughness:0.95 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI/2;
+    mesh.position.set(a.x + a.w/2, 0.015, a.y + a.d/2);
+    mesh.receiveShadow = true;
+    return mesh;
   }
-  function dibujarFollaje(f){
-    const cx = f.x + f.w/2, cy = f.y + f.d/2;
-    const p = proyectar(cx, cy, f.z + f.h + 0.35);
-    return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="16" fill="#5f7a4e"/>` +
-           `<circle cx="${(p[0]-10).toFixed(1)}" cy="${(p[1]+6).toFixed(1)}" r="12" fill="#6f8f5a"/>` +
-           `<circle cx="${(p[0]+10).toFixed(1)}" cy="${(p[1]+4).toFixed(1)}" r="12" fill="#4d6640"/>`;
+  function crearFollaje(f){
+    const grupo = new THREE.Group();
+    const cx = f.x + f.w/2, cy = f.y + f.d/2, ztop = f.z + f.h;
+    const base = mapear(cx, cy, ztop);
+    const geo = new THREE.IcosahedronGeometry(0.24, 0);
+    const colores = [0x5f7a4e, 0x6f8f5a, 0x4d6640];
+    const offsets = [[0,0.16,0], [-0.13,0.24,-0.06], [0.13,0.22,0.05]];
+    colores.forEach((c,i) => {
+      const mat = new THREE.MeshStandardMaterial({ color:c, roughness:0.9, flatShading:true });
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(base.x+offsets[i][0], base.y+offsets[i][1], base.z+offsets[i][2]);
+      m.castShadow = true;
+      grupo.add(m);
+    });
+    return grupo;
   }
-  function dibujarLampara(room){
-    if (!room.lampara) return "";
-    const l = room.lampara;
-    const techo = proyectar(l.x, l.y, room.height);
-    const bombilla = proyectar(l.x, l.y, room.height - 0.55);
-    return `<line x1="${techo[0].toFixed(1)}" y1="${techo[1].toFixed(1)}" x2="${bombilla[0].toFixed(1)}" y2="${bombilla[1].toFixed(1)}" stroke="#8a8378" stroke-width="1.5"/>` +
-           `<circle cx="${bombilla[0].toFixed(1)}" cy="${bombilla[1].toFixed(1)}" r="10" fill="#f5deac" stroke="#c9a06a" stroke-width="1.5"/>`;
-  }
-  function dibujarVigas(room){
-    if (!room.vigas) return "";
-    return room.vigas.map(v => cajaSVG(0, v.y, room.height, room.width, 0.14, 0.1, "#8a6a45")).join("");
+  function crearLampara(l, alturaTecho){
+    const objetos = [];
+    const cordGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.55, 6);
+    const cordMat = new THREE.MeshStandardMaterial({ color:0x8a8378 });
+    const cord = new THREE.Mesh(cordGeo, cordMat);
+    cord.position.set(l.x, alturaTecho - 0.275, l.y);
+    objetos.push(cord);
+    const bulboGeo = new THREE.SphereGeometry(0.1, 14, 14);
+    const bulboMat = new THREE.MeshStandardMaterial({ color:0xf5deac, emissive:0xf5deac, emissiveIntensity:0.7, roughness:0.4 });
+    const bulbo = new THREE.Mesh(bulboGeo, bulboMat);
+    bulbo.position.set(l.x, alturaTecho - 0.55, l.y);
+    objetos.push(bulbo);
+    const luz = new THREE.PointLight(0xffe9bd, 0.5, 4.5);
+    luz.position.copy(bulbo.position);
+    objetos.push(luz);
+    return objetos;
   }
 
-  function dibujarEscena(){
-    const room = ROOMS[estado.espacio];
+  function calcularPuntos(){
+    return estado.visitados.size * 100 + estado.hotspotsVistos.size * 25;
+  }
+
+  function renderRecorrido(){
+    const cont = document.getElementById("recorrido-chips");
+    cont.innerHTML = "";
+    Object.keys(ROOMS).forEach(id => {
+      const r = ROOMS[id];
+      const div = document.createElement("div");
+      let clase = "recorrido-chip";
+      if (estado.visitados.has(id)) clase += " visitado";
+      if (estado.espacio === id) clase += " actual";
+      div.className = clase;
+      div.innerHTML = `<svg viewBox="0 0 64 64" fill="none" stroke-width="1.8">${r.iconoSvg}</svg><span>${r.nombre}</span>`;
+      div.addEventListener("click", () => elegirEspacio(id, document.querySelector(`#lista-espacios .tarjeta[data-id="${id}"]`)));
+      cont.appendChild(div);
+    });
+    document.getElementById("recorrido-puntos").textContent = calcularPuntos() + " pts";
+  }
+
+  function mostrarInfoHotspot(h){
+    document.getElementById("info-hotspot").innerHTML = `<strong>${h.titulo}</strong><p>${h.texto}</p>`;
+  }
+
+  function limpiarEscenaAnterior(){
+    if (escenaActual.grupo){
+      scene.remove(escenaActual.grupo);
+      escenaActual.grupo.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material){
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach(m => { if (m.map) m.map.dispose(); m.dispose(); });
+        }
+      });
+    }
+    escenaActual = { grupo:new THREE.Group(), refs:{ paredMats:[], pisoMesh:null, accentMats:[] }, hotspotEls:[] };
+  }
+
+  function construirEscena3D(room){
+    limpiarEscenaAnterior();
+    const grupo = escenaActual.grupo;
     const colorPared = COLOR_POR_ID[estado.colorParedId].hex;
     const colorPiso = COLOR_POR_ID[estado.colorPisoId].hex;
     const colorAccent = COLOR_POR_ID[estado.colorAccentId].hex;
 
-    let svg = "";
-    svg += poligono([proyectar(0,0,0),proyectar(room.width,0,0),proyectar(room.width,room.depth,0),proyectar(0,room.depth,0)], colorPiso);
-    svg += dibujarAlfombra(room);
-    svg += poligono([proyectar(0,0,0),proyectar(room.width,0,0),proyectar(room.width,0,room.height),proyectar(0,0,room.height)], matizar(colorPared,-6));
-    svg += poligono([proyectar(0,0,0),proyectar(0,room.depth,0),proyectar(0,room.depth,room.height),proyectar(0,0,room.height)], matizar(colorPared,-20));
-    svg += dibujarVentana(room);
-    svg += dibujarCortinas(room);
-    svg += dibujarCuadros(room);
-    svg += dibujarEspejo(room);
+    const pisoGeo = new THREE.PlaneGeometry(room.width, room.depth);
+    const pisoMat = new THREE.MeshStandardMaterial({ map:crearTexturaPiso(room, colorPiso), roughness:0.9, metalness:0.02 });
+    const piso = new THREE.Mesh(pisoGeo, pisoMat);
+    piso.rotation.x = -Math.PI/2;
+    piso.position.set(room.width/2, 0, room.depth/2);
+    piso.receiveShadow = true;
+    grupo.add(piso);
+    escenaActual.refs.pisoMesh = piso;
 
-    const piezas = room.furniture
-      .map(f => f.tag === room.accentTag ? Object.assign({}, f, {color:colorAccent}) : f)
-      .sort((a,b) => (a.x+a.y) - (b.x+b.y));
+    if (room.alfombra) grupo.add(crearAlfombra(room.alfombra));
 
-    piezas.forEach(f => { svg += cajaSVG(f.x, f.y, f.z, f.w, f.d, f.h, f.color); });
-    piezas.filter(f => f.tag === "planta").forEach(f => { svg += dibujarFollaje(f); });
-    svg += dibujarLampara(room);
-    svg += dibujarVigas(room);
+    const paredFondoMat = new THREE.MeshStandardMaterial({ color:colorPared, roughness:0.95, side:THREE.DoubleSide });
+    const paredFondo = new THREE.Mesh(new THREE.PlaneGeometry(room.width, room.height), paredFondoMat);
+    paredFondo.position.set(room.width/2, room.height/2, 0);
+    paredFondo.receiveShadow = true;
+    grupo.add(paredFondo);
 
-    document.getElementById("lienzo-svg").innerHTML = svg;
+    const paredLateralMat = new THREE.MeshStandardMaterial({ color:colorPared, roughness:0.95, side:THREE.DoubleSide });
+    const paredLateral = new THREE.Mesh(new THREE.PlaneGeometry(room.depth, room.height), paredLateralMat);
+    paredLateral.rotation.y = Math.PI/2;
+    paredLateral.position.set(0, room.height/2, room.depth/2);
+    paredLateral.receiveShadow = true;
+    grupo.add(paredLateral);
+
+    escenaActual.refs.paredMats = [paredFondoMat, paredLateralMat];
+
+    if (room.decorVentana) grupo.add(crearVentana(room.decorVentana));
+    if (room.decorCortinas && room.decorVentana) crearCortinas(room.decorVentana).forEach(o => grupo.add(o));
+    (room.decorCuadros || []).forEach(c => grupo.add(crearCuadro(c)));
+    if (room.decorEspejo) grupo.add(crearEspejo(room.decorEspejo));
+
+    room.furniture.forEach(f => {
+      const esAccent = f.tag === room.accentTag;
+      const color = esAccent ? colorAccent : f.color;
+      const opts = esAccent ? opcionesAccent(room) : opcionesPieza(f);
+      const mesh = crearCaja(f.x, f.y, f.z, f.w, f.d, f.h, color, opts);
+      grupo.add(mesh);
+      if (esAccent) escenaActual.refs.accentMats.push(mesh.material);
+      if (f.tag === "planta") grupo.add(crearFollaje(f));
+    });
+
+    if (room.lampara) crearLampara(room.lampara, room.height).forEach(o => grupo.add(o));
+    (room.vigas || []).forEach(v => grupo.add(crearCaja(0, v.y, room.height, room.width, 0.14, 0.1, "#8a6a45")));
+
+    scene.add(grupo);
+    construirHotspotsHTML(room);
+
+    const radio = Math.max(room.width, room.depth);
+    controls.target.set(room.width*0.4, room.height*0.32, room.depth*0.4);
+    camera.position.set(room.width*0.4 + radio*0.95, room.height*0.9 + radio*0.35, room.depth*0.4 + radio*1.05);
+    controls.minDistance = radio * 0.55;
+    controls.maxDistance = radio * 2.4;
+    const desfase = camera.position.clone().sub(controls.target);
+    const esferico = new THREE.Spherical().setFromVector3(desfase);
+    controls.minAzimuthAngle = esferico.theta - 1.05;
+    controls.maxAzimuthAngle = esferico.theta + 1.05;
+    controls.update();
+
     document.getElementById("ficha-pared").textContent = COLOR_POR_ID[estado.colorParedId].nombre;
     document.getElementById("ficha-piso").textContent = COLOR_POR_ID[estado.colorPisoId].nombre;
     document.getElementById("ficha-accent").textContent = COLOR_POR_ID[estado.colorAccentId].nombre;
+  }
+
+  function repintarPared(hex){
+    escenaActual.refs.paredMats.forEach(m => m.color.set(hex));
+  }
+  function repintarPiso(){
+    const room = ROOMS[estado.espacio];
+    const mesh = escenaActual.refs.pisoMesh;
+    if (!mesh) return;
+    if (mesh.material.map) mesh.material.map.dispose();
+    mesh.material.map = crearTexturaPiso(room, COLOR_POR_ID[estado.colorPisoId].hex);
+    mesh.material.needsUpdate = true;
+  }
+  function repintarAccent(hex){
+    escenaActual.refs.accentMats.forEach(m => m.color.set(hex));
+  }
+
+  function construirHotspotsHTML(room){
+    overlayHotspots.innerHTML = "";
+    escenaActual.hotspotEls = [];
+    (room.hotspots || []).forEach((h,i) => {
+      const visto = estado.hotspotsVistos.has(estado.espacio + ":" + i);
+      const el = document.createElement("div");
+      el.className = "hotspot-marker-html" + (visto ? " visto" : "");
+      el.textContent = visto ? "\u2713" : "+";
+      el.addEventListener("click", () => {
+        mostrarInfoHotspot(h);
+        const clave = estado.espacio + ":" + i;
+        if (!estado.hotspotsVistos.has(clave)){
+          estado.hotspotsVistos.add(clave);
+          el.classList.add("visto");
+          el.textContent = "\u2713";
+          renderRecorrido();
+        }
+      });
+      overlayHotspots.appendChild(el);
+      escenaActual.hotspotEls.push({ el:el, pos:mapear(h.x, h.y, h.z) });
+    });
+  }
+
+  function actualizarPosicionHotspots(){
+    if (!escenaActual.hotspotEls || !escenaActual.hotspotEls.length || !contenedor3D) return;
+    const w = contenedor3D.clientWidth, h = contenedor3D.clientHeight;
+    escenaActual.hotspotEls.forEach(item => {
+      const p = item.pos.clone().project(camera);
+      const detras = p.z > 1;
+      item.el.style.display = detras ? "none" : "flex";
+      item.el.style.left = ((p.x*0.5+0.5) * w) + "px";
+      item.el.style.top = ((1-(p.y*0.5+0.5)) * h) + "px";
+    });
   }
 
   document.getElementById("btn-quiero-obra").addEventListener("click", () => {
@@ -710,7 +1168,7 @@
     const colorPared  = COLOR_POR_ID[estado.colorParedId].nombre;
     const colorPiso   = COLOR_POR_ID[estado.colorPisoId].nombre;
     const colorAccent = COLOR_POR_ID[estado.colorAccentId].nombre;
-    const descripcion = `Espacio: ${room.nombre} · Pared: ${colorPared} · Piso: ${colorPiso} · ${room.accentLabel}: ${colorAccent} · Ciudad: ${ciudad}`;
+    const descripcion = `Espacio: ${room.nombre} · Pared: ${colorPared} · Piso: ${colorPiso} · ${room.accentLabel}: ${colorAccent} · Ciudad: ${ciudad} · Exploró ${estado.visitados.size} espacio(s), ${calcularPuntos()} pts`;
 
     btn.disabled = true;
     btn.textContent = "Enviando...";
