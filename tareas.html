@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DOMKA — Tareas</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/app-pages.css">
+  <style>
+    .hidden { display: none !important; }
+
+    /* KPIs */
+    .t-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .t-kpi { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+    .t-kpi small { display: block; font-size: .62rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--gray-lt); }
+    .t-kpi b { font-size: 1.7rem; color: var(--text); line-height: 1.2; }
+    .t-kpi.late b { color: #dc2626; }
+
+    /* Filtros */
+    .t-filtros { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+    .t-filtros input, .t-filtros select { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: .82rem; background: #fff; }
+    .t-filtros input[type=search] { min-width: 220px; }
+
+    /* Tabs de vista */
+    .t-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .t-tab { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 8px 16px; font-size: .8rem; font-weight: 600; color: var(--gray); cursor: pointer; }
+    .t-tab.active { background: var(--green); border-color: var(--green); color: #fff; }
+    .t-pane { display: none; }
+    .t-pane.active { display: block; }
+
+    /* Badges y barras */
+    .t-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .68rem; font-weight: 700; white-space: nowrap; }
+    .t-bar { height: 8px; background: var(--line-lt); border-radius: 999px; overflow: hidden; min-width: 80px; }
+    .t-bar > i { display: block; height: 100%; border-radius: 999px; }
+    .t-late { color: #dc2626; font-weight: 700; }
+    .t-warn { color: #d97706; font-weight: 700; }
+
+    /* Lista */
+    .t-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .t-table th { text-align: left; font-size: .64rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gray-lt); padding: 10px 12px; border-bottom: 1px solid var(--line); }
+    .t-table td { padding: 12px; border-bottom: 1px solid var(--line-lt); vertical-align: middle; }
+    .t-table tr[data-id] { cursor: pointer; }
+    .t-table tr[data-id]:hover { background: #faf8f4; }
+    .t-wrap { overflow-x: auto; }
+
+    /* Tablero */
+    .t-board { display: grid; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+    .t-col { background: var(--bg-alt); border-radius: 14px; padding: 10px; min-height: 220px; }
+    .t-col.over { outline: 2px dashed var(--green); }
+    .t-col h4 { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin: 4px 6px 10px; display: flex; justify-content: space-between; }
+    .t-card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; cursor: grab; font-size: .8rem; }
+    .t-card:active { cursor: grabbing; }
+    .t-card .ttl { font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    .t-card .meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 8px; font-size: .7rem; color: var(--gray); }
+
+    /* Cronograma */
+    .g-wrap { overflow-x: auto; }
+    .g-grid { min-width: 820px; }
+    .g-row { display: grid; grid-template-columns: 230px 1fr; align-items: center; border-bottom: 1px solid var(--line-lt); min-height: 38px; }
+    .g-label { font-size: .78rem; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .g-track { position: relative; height: 38px; }
+    .g-head .g-track { height: 26px; }
+    .g-tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--line-lt); font-size: .62rem; color: var(--gray-lt); padding-left: 3px; }
+    .g-bar { position: absolute; top: 9px; height: 20px; border-radius: 6px; overflow: hidden; cursor: pointer; border: 1px solid rgba(0,0,0,.12); }
+    .g-bar > i { position: absolute; left: 0; top: 0; bottom: 0; opacity: .9; }
+    .g-bar > span { position: relative; font-size: .64rem; font-weight: 700; color: #fff; padding: 0 6px; line-height: 18px; text-shadow: 0 0 3px rgba(0,0,0,.45); }
+    .g-today { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; z-index: 2; }
+
+    /* Gráficos */
+    .t-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .t-chart-box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .t-chart-box h5 { font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+    .t-chart-box canvas { max-height: 280px; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 500; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px; overflow-y: auto; }
+    .modal-box { background: #fff; border-radius: 20px; width: 100%; max-width: 680px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+    .f-label { font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); margin-bottom: 4px; display: block; }
+    .f-input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: .86rem; background: #fff; }
+    .f-input:disabled { background: #f5f3ee; color: var(--gray); }
+    .chk-item { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .chk-item input[type=text] { flex: 1; }
+    .chk-item button { color: #dc2626; font-size: .8rem; padding: 4px 8px; }
+    .t-empty { text-align: center; color: var(--gray-lt); padding: 40px 0; font-size: .9rem; }
+    #t-toast { position: fixed; bottom: 24px; right: 24px; background: #2c2c2c; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: .82rem; z-index: 700; opacity: 0; transition: opacity .25s; pointer-events: none; }
+    #t-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="sidebar-brand-wrap">
+    <span class="sidebar-brand-name">DOMKA</span>
+    <span class="sidebar-brand-sub">Construcción &amp; Diseño</span>
+  </div>
+  <nav class="sidebar-links">
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="cotizaciones.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-file-alt"></i> Cotizaciones</a>
+    <a href="clientes.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-users"></i> Clientes</a>
+    <a href="proyectos.html" class="sidebar-link"><i class="fas fa-hard-hat"></i> Proyectos</a>
+    <a href="tareas.html" class="sidebar-link active"><i class="fas fa-tasks"></i> Tareas</a>
+    <a href="comercial.html" class="sidebar-link" data-rol-min="comercial"><i class="fas fa-funnel-dollar"></i> Comercial</a>
+    <a href="contabilidad.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-chart-bar"></i> Contabilidad</a>
+    <a href="usuarios.html" class="sidebar-link" data-rol-min="admin"><i class="fas fa-user-cog"></i> Usuarios</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-indicator">
+      <div class="user-dot"></div>
+      <div>
+        <span class="user-email-text" id="user-email">Cargando…</span>
+        <span style="display:block;font-size:.6rem;color:var(--gray-lt)" id="user-rol"></span>
+      </div>
+    </div>
+    <button onclick="logout()" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="page-with-sidebar">
+
+  <div class="page-topbar">
+    <div>
+      <h1 class="page-heading">Tareas</h1>
+      <p class="page-subheading" id="t-subtitulo">Seguimiento por áreas, responsables y fechas</p>
+    </div>
+    <button id="btn-nueva" class="btn-primary px-5 py-2 text-sm hidden">
+      <i class="fas fa-plus mr-1"></i> Nueva tarea
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="t-kpis" id="t-kpis"></div>
+
+  <!-- Filtros -->
+  <div class="t-filtros">
+    <input type="search" id="f-buscar" placeholder="Buscar tarea o responsable…">
+    <select id="f-area"><option value="">Todas las áreas</option></select>
+    <select id="f-estado"><option value="">Todos los estados</option></select>
+    <select id="f-asignado">
+      <option value="">Todas las visibles</option>
+      <option value="mias">Asignadas a mí</option>
+      <option value="creadas">Creadas por mí</option>
+    </select>
+    <label class="text-sm" style="display:flex;gap:6px;align-items:center">
+      <input type="checkbox" id="f-vencidas"> Solo vencidas
+    </label>
+  </div>
+
+  <!-- Vistas -->
+  <div class="t-tabs">
+    <button class="t-tab active" data-vista="lista"><i class="fas fa-list mr-1"></i> Lista</button>
+    <button class="t-tab" data-vista="tablero"><i class="fas fa-columns mr-1"></i> Tablero</button>
+    <button class="t-tab" data-vista="cronograma"><i class="fas fa-stream mr-1"></i> Cronograma</button>
+    <button class="t-tab" data-vista="graficos"><i class="fas fa-chart-pie mr-1"></i> Gráficos</button>
+  </div>
+
+  <div id="pane-lista" class="t-pane active form-container p-4"></div>
+  <div id="pane-tablero" class="t-pane"></div>
+  <div id="pane-cronograma" class="t-pane form-container p-4"></div>
+  <div id="pane-graficos" class="t-pane">
+    <div class="t-charts">
+      <div class="t-chart-box"><h5>Tareas por estado</h5><canvas id="ch-estado"></canvas></div>
+      <div class="t-chart-box"><h5>Avance por área</h5><canvas id="ch-area"></canvas></div>
+      <div class="t-chart-box"><h5>Carga por responsable</h5><canvas id="ch-resp"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAREA -->
+<div id="modal-tarea" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="flex justify-between items-start mb-4">
+      <h2 id="m-titulo-modal" class="text-xl font-semibold">Nueva tarea</h2>
+      <button id="m-cerrar" class="text-gray-400 text-xl" aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="md:col-span-2">
+        <label class="f-label" for="m-titulo">Título</label>
+        <input id="m-titulo" class="f-input" maxlength="200" placeholder="Ej: Visitar obra Calle 100 y levantar medidas">
+      </div>
+      <div class="md:col-span-2">
+        <label class="f-label" for="m-desc">Descripción</label>
+        <textarea id="m-desc" class="f-input" rows="3" maxlength="2000"></textarea>
+      </div>
+      <div>
+        <label class="f-label" for="m-area">Área</label>
+        <select id="m-area" class="f-input"></select>
+      </div>
+      <div>
+        <label class="f-label" for="m-prioridad">Prioridad</label>
+        <select id="m-prioridad" class="f-input"></select>
+      </div>
+      <div>
+        <label class="f-label" for="m-asignado">Responsable</label>
+        <select id="m-asignado" class="f-input"></select>
+      </div>
+      <div>
+        <label class="f-label" for="m-estado">Estado</label>
+        <select id="m-estado" class="f-input"></select>
+      </div>
+      <div>
+        <label class="f-label" for="m-inicio">Fecha de inicio</label>
+        <input id="m-inicio" type="date" class="f-input">
+      </div>
+      <div>
+        <label class="f-label" for="m-fin">Fecha de vencimiento</label>
+        <input id="m-fin" type="date" class="f-input">
+      </div>
+      <div class="md:col-span-2">
+        <label class="f-label">Avance: <b id="m-avance-txt">0%</b>
+          <span id="m-avance-auto" class="hidden" style="text-transform:none;letter-spacing:0;font-weight:400">(calculado por la lista de pasos)</span>
+        </label>
+        <input id="m-avance" type="range" min="0" max="100" step="5" value="0" style="width:100%">
+      </div>
+      <div class="md:col-span-2">
+        <label class="f-label">Pasos / checklist</label>
+        <div id="m-checklist"></div>
+        <div class="flex gap-2 mt-1">
+          <input id="m-chk-nuevo" class="f-input" maxlength="200" placeholder="Agregar paso y presionar Enter">
+          <button type="button" id="m-chk-add" class="btn-secondary px-3 text-sm">Agregar</button>
+        </div>
+      </div>
+      <div class="md:col-span-2">
+        <label class="f-label" for="m-notas">Notas de avance</label>
+        <textarea id="m-notas" class="f-input" rows="2" maxlength="2000"></textarea>
+      </div>
+    </div>
+
+    <p id="m-aviso" class="text-xs mt-3 hidden" style="color:var(--gray)">
+      <i class="fas fa-info-circle"></i> Eres responsable de esta tarea: puedes actualizar estado, avance, pasos y notas.
+    </p>
+
+    <div class="flex justify-between items-center mt-6">
+      <button id="m-eliminar" class="text-sm hidden" style="color:#dc2626"><i class="fas fa-trash mr-1"></i> Eliminar</button>
+      <div class="flex gap-2 ml-auto">
+        <button id="m-cancelar" class="btn-secondary px-4 py-2 text-sm">Cancelar</button>
+        <button id="m-guardar" class="btn-primary px-5 py-2 text-sm">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="t-toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script src="js/config.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/security.js"></script>
+<script src="js/roles.js"></script>
+<script src="js/auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/tareas.js"></script>
+</body>
+</html>
