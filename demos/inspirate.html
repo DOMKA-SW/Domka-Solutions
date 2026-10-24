@@ -146,6 +146,15 @@
   .paso h2{font-size:1.4rem; color:var(--gray-900);}
   @media (min-width:820px){ .paso h2{font-size:1.7rem;} }
 
+  .filtro-categorias{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip-categoria{
+    border:1.5px solid var(--gray-200); background:var(--white); color:var(--gray-700);
+    border-radius:20px; padding:7px 16px; font-family:var(--font-body); font-size:.82rem; font-weight:600;
+    cursor:pointer; transition:border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .chip-categoria:hover{ border-color:var(--green-light); }
+  .chip-categoria.activa{ background:var(--green); border-color:var(--green); color:#fff; }
+  .tarjeta.oculta{ display:none; }
   .cuadricula{
     display:grid;
     grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
@@ -434,6 +443,7 @@
   <section class="paso" id="paso-espacio">
     <div class="rotulo">Paso 1</div>
     <h2>¿Qué espacio quieres transformar?</h2>
+    <div class="filtro-categorias" id="filtro-categorias"></div>
     <div class="cuadricula" id="lista-espacios"></div>
   </section>
 
@@ -568,6 +578,9 @@
     { id:"azul-petroleo",  nombre:"Azul petróleo",  hex:"#2b4b54" },
     { id:"vino-tinto",     nombre:"Vino tinto",     hex:"#6b2c3a" },
     { id:"gris-carbon",    nombre:"Gris carbón",    hex:"#3b3b3b" },
+    { id:"gris-cemento",   nombre:"Gris cemento",   hex:"#8f918f" },
+    { id:"azul-industrial",nombre:"Azul industrial",hex:"#2f5d8a" },
+    { id:"amarillo-seguridad", nombre:"Amarillo seguridad", hex:"#e0b400" },
     { id:"madera-clara",   nombre:"Madera clara",   hex:"#c9a06a" },
     { id:"madera-oscura",  nombre:"Madera oscura",  hex:"#6b4a2c" }
   ];
@@ -614,10 +627,10 @@
     const dir = new THREE.DirectionalLight(0xfff4e0, 0.8);
     dir.position.set(6, 9, 7);
     dir.castShadow = true;
-    dir.shadow.mapSize.set(1024, 1024);
-    dir.shadow.camera.left = -9; dir.shadow.camera.right = 9;
-    dir.shadow.camera.top = 9; dir.shadow.camera.bottom = -9;
-    dir.shadow.camera.far = 26;
+    dir.shadow.mapSize.set(2048, 2048);
+    dir.shadow.camera.left = -13; dir.shadow.camera.right = 13;
+    dir.shadow.camera.top = 13; dir.shadow.camera.bottom = -13;
+    dir.shadow.camera.far = 40;
     dir.shadow.bias = -0.0015;
     scene.add(dir);
 
@@ -915,6 +928,7 @@
   const ROOMS = {
     cocina: {
       nombre:"Cocina",
+      categoria:"hogar",
       iconoSvg:'<rect x="8" y="10" width="48" height="18" rx="1"/><circle cx="20" cy="19" r="4"/><circle cx="34" cy="19" r="4"/><rect x="8" y="36" width="48" height="16" rx="1"/>',
       width:9, depth:7, height:4,
       wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
@@ -941,6 +955,7 @@
     },
     habitacion: {
       nombre:"Habitación",
+      categoria:"hogar",
       iconoSvg:'<rect x="14" y="10" width="36" height="44" rx="2"/><line x1="14" y1="22" x2="50" y2="22"/><rect x="18" y="12" width="10" height="8"/><rect x="36" y="12" width="10" height="8"/>',
       width:8, depth:7, height:4,
       wallDefaultId:"blanco-calido", floorDefaultId:"madera-clara",
@@ -965,6 +980,7 @@
     },
     sala: {
       nombre:"Sala",
+      categoria:"hogar",
       iconoSvg:'<rect x="8" y="14" width="48" height="14" rx="3"/><rect x="20" y="36" width="24" height="14" rx="2"/>',
       width:9, depth:7, height:4,
       wallDefaultId:"blanco-calido", floorDefaultId:"madera-clara",
@@ -987,6 +1003,7 @@
     },
     terraza: {
       nombre:"Terraza",
+      categoria:"hogar",
       iconoSvg:'<line x1="10" y1="8" x2="10" y2="56"/><line x1="10" y1="8" x2="54" y2="8"/><line x1="18" y1="8" x2="18" y2="56"/><line x1="26" y1="8" x2="26" y2="56"/><circle cx="44" cy="40" r="8"/>',
       width:9, depth:7, height:1.3,
       wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
@@ -1007,6 +1024,7 @@
     },
     oficina: {
       nombre:"Oficina / Estudio",
+      categoria:"hogar",
       iconoSvg:'<rect x="10" y="14" width="44" height="18" rx="1"/><rect x="24" y="38" width="16" height="14" rx="2"/>',
       width:8, depth:7, height:4,
       wallDefaultId:"blanco-calido", floorDefaultId:"madera-oscura",
@@ -1031,6 +1049,7 @@
     },
     bano: {
       nombre:"Baño",
+      categoria:"hogar",
       iconoSvg:'<rect x="8" y="10" width="24" height="38" rx="8"/><ellipse cx="46" cy="40" rx="10" ry="13"/><rect x="38" y="10" width="18" height="13" rx="3"/>',
       width:7, depth:6, height:4,
       wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
@@ -1053,6 +1072,7 @@
     },
     salon_clases: {
       nombre:"Salón de clases",
+      categoria:"educacion",
       iconoSvg:'<rect x="8" y="10" width="48" height="14" rx="1"/><line x1="14" y1="16" x2="50" y2="16"/><rect x="14" y="34" width="14" height="10" rx="1"/><rect x="36" y="34" width="14" height="10" rx="1"/><rect x="14" y="48" width="14" height="8" rx="1"/><rect x="36" y="48" width="14" height="8" rx="1"/>',
       width:9, depth:7, height:4,
       wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
@@ -1078,6 +1098,7 @@
     },
     biblioteca: {
       nombre:"Biblioteca",
+      categoria:"educacion",
       iconoSvg:'<rect x="10" y="8" width="44" height="48" rx="2"/><line x1="10" y1="22" x2="54" y2="22"/><line x1="10" y1="36" x2="54" y2="36"/><line x1="20" y1="8" x2="20" y2="22"/><line x1="30" y1="8" x2="30" y2="22"/><line x1="40" y1="8" x2="40" y2="22"/>',
       width:9, depth:7, height:4,
       wallDefaultId:"beige-arena", floorDefaultId:"madera-oscura",
@@ -1102,6 +1123,7 @@
     },
     sala_computo: {
       nombre:"Sala de cómputo",
+      categoria:"educacion",
       iconoSvg:'<rect x="14" y="10" width="36" height="26" rx="2"/><line x1="24" y1="36" x2="24" y2="44"/><line x1="40" y1="36" x2="40" y2="44"/><rect x="16" y="44" width="32" height="6" rx="1"/><rect x="8" y="52" width="48" height="4" rx="2"/>',
       width:9, depth:7, height:4,
       wallDefaultId:"gris-perla", floorDefaultId:"gris-perla",
@@ -1126,6 +1148,323 @@
         {x:1.6, y:0.8, z:0.9,  titulo:"Escritorios", texto:"Escritorios y cableado organizado, listos para equipos de cómputo."},
         {x:4.7, y:4.9, z:0.05, titulo:"Piso técnico", texto:"Piso técnico y tomas eléctricas suficientes para cada puesto de trabajo."}
       ]
+    },
+    oficina_corporativa: {
+      nombre:"Oficina corporativa",
+      categoria:"empresa",
+      camaraInicio:{x:9.2, z:7.5, mx:3.0, mz:1.5},
+      fov:60,
+      iconoSvg:'<rect x="8" y="12" width="20" height="14" rx="1"/><rect x="36" y="12" width="20" height="14" rx="1"/><line x1="18" y1="26" x2="18" y2="32"/><line x1="46" y1="26" x2="46" y2="32"/><rect x="8" y="38" width="20" height="14" rx="1"/><rect x="36" y="38" width="20" height="14" rx="1"/>',
+      width:10, depth:8, height:3.6,
+      wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
+      accentTag:"puesto", accentLabel:"Puestos de trabajo", accentDefaultId:"madera-clara",
+      decorVentana:{y0:1.5, y1:6.5, z0:1.0, z1:2.8},
+      decorCuadros:[{x0:3.5,x1:6.5,z0:1.8,z1:2.8}],
+      alfombra:{x:6.0, y:4.2, w:3.6, d:3.4, color:"#d5d8d6"},
+      lampara:{x:5.0, y:4.0},
+      furniture:[
+        {tag:"puesto", x:0.9, y:0.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:1.35, y:0.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:1.4, y:1.25, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"puesto", x:2.5, y:0.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:2.95, y:0.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:3.0, y:1.25, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"puesto", x:4.1, y:0.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:4.55, y:0.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:4.6, y:1.25, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"puesto", x:5.7, y:0.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:6.15, y:0.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:6.2, y:1.25, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"puesto", x:7.3, y:0.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:7.75, y:0.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:7.8, y:1.25, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"puesto", x:0.9, y:3.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:1.35, y:3.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:1.4, y:2.7, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"puesto", x:2.5, y:3.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:2.95, y:3.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:3.0, y:2.7, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"puesto", x:4.1, y:3.4, z:0, w:1.4, d:0.7, h:0.75, color:"#c9a06a"},
+        {tag:"fijo", x:4.55, y:3.55, z:0.75, w:0.5, d:0.05, h:0.35, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:4.6, y:2.7, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:7.0, y:4.9, z:0, w:1.6, d:1.6, h:0.75, color:"#e9e4d8", mat:"glossy"},
+        {tag:"fijo", x:7.55, y:4.3, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:7.55, y:6.55, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:6.35, y:5.55, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:8.65, y:5.55, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:0.2, y:5.0, z:0, w:0.5, d:1.8, h:1.4, color:"#8f918f", mat:"metal"},
+        {tag:"fijo", x:0.2, y:1.4, z:0, w:0.6, d:0.7, h:0.8, color:"#f0f0ed"},
+        {tag:"planta", x:9.2, y:0.4, z:0, w:0.5, d:0.5, h:0.4, color:"#8a5a3a"},
+        {tag:"planta", x:0.3, y:7.0, z:0, w:0.5, d:0.5, h:0.4, color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:3.3, y:0.75, z:0.85, titulo:"Puestos de trabajo", texto:"Escritorios modulares con canalización de cableado, a la medida de tu equipo."},
+        {x:7.8, y:5.7, z:0.8, titulo:"Zona de reunión", texto:"Rincones de reunión informal que no necesitan una sala completa."}
+      ]
+    },
+    sala_juntas: {
+      nombre:"Sala de juntas",
+      categoria:"empresa",
+      camaraInicio:{x:7.6, z:6.5, mx:3.0, mz:1.2},
+      fov:60,
+      iconoSvg:'<rect x="14" y="24" width="36" height="16" rx="3"/><circle cx="20" cy="16" r="3"/><circle cx="32" cy="16" r="3"/><circle cx="44" cy="16" r="3"/><circle cx="20" cy="48" r="3"/><circle cx="32" cy="48" r="3"/><circle cx="44" cy="48" r="3"/>',
+      width:9, depth:7, height:3.6,
+      wallDefaultId:"blanco-calido", floorDefaultId:"madera-oscura",
+      accentTag:"mesa_juntas", accentLabel:"Mesa de juntas", accentDefaultId:"madera-clara",
+      decorVentana:{y0:1.2, y1:5.8, z0:1.0, z1:2.9},
+      alfombra:{x:1.5, y:1.0, w:6.2, d:3.6, color:"#bfc3c4"},
+      lampara:{x:4.5, y:3.0},
+      furniture:[
+        {tag:"mesa_juntas", x:2.2, y:2.0, z:0, w:4.6, d:1.8, h:0.76, color:"#c9a06a"},
+        {tag:"fijo", x:2.4, y:1.35, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:2.4, y:3.9, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:3.3, y:1.35, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:3.3, y:3.9, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:4.2, y:1.35, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:4.2, y:3.9, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:5.1, y:1.35, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:5.1, y:3.9, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:6.0, y:1.35, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:6.0, y:3.9, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:1.6, y:2.6, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:6.9, y:2.6, z:0, w:0.5, d:0.5, h:0.9, color:"#2f2c29"},
+        {tag:"fijo", x:3.0, y:0.1, z:1.2, w:3.0, d:0.08, h:1.6, color:"#1f1f1f", mat:"glossy"},
+        {tag:"fijo", x:6.6, y:0.3, z:0, w:2.0, d:0.6, h:0.8, color:"#8a5a3a"},
+        {tag:"planta", x:8.2, y:5.8, z:0, w:0.5, d:0.5, h:0.4, color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:4.5, y:2.9, z:0.8, titulo:"Mesa de juntas", texto:"Mesas a la medida con canalización para cargadores y conexión de pantalla."},
+        {x:4.5, y:0.25, z:2.0, titulo:"Pantalla", texto:"Pared técnica lista para pantalla, videoconferencia y tomas ocultas."}
+      ]
+    },
+    recepcion: {
+      nombre:"Recepción",
+      categoria:"empresa",
+      camaraInicio:{x:1.6, z:6.6, mx:5.0, mz:1.5},
+      fov:60,
+      iconoSvg:'<path d="M10 48 V28 H40 V48"/><rect x="10" y="48" width="44" height="4"/><circle cx="48" cy="22" r="5"/><path d="M42 40 V32 a6 6 0 0 1 12 0 V40"/>',
+      width:9, depth:7, height:3.8,
+      wallDefaultId:"blanco-calido", floorDefaultId:"gris-perla",
+      accentTag:"mostrador", accentLabel:"Mostrador", accentDefaultId:"verde-bosque",
+      decorVentana:{y0:3.8, y1:6.2, z0:0.4, z1:3.0},
+      decorCuadros:[{x0:3.0,x1:6.4,z0:1.9,z1:3.0}],
+      alfombra:{x:4.2, y:3.3, w:4.8, d:3.0, color:"#d8c9ae"},
+      lampara:{x:4.7, y:3.2},
+      furniture:[
+        {tag:"mostrador", x:3.0, y:1.2, z:0, w:3.4, d:0.9, h:1.1, color:"#1c5c3c"},
+        {tag:"mostrador", x:2.1, y:1.2, z:0, w:0.9, d:2.2, h:1.1, color:"#1c5c3c"},
+        {tag:"fijo", x:2.9, y:1.1, z:1.1, w:3.6, d:1.1, h:0.08, color:"#f5f2ea", mat:"glossy"},
+        {tag:"fijo", x:7.0, y:0.3, z:0, w:1.6, d:0.5, h:1.5, color:"#8a5a3a"},
+        {tag:"fijo", x:6.2, y:4.6, z:0, w:2.4, d:0.9, h:0.8, color:"#2b4b54"},
+        {tag:"fijo", x:6.6, y:3.7, z:0, w:1.2, d:0.7, h:0.4, color:"#e9e4d8", mat:"glossy"},
+        {tag:"fijo", x:4.6, y:4.2, z:0, w:0.8, d:0.8, h:0.8, color:"#2b4b54"},
+        {tag:"fijo", x:4.6, y:5.3, z:0, w:0.8, d:0.8, h:0.8, color:"#2b4b54"},
+        {tag:"fijo", x:0.3, y:4.2, z:0, w:0.5, d:2.0, h:1.8, color:"#8a5a3a"},
+        {tag:"planta", x:8.2, y:3.0, z:0, w:0.5, d:0.5, h:0.4, color:"#8a5a3a"},
+        {tag:"planta", x:0.3, y:6.2, z:0, w:0.5, d:0.5, h:0.4, color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:4.7, y:1.65, z:1.25, titulo:"Mostrador", texto:"Mostradores a la medida con tu imagen de marca, accesibles y con almacenamiento oculto."},
+        {x:7.4, y:5.05, z:0.85, titulo:"Sala de espera", texto:"Zonas de espera cómodas que dan una buena primera impresión a tus clientes."}
+      ]
+    },
+    planta_produccion: {
+      nombre:"Planta de producción",
+      categoria:"empresa",
+      camaraInicio:{x:9.4, z:7.5, mx:3.5, mz:2.0},
+      fov:60,
+      iconoSvg:'<path d="M8 52 V28 L22 36 V28 L36 36 V28 L50 36 V16 H56 V52 Z"/><line x1="8" y1="52" x2="56" y2="52"/>',
+      width:10, depth:8, height:6,
+      wallDefaultId:"gris-perla", floorDefaultId:"gris-cemento",
+      accentTag:"maquinaria", accentLabel:"Maquinaria", accentDefaultId:"azul-industrial",
+      floorStyleDefault:"liso",
+      decorVentana:{y0:1.0, y1:7.0, z0:3.8, z1:5.2},
+      decorCuadros:[{x0:3.5,x1:6.5,z0:3.4,z1:4.4}],
+      vigas:[{y:1.5, color:"#5a5d5f"},{y:4.0, color:"#5a5d5f"},{y:6.5, color:"#5a5d5f"}],
+      lampara:{x:5.0, y:4.0},
+      furniture:[
+        {tag:"maquinaria", x:1.6, y:1.2, z:0, w:1.6, d:1.0, h:1.7, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:2.0, y:1.3, z:1.7, w:0.7, d:0.5, h:0.4, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:2.8, y:1.4, z:1.7, w:0.15, d:0.15, h:0.3, color:"#e0b400"},
+        {tag:"maquinaria", x:4.1, y:1.2, z:0, w:1.6, d:1.0, h:1.7, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:4.5, y:1.3, z:1.7, w:0.7, d:0.5, h:0.4, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:5.3, y:1.4, z:1.7, w:0.15, d:0.15, h:0.3, color:"#e0b400"},
+        {tag:"maquinaria", x:6.6, y:1.2, z:0, w:1.6, d:1.0, h:1.7, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:7.0, y:1.3, z:1.7, w:0.7, d:0.5, h:0.4, color:"#2a2a2a", mat:"glossy"},
+        {tag:"fijo", x:7.8, y:1.4, z:1.7, w:0.15, d:0.15, h:0.3, color:"#e0b400"},
+        {tag:"fijo", x:1.6, y:2.4, z:0, w:6.8, d:0.7, h:0.9, color:"#5a5d5f", mat:"metal"},
+        {tag:"fijo", x:1.6, y:2.5, z:0.9, w:6.8, d:0.5, h:0.06, color:"#1f1f1f"},
+        {tag:"fijo", x:1.6, y:4.0, z:0, w:2.4, d:0.8, h:0.95, color:"#8f918f", mat:"metal"},
+        {tag:"fijo", x:2.4, y:5.0, z:0, w:0.4, d:0.4, h:0.65, color:"#2a2a2a"},
+        {tag:"fijo", x:5.6, y:4.0, z:0, w:2.0, d:1.0, h:0.9, color:"#c9c4b8", mat:"glossy"},
+        {tag:"fijo", x:5.9, y:4.2, z:0.9, w:0.5, d:0.5, h:0.4, color:"#c9a06a"},
+        {tag:"fijo", x:6.7, y:4.3, z:0.9, w:0.5, d:0.5, h:0.5, color:"#b08a55"},
+        {tag:"fijo", x:8.4, y:5.4, z:0, w:1.2, d:1.2, h:0.15, color:"#b08a55"},
+        {tag:"fijo", x:8.5, y:5.5, z:0.15, w:0.5, d:0.5, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:9.05, y:5.5, z:0.15, w:0.5, d:0.5, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:8.5, y:6.05, z:0.15, w:0.5, d:0.5, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:8.6, y:5.6, z:0.7, w:0.5, d:0.5, h:0.5, color:"#c9a06a"},
+        {tag:"fijo", x:0.3, y:6.2, z:0, w:0.25, d:0.25, h:0.7, color:"#a4302a"},
+        {tag:"fijo", x:0.2, y:3.2, z:0, w:0.3, d:1.4, h:1.9, color:"#7a7d7f", mat:"metal"},
+        {tag:"fijo", x:1.2, y:3.3, z:0.0, w:7.6, d:0.12, h:0.02, color:"#e0b400"},
+        {tag:"fijo", x:1.2, y:6.9, z:0.0, w:7.6, d:0.12, h:0.02, color:"#e0b400"},
+        {tag:"fijo", x:1.1, y:3.3, z:0.0, w:0.12, d:3.7, h:0.02, color:"#e0b400"}
+      ],
+      hotspots:[
+        {x:4.9, y:1.7, z:1.9, titulo:"Línea de producción", texto:"Layout pensado para el flujo del proceso y la seguridad del operario."},
+        {x:5.0, y:6.0, z:0.05, titulo:"Piso industrial", texto:"Pisos epóxicos o de concreto pulido, resistentes a tráfico pesado y fáciles de limpiar."}
+      ]
+    },
+    bodega: {
+      nombre:"Bodega / almacén",
+      categoria:"empresa",
+      camaraInicio:{x:9.0, z:2.15, mx:1.0, mz:2.15},
+      fov:60,
+      iconoSvg:'<rect x="10" y="10" width="44" height="44"/><line x1="10" y1="24" x2="54" y2="24"/><line x1="10" y1="38" x2="54" y2="38"/><rect x="16" y="14" width="8" height="8"/><rect x="30" y="28" width="10" height="8"/><rect x="18" y="42" width="8" height="8"/>',
+      width:10, depth:8, height:5.5,
+      wallDefaultId:"gris-perla", floorDefaultId:"gris-cemento",
+      accentTag:"estanteria_bodega", accentLabel:"Estanterías", accentDefaultId:"azul-industrial",
+      floorStyleDefault:"liso",
+      decorVentana:{y0:2.0, y1:6.5, z0:3.6, z1:4.8},
+      vigas:[{y:2.0, color:"#5a5d5f"},{y:5.0, color:"#5a5d5f"},{y:7.0, color:"#5a5d5f"}],
+      lampara:{x:5.0, y:3.5},
+      furniture:[
+        {tag:"estanteria_bodega", x:1.0, y:0.4, z:0.15, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:1.0, y:0.4, z:1.25, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:1.0, y:0.4, z:2.35, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:1.0, y:0.4, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.32, y:0.4, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:1.2, y:0.55, z:0.23, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:2.3, y:0.55, z:0.23, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:1.2, y:0.55, z:1.33, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:2.3, y:0.55, z:1.33, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"estanteria_bodega", x:3.7, y:0.4, z:0.15, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.7, y:0.4, z:1.25, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.7, y:0.4, z:2.35, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.7, y:0.4, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:6.02, y:0.4, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:3.9, y:0.55, z:0.23, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:5.0, y:0.55, z:0.23, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:3.9, y:0.55, z:1.33, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:5.0, y:0.55, z:1.33, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"estanteria_bodega", x:6.4, y:0.4, z:0.15, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:6.4, y:0.4, z:1.25, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:6.4, y:0.4, z:2.35, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:6.4, y:0.4, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:8.72, y:0.4, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:6.6, y:0.55, z:0.23, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:7.7, y:0.55, z:0.23, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:6.6, y:0.55, z:1.33, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:7.7, y:0.55, z:1.33, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"estanteria_bodega", x:1.0, y:3.0, z:0.15, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:1.0, y:3.0, z:1.25, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:1.0, y:3.0, z:2.35, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:1.0, y:3.0, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.32, y:3.0, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:1.2, y:3.15, z:0.23, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:2.3, y:3.15, z:0.23, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:1.2, y:3.15, z:1.33, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:2.3, y:3.15, z:1.33, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"estanteria_bodega", x:3.7, y:3.0, z:0.15, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.7, y:3.0, z:1.25, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.7, y:3.0, z:2.35, w:2.4, d:0.9, h:0.08, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:3.7, y:3.0, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"estanteria_bodega", x:6.02, y:3.0, z:0, w:0.08, d:0.9, h:3.2, color:"#2f5d8a", mat:"metal"},
+        {tag:"fijo", x:3.9, y:3.15, z:0.23, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:5.0, y:3.15, z:0.23, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:3.9, y:3.15, z:1.33, w:0.7, d:0.6, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:5.0, y:3.15, z:1.33, w:0.7, d:0.6, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:7.4, y:4.6, z:0, w:1.0, d:1.5, h:0.9, color:"#e0b400"},
+        {tag:"fijo", x:7.55, y:5.4, z:0.9, w:0.8, d:0.5, h:0.5, color:"#2a2a2a"},
+        {tag:"fijo", x:7.45, y:4.45, z:0, w:0.9, d:0.12, h:2.0, color:"#3b3b3b", mat:"metal"},
+        {tag:"fijo", x:7.5, y:3.7, z:0, w:0.12, d:0.8, h:0.05, color:"#3b3b3b", mat:"metal"},
+        {tag:"fijo", x:8.2, y:3.7, z:0, w:0.12, d:0.8, h:0.05, color:"#3b3b3b", mat:"metal"},
+        {tag:"fijo", x:8.7, y:0.5, z:0, w:1.2, d:1.2, h:0.15, color:"#b08a55"},
+        {tag:"fijo", x:8.8, y:0.6, z:0.15, w:0.5, d:0.5, h:0.55, color:"#c9a06a"},
+        {tag:"fijo", x:9.35, y:0.6, z:0.15, w:0.5, d:0.5, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:8.8, y:1.15, z:0.15, w:0.5, d:0.5, h:0.55, color:"#b08a55"},
+        {tag:"fijo", x:0.3, y:6.8, z:0, w:0.25, d:0.25, h:0.7, color:"#a4302a"},
+        {tag:"fijo", x:0.8, y:2.4, z:0, w:8.4, d:0.12, h:0.02, color:"#e0b400"},
+        {tag:"fijo", x:6.9, y:3.8, z:0, w:3.0, d:0.12, h:0.02, color:"#e0b400"},
+        {tag:"fijo", x:6.9, y:6.9, z:0, w:3.0, d:0.12, h:0.02, color:"#e0b400"},
+        {tag:"fijo", x:6.9, y:3.8, z:0, w:0.12, d:3.2, h:0.02, color:"#e0b400"}
+      ],
+      hotspots:[
+        {x:3.0, y:0.9, z:1.5, titulo:"Estanterías", texto:"Racks selectivos y estanterías industriales dimensionados a la carga de tu operación."},
+        {x:8.0, y:5.3, z:0.9, titulo:"Zona de carga", texto:"Zonas de maniobra demarcadas para circular con seguridad."}
+      ]
+    },
+    taller: {
+      nombre:"Taller / mantenimiento",
+      categoria:"empresa",
+      camaraInicio:{x:6.0, z:6.4, mx:3.0, mz:0.8},
+      fov:60,
+      iconoSvg:'<circle cx="32" cy="32" r="10"/><circle cx="32" cy="32" r="4"/><line x1="32" y1="8" x2="32" y2="16"/><line x1="32" y1="48" x2="32" y2="56"/><line x1="8" y1="32" x2="16" y2="32"/><line x1="48" y1="32" x2="56" y2="32"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="43" y1="43" x2="49" y2="49"/><line x1="49" y1="15" x2="43" y2="21"/><line x1="21" y1="43" x2="15" y2="49"/>',
+      width:9, depth:7, height:4.2,
+      wallDefaultId:"gris-perla", floorDefaultId:"gris-cemento",
+      accentTag:"banco_trabajo", accentLabel:"Bancos de trabajo", accentDefaultId:"azul-industrial",
+      floorStyleDefault:"liso",
+      decorVentana:{y0:1.2, y1:3.6, z0:1.4, z1:3.0},
+      decorCuadros:[{x0:1.0,x1:3.8,z0:1.5,z1:2.9},{x0:4.0,x1:6.0,z0:1.8,z1:2.7}],
+      lampara:{x:3.5, y:2.5},
+      furniture:[
+        {tag:"banco_trabajo", x:1.0, y:0.4, z:0, w:2.8, d:0.8, h:0.95, color:"#2f5d8a"},
+        {tag:"banco_trabajo", x:4.0, y:0.4, z:0, w:2.0, d:0.8, h:0.95, color:"#2f5d8a"},
+        {tag:"fijo", x:2.2, y:1.5, z:0, w:0.4, d:0.4, h:0.65, color:"#2a2a2a"},
+        {tag:"fijo", x:6.4, y:0.5, z:0, w:1.8, d:0.9, h:1.1, color:"#5a5d5f", mat:"metal"},
+        {tag:"fijo", x:6.4, y:0.5, z:1.1, w:0.6, d:0.9, h:0.5, color:"#2a2a2a", mat:"metal"},
+        {tag:"fijo", x:0.3, y:3.0, z:0, w:0.7, d:0.9, h:1.2, color:"#a4302a", mat:"metal"},
+        {tag:"fijo", x:6.8, y:4.0, z:0, w:0.9, d:0.9, h:0.1, color:"#3b3b3b", mat:"metal"},
+        {tag:"fijo", x:7.0, y:4.2, z:0.1, w:0.5, d:0.5, h:1.5, color:"#3b3b3b", mat:"metal"},
+        {tag:"fijo", x:0.2, y:4.5, z:0, w:0.5, d:2.0, h:2.0, color:"#7a7d7f", mat:"metal"},
+        {tag:"fijo", x:3.0, y:5.2, z:0, w:1.6, d:0.8, h:0.9, color:"#8f918f", mat:"metal"},
+        {tag:"fijo", x:3.2, y:5.3, z:0.9, w:0.5, d:0.5, h:0.35, color:"#c9a06a"},
+        {tag:"fijo", x:6.2, y:3.7, z:0, w:2.4, d:0.1, h:0.02, color:"#e0b400"},
+        {tag:"fijo", x:6.2, y:3.7, z:0, w:0.1, d:2.0, h:0.02, color:"#e0b400"}
+      ],
+      hotspots:[
+        {x:2.4, y:0.8, z:1.0, titulo:"Bancos de trabajo", texto:"Bancos robustos con superficie resistente y almacenamiento a la mano."},
+        {x:7.4, y:3.75, z:0.05, titulo:"Seguridad", texto:"Demarcación de áreas, extintores y señalización para trabajar seguro."}
+      ]
+    },
+    comedor: {
+      nombre:"Comedor empresarial",
+      categoria:"empresa",
+      camaraInicio:{x:8.4, z:6.6, mx:2.5, mz:1.0},
+      fov:60,
+      iconoSvg:'<rect x="12" y="30" width="40" height="6" rx="2"/><line x1="18" y1="36" x2="18" y2="50"/><line x1="46" y1="36" x2="46" y2="50"/><path d="M24 26 V16 H36 V26 a6 6 0 0 1 -12 0"/><path d="M36 18 h4 a3 3 0 0 1 0 6 h-4"/>',
+      width:9, depth:7, height:3.6,
+      wallDefaultId:"blanco-calido", floorDefaultId:"madera-clara",
+      accentTag:"mesas_comedor", accentLabel:"Mesas", accentDefaultId:"azul-grisaceo",
+      decorVentana:{y0:1.5, y1:5.5, z0:1.0, z1:2.8},
+      decorCuadros:[{x0:5.0,x1:7.8,z0:1.9,z1:2.9}],
+      lampara:{x:3.0, y:4.0},
+      furniture:[
+        {tag:"fijo", x:0.8, y:0.3, z:0, w:4.0, d:0.9, h:1.0, color:"#3a352f"},
+        {tag:"fijo", x:0.7, y:0.25, z:1.0, w:4.2, d:1.0, h:0.07, color:"#f5f2ea", mat:"glossy"},
+        {tag:"fijo", x:1.2, y:0.5, z:1.07, w:0.4, d:0.4, h:0.5, color:"#2a2a2a", mat:"metal"},
+        {tag:"fijo", x:5.2, y:0.3, z:0, w:1.4, d:0.8, h:1.9, color:"#cfd3d6", mat:"glossy"},
+        {tag:"mesas_comedor", x:1.0, y:2.8, z:0, w:1.6, d:0.9, h:0.75, color:"#2f5d8a"},
+        {tag:"fijo", x:1.55, y:2.25, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"fijo", x:1.55, y:3.8, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"mesas_comedor", x:3.8, y:2.8, z:0, w:1.6, d:0.9, h:0.75, color:"#2f5d8a"},
+        {tag:"fijo", x:4.35, y:2.25, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"fijo", x:4.35, y:3.8, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"mesas_comedor", x:1.0, y:5.0, z:0, w:1.6, d:0.9, h:0.75, color:"#2f5d8a"},
+        {tag:"fijo", x:1.55, y:4.45, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"fijo", x:1.55, y:6.0, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"mesas_comedor", x:3.8, y:5.0, z:0, w:1.6, d:0.9, h:0.75, color:"#2f5d8a"},
+        {tag:"fijo", x:4.35, y:4.45, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"fijo", x:4.35, y:6.0, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"mesas_comedor", x:6.6, y:3.8, z:0, w:1.6, d:0.9, h:0.75, color:"#2f5d8a"},
+        {tag:"fijo", x:7.15, y:3.25, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"fijo", x:7.15, y:4.8, z:0, w:0.45, d:0.45, h:0.85, color:"#2f2c29"},
+        {tag:"planta", x:8.4, y:0.5, z:0, w:0.5, d:0.5, h:0.4, color:"#8a5a3a"}
+      ],
+      hotspots:[
+        {x:4.6, y:3.25, z:0.8, titulo:"Mesas", texto:"Mesas y sillas resistentes, fáciles de limpiar y distribuidas para mucha gente."},
+        {x:2.8, y:0.75, z:1.1, titulo:"Barra de servicio", texto:"Barras de autoservicio con acabados higiénicos y buen flujo de atención."}
+      ]
     }
   };
 
@@ -1138,9 +1477,32 @@
     const div = document.createElement("div");
     div.className = "tarjeta";
     div.dataset.id = id;
+    div.dataset.categoria = r.categoria || "hogar";
     div.innerHTML = `<svg viewBox="0 0 64 64" fill="none" stroke-width="1.6">${r.iconoSvg}</svg><span>${r.nombre}</span>`;
     div.addEventListener("click", () => elegirEspacio(id, div));
     listaEspacios.appendChild(div);
+  });
+
+  const CATEGORIAS = [
+    { id:"todos",     nombre:"Todos" },
+    { id:"hogar",     nombre:"Hogar" },
+    { id:"educacion", nombre:"Educación" },
+    { id:"empresa",   nombre:"Empresa" }
+  ];
+  const filtroCategorias = document.getElementById("filtro-categorias");
+  CATEGORIAS.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip-categoria" + (i === 0 ? " activa" : "");
+    b.dataset.categoria = c.id;
+    b.textContent = c.nombre;
+    b.addEventListener("click", () => {
+      filtroCategorias.querySelectorAll(".chip-categoria").forEach(n => n.classList.toggle("activa", n === b));
+      listaEspacios.querySelectorAll(".tarjeta").forEach(t => {
+        t.classList.toggle("oculta", c.id !== "todos" && t.dataset.categoria !== c.id);
+      });
+    });
+    filtroCategorias.appendChild(b);
   });
   renderRecorrido();
 
@@ -1152,6 +1514,7 @@
   let distanciaCaminada = 0;
 
   function estiloPisoPorDefecto(room){
+    if (room.floorStyleDefault) return room.floorStyleDefault;
     return room.floorDefaultId.indexOf("madera") === 0 ? "tablon" : "baldosa";
   }
 
@@ -1632,15 +1995,18 @@
     });
 
     if (room.lampara) crearLampara(room.lampara, room.height).forEach(o => grupo.add(o));
-    (room.vigas || []).forEach(v => grupo.add(registrar(crearCaja(0, v.y, room.height, room.width, 0.14, 0.1, "#8a6a45"), "decor")));
+    (room.vigas || []).forEach(v => grupo.add(registrar(crearCaja(0, v.y, room.height, room.width, 0.14, 0.1, v.color || "#8a6a45"), "decor")));
 
     scene.add(grupo);
     construirHotspotsHTML(room);
 
     const alturaOjos = 1.55;
-    const posInicial = new THREE.Vector3(room.width*0.88, alturaOjos, room.depth*0.88);
-    const miraInicial = new THREE.Vector3(room.width*0.20, alturaOjos*0.8, room.depth*0.20);
+    const ci = room.camaraInicio;
+    const posInicial = ci ? new THREE.Vector3(ci.x, alturaOjos, ci.z) : new THREE.Vector3(room.width*0.88, alturaOjos, room.depth*0.88);
+    const miraInicial = ci ? new THREE.Vector3(ci.mx, alturaOjos*0.8, ci.mz) : new THREE.Vector3(room.width*0.20, alturaOjos*0.8, room.depth*0.20);
     const direccion = miraInicial.clone().sub(posInicial).normalize();
+    camera.fov = room.fov || 42;
+    camera.updateProjectionMatrix();
     camera.position.copy(posInicial);
     controls.target.copy(posInicial.clone().addScaledVector(direccion, 0.4));
     controls.minDistance = 0.4;
