@@ -470,13 +470,16 @@ document.getElementById("btn-guardar-mov").addEventListener("click", async () =>
     ? (_bancos.find(b => b.id === cuentaId)?.nombre || "")
     : "";
 
-  await db.collection("movimientos").add({
+  const cuentaContable = (document.getElementById("mov-cuenta-contable") || {}).value || null;
+  const movData = {
     tipo, descripcion, monto, categoria, estado, notas,
     cuentaId: cuentaId || null,
     cuentaNombre,
+    cuentaContable,
     fecha: fechaVal ? new Date(fechaVal + "T12:00:00") : new Date(),
     creadoEn: new Date()
-  });
+  };
+  const movRef = await db.collection("movimientos").add(movData);
 
   // Si el movimiento es "realizado" y tiene cuenta, actualizar saldo de la cuenta
   if (estado === "realizado" && cuentaId) {
@@ -490,6 +493,18 @@ document.getElementById("btn-guardar-mov").addEventListener("click", async () =>
     } catch (e) { console.warn("No se pudo actualizar saldo:", e); }
   }
 
+  // Libro contable: si el movimiento está "realizado" genera su asiento; si no, queda sin asiento
+  let libroMsg = "";
+  if (window.Libro) {
+    try {
+      const r = await window.Libro.registrarMovimiento(movRef.id, movData);
+      if (!r.ok) libroMsg = "\nℹ️ No pasó al libro: " + r.motivo;
+    } catch (e) {
+      console.warn("Libro:", e);
+      libroMsg = "\n⚠️ No se pudo registrar en el libro (reintenta desde Cuentas T).";
+    }
+  }
+
   // Limpiar form
   document.getElementById("mov-descripcion").value = "";
   document.getElementById("mov-monto").value = "";
@@ -500,12 +515,13 @@ document.getElementById("btn-guardar-mov").addEventListener("click", async () =>
   document.getElementById("mov-estado").value = "realizado";
   document.querySelector('input[name="tipo-mov"][value="ingreso"]').checked = true;
   actualizarEstilosTipoMov();
+  if (window.Libro) window.Libro.resetFormMov();
 
   await fetchAll();
   renderMovimientos();
   renderCuentasBancarias();
   calcularKPIs();
-  alert("✅ Movimiento guardado");
+  alert("✅ Movimiento guardado" + libroMsg);
 });
 
 window.eliminarMovimiento = async function(id) {
@@ -519,6 +535,9 @@ window.eliminarMovimiento = async function(id) {
   if (!confirm(msg)) return;
 
   try {
+    // Libro contable: los asientos no se borran, se crea el contra-asiento (si falla, no se elimina nada)
+    if (window.Libro) await window.Libro.revertirMovimiento(mov);
+
     // Revertir el saldo de la cuenta si el movimiento estaba "realizado" y tenía cuenta asociada
     if (afectaSaldo) {
       const bd = await db.collection("cuentasBancarias").doc(mov.cuentaId).get();
