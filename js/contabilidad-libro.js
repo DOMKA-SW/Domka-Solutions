@@ -3,7 +3,7 @@
 // Colecciones nuevas (Firestore):
 //   planCuentas/{codigo}  → { codigo, nombre, clase, naturaleza, categorias[], activa, origen }
 //   asientos/{id}         → { fecha, descripcion, origen{tipo,id}, lineas[{codigo,nombre,debe,haber}],
-//                             totalDebe, totalHaber, creadoEn, creadoPor }   (inmutables)
+//                             totalDebe, totalHaber, creadoEn, creadoPor }   (no se editan; se pueden eliminar)
 // Campos nuevos en movimientos: cuentaContable, asientoId, asientoEstado, asientoMotivo
 // Campo nuevo en cuentasBancarias: cuentaContable (ej. 1110)
 // ============================================================
@@ -74,7 +74,7 @@
   const BANCO_DEFAULT = { efectivo: "1105", ahorros: "1120", corriente: "1110", digital: "1110", inversion: "1110", credito: "2105", otro: "1110" };
 
   // ── ESTADO ─────────────────────────────────────────────────
-  const S = { plan: [], planMap: {}, planLoaded: false, asientos: [], asientoIds: new Set(), movs: [], bancos: [], bancosLoaded: false };
+  const S = { plan: [], planMap: {}, planLoaded: false, asientos: [], asientoIds: new Set(), movs: [], movsOk: false, bancos: [], bancosLoaded: false };
 
   const codigoBanco = b => (b && b.cuentaContable) || BANCO_DEFAULT[b && b.tipo] || "1110";
 
@@ -100,12 +100,14 @@
   }
 
   async function loadAll() {
+    let movsOk = true;
     const [, asSnap, movSnap] = await Promise.all([
       loadPlan(),
       db.collection("asientos").orderBy("fecha", "asc").get().catch(() => ({ docs: [] })),
-      db.collection("movimientos").orderBy("fecha", "desc").get().catch(() => ({ docs: [] })),
+      db.collection("movimientos").orderBy("fecha", "desc").get().catch(() => { movsOk = false; return { docs: [] }; }),
       loadBancos()
     ]);
+    S.movsOk = movsOk;
     S.asientos = asSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     S.asientoIds = new Set(S.asientos.map(a => a.id));
     S.movs = movSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -206,24 +208,54 @@
     return { ok: true };
   }
 
-  // Llamar ANTES de borrar un movimiento: crea el contra-asiento (los asientos no se borran)
-  async function revertirMovimiento(mov) {
-    if (!mov || !mov.asientoId) return;
-    const orig = await db.collection("asientos").doc(mov.asientoId).get();
-    if (!orig.exists) return;
-    const revId = "rev_" + mov.id;
-    const ya = await db.collection("asientos").doc(revId).get();
-    if (ya.exists) return;
-    const a = orig.data();
-    await db.collection("asientos").doc(revId).set({
-      fecha: new Date(),
-      descripcion: `Reversión: ${a.descripcion}`,
-      origen: { tipo: "reversion", id: mov.id, asientoId: orig.id },
-      lineas: (a.lineas || []).map(l => ({ ...l, debe: l.haber, haber: l.debe })),
-      totalDebe: a.totalHaber, totalHaber: a.totalDebe,
-      creadoEn: new Date(), creadoPor: usuario()
+  // Llamar al borrar un movimiento: elimina su asiento de todo el libro (y cualquier reversión vieja).
+  // Nunca lanza error: si algo falla, el aviso de "asientos huérfanos" permite limpiarlo después.
+  async function quitarMovimiento(mov) {
+    if (!mov || !mov.id) return { ok: true };
+    try {
+      const ids = ["mov_" + mov.id, "rev_" + mov.id];
+      if (mov.asientoId && !ids.includes(mov.asientoId)) ids.push(mov.asientoId);
+      const existentes = [];
+      for (const id of ids) {
+        const d = await db.collection("asientos").doc(id).get();
+        if (d.exists) existentes.push(id);
+      }
+      if (existentes.length) {
+        const batch = db.batch();
+        existentes.forEach(id => batch.delete(db.collection("asientos").doc(id)));
+        await batch.commit();
+        existentes.forEach(id => S.asientoIds.delete(id));
+        S.asientos = S.asientos.filter(a => !existentes.includes(a.id));
+      }
+      return { ok: true };
+    } catch (e) {
+      console.warn("Libro: no se pudo quitar el asiento", e);
+      return { ok: false, error: e };
+    }
+  }
+
+  // Asientos que sobran: de movimientos ya eliminados, o reversiones antiguas
+  function huerfanos() {
+    if (!S.movsOk) return [];
+    const ids = new Set(S.movs.map(m => m.id));
+    return S.asientos.filter(a => {
+      const t = a.origen && a.origen.tipo;
+      return t === "reversion" || (t === "movimiento" && !ids.has(a.origen.id));
     });
-    S.asientoIds.add(revId);
+  }
+
+  async function limpiarHuerfanos() {
+    const lista = huerfanos();
+    if (!lista.length) return;
+    if (!confirm(`Se eliminarán ${lista.length} asiento(s) de movimientos que ya no existen. ¿Continuar?`)) return;
+    try {
+      for (let i = 0; i < lista.length; i += 400) {
+        const batch = db.batch();
+        lista.slice(i, i + 400).forEach(a => batch.delete(db.collection("asientos").doc(a.id)));
+        await batch.commit();
+      }
+    } catch (e) { alert("No se pudo limpiar: " + (e.message || e)); }
+    await refrescar();
   }
 
   // ── FORMULARIO DE MOVIMIENTOS (select "a dónde va") ────────
@@ -358,8 +390,12 @@
   function renderAlertas() {
     const cont = $("lt-alertas");
     if (!cont) return;
+    const huer = huerfanos();
+    const avisoHuer = huer.length ? `<div class="card p-3 mb-4 flex flex-wrap items-center justify-between gap-2 text-sm" style="border-color:#f59e0b">
+      <span>🧹 Hay ${huer.length} asiento(s) de movimientos que ya no existen.</span>
+      <button class="btn btn-orange btn-sm" onclick="Libro.limpiarHuerfanos()">Limpiar</button></div>` : "";
     const sin = S.movs.filter(m => !m.asientoId);
-    if (!sin.length) { cont.innerHTML = ""; return; }
+    if (!sin.length) { cont.innerHTML = avisoHuer; return; }
 
     const reales = sin.filter(m => (m.estado || "realizado") === "realizado");
     const filas = sin.slice(0, 40).map(m => {
@@ -388,7 +424,7 @@
         <td><div class="flex gap-1 items-center flex-wrap">${accion}</div></td></tr>`;
     }).join("");
 
-    cont.innerHTML = `<details class="card p-4 mb-4" ${reales.length ? "open" : ""}>
+    cont.innerHTML = avisoHuer + `<details class="card p-4 mb-4" ${reales.length ? "open" : ""}>
       <summary class="font-bold cursor-pointer" style="color:${reales.length ? "#b45309" : "var(--gray)"}">
         ${reales.length ? `⚠️ ${reales.length} movimiento(s) realizados sin asiento` : "Movimientos sin asiento"} · ${sin.length} en total (pendientes/programados no pasan al libro hasta realizarse)
       </summary>
@@ -871,9 +907,9 @@
   if (typeof document !== "undefined") init();
 
   window.Libro = {
-    registrarMovimiento, revertirMovimiento, resetFormMov,
+    registrarMovimiento, quitarMovimiento, limpiarHuerfanos, resetFormMov,
     nuevoAsiento, asientoDesdeMovimiento, asignarYRegistrar,
     editarCuenta, toggleCuenta, vincularBanco, refrescar,
-    _test: { S, mayor, resolver, datosBalance, natDefault, PUC_BASE, CAT_DEFAULT }
+    _test: { S, mayor, resolver, datosBalance, natDefault, PUC_BASE, CAT_DEFAULT, huerfanos }
   };
 })();
