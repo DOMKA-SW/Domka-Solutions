@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="css/app-pages.css">
   <style>
     .hidden { display: none !important; }
@@ -121,6 +122,27 @@
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--green); }
+  
+    /* ── LIBRO: CUENTAS T / BALANCE / PLAN ───────────────────── */
+    .lb-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
+    .lb-t { background:var(--white); border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+    .lb-t-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:10px 12px; background:var(--green-lt); border-bottom:1px solid var(--line); }
+    .lb-cod { font-family:monospace; font-weight:700; color:var(--green-dk); margin-right:6px; }
+    .lb-t-body { display:grid; grid-template-columns:1fr 1fr; min-height:70px; }
+    .lb-col { padding:6px 8px; max-height:170px; overflow-y:auto; }
+    .lb-col + .lb-col { border-left:2px solid var(--text); }
+    .lb-colh { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--gray-lt); border-bottom:2px solid var(--text); padding-bottom:3px; margin-bottom:4px; }
+    .lb-row { display:flex; justify-content:space-between; gap:6px; font-size:.74rem; padding:2px 0; color:var(--text); }
+    .lb-row small { color:var(--gray-lt); }
+    .lb-t-foot { border-top:2px solid var(--text); padding:8px 12px; font-size:.78rem; background:#fafaf7; }
+    .lb-saldo { font-weight:700; }
+    .lb-warn { color:#b91c1c; }
+    .lb-mini { font-size:.72rem; color:var(--gray-lt); }
+    .lb-bal-row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed var(--line-lt); font-size:.84rem; }
+    .lb-bal-tot { display:flex; justify-content:space-between; padding:8px 0; font-weight:700; border-top:2px solid var(--text); margin-top:6px; }
+    .lb-modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:80; padding:16px; }
+    .lb-modal-box { background:var(--white); border-radius:14px; width:100%; max-width:720px; max-height:92vh; overflow:auto; padding:20px; }
+    .lb-linea { display:grid; grid-template-columns:1fr 110px 110px 28px; gap:6px; margin-bottom:6px; align-items:center; }
   </style>
 </head>
 <body>
@@ -229,6 +251,9 @@
   <div class="flex gap-2 mb-5 flex-wrap">
     <button class="tab-btn active" data-tab="cuentas">Mis Cuentas</button>
     <button class="tab-btn" data-tab="movimientos">Movimientos</button>
+    <button class="tab-btn" data-tab="cuentas-t">Cuentas T</button>
+    <button class="tab-btn" data-tab="balance">Balance</button>
+    <button class="tab-btn" data-tab="plan">Plan de cuentas</button>
     <button class="tab-btn" data-tab="graficos">Graficos</button>
     <button class="tab-btn" data-tab="transacciones">Transacciones</button>
     <button class="tab-btn" data-tab="logs">Logs</button>
@@ -385,6 +410,11 @@
             </select>
           </div>
           <div>
+            <label class="lbl">Cuenta contable (a dónde va)</label>
+            <select id="mov-cuenta-contable" class="inp"><option value="">Automática (según categoría)</option></select>
+            <p id="mov-asiento-preview" class="lb-mini mt-1"></p>
+          </div>
+          <div>
             <label class="lbl">Estado</label>
             <select id="mov-estado" class="inp">
               <option value="realizado">Realizado</option>
@@ -429,6 +459,113 @@
         <div id="lista-movimientos" class="space-y-2 max-h-[560px] overflow-y-auto pr-1">
           <p class="text-center py-8" style="color:var(--gray-lt)">Cargando...</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CUENTAS T (LIBRO) -->
+  <div class="tab-panel" id="tab-cuentas-t">
+    <div class="card p-4 mb-4">
+      <div class="flex flex-wrap gap-3 items-end">
+        <div><label class="lbl">Desde</label><input id="lt-desde" type="date" class="inp"></div>
+        <div><label class="lbl">Hasta</label><input id="lt-hasta" type="date" class="inp"></div>
+        <div><label class="lbl">Clase</label>
+          <select id="lt-clase" class="inp">
+            <option value="">Todas</option><option value="1">1 · Activo</option><option value="2">2 · Pasivo</option>
+            <option value="3">3 · Patrimonio</option><option value="4">4 · Ingresos</option><option value="5">5 · Gastos</option>
+            <option value="6">6 · Costos de ventas</option><option value="7">7 · Costos de obra</option>
+          </select></div>
+        <div class="flex-1" style="min-width:160px"><label class="lbl">Buscar</label><input id="lt-q" class="inp" placeholder="Código o nombre..."></div>
+        <label class="flex items-center gap-2 text-sm pb-2"><input type="checkbox" id="lt-solo" checked> Solo con movimiento</label>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button id="lt-nuevo" class="btn btn-orange btn-sm"><i class="fas fa-plus"></i> Registrar asiento</button>
+        <button id="lt-historico" class="btn btn-gray btn-sm"><i class="fas fa-rotate"></i> Generar histórico</button>
+        <button id="lt-xlsx" class="btn btn-gray btn-sm"><i class="fas fa-file-excel"></i> Excel</button>
+        <button id="lt-csv" class="btn btn-gray btn-sm"><i class="fas fa-file-csv"></i> CSV libro diario</button>
+      </div>
+    </div>
+    <div id="lt-alertas"></div>
+    <div id="lt-totales"></div>
+    <div id="lt-grid" class="lb-grid"></div>
+    <div id="lt-vacio" class="text-center py-10 hidden" style="color:var(--gray-lt)">
+      <i class="fas fa-book text-3xl mb-2 block"></i> Sin cuentas con movimiento. Carga el plan de cuentas y genera el histórico, o registra un asiento.
+    </div>
+  </div>
+
+  <!-- TAB: BALANCE -->
+  <div class="tab-panel" id="tab-balance">
+    <div class="card p-4 mb-4 flex flex-wrap gap-3 items-end">
+      <div><label class="lbl">Corte a</label><input id="bl-corte" type="date" class="inp"></div>
+      <button id="bl-xlsx" class="btn btn-gray btn-sm"><i class="fas fa-file-excel"></i> Excel</button>
+      <button id="bl-csv" class="btn btn-gray btn-sm"><i class="fas fa-file-csv"></i> CSV</button>
+      <button id="bl-pdf" class="btn btn-gray btn-sm"><i class="fas fa-file-pdf"></i> PDF</button>
+    </div>
+    <div id="bl-contenido"></div>
+  </div>
+
+  <!-- TAB: PLAN DE CUENTAS -->
+  <div class="tab-panel" id="tab-plan">
+    <div class="card p-5 mb-4"><h3 class="font-bold mb-2" style="color:var(--text)">Puesta en marcha</h3><div id="pc-setup"></div></div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="space-y-6">
+        <div class="card p-5">
+          <h3 class="font-bold mb-3" id="pc-titulo" style="color:var(--text)">Agregar cuenta</h3>
+          <div class="space-y-3">
+            <div><label class="lbl">Código *</label><input id="pc-codigo" class="inp" placeholder="Ej: 1110" inputmode="numeric"></div>
+            <div><label class="lbl">Nombre *</label><input id="pc-nombre" class="inp" placeholder="Ej: Bancos" spellcheck="true" lang="es"></div>
+            <div><label class="lbl">Naturaleza</label>
+              <select id="pc-naturaleza" class="inp"><option value="auto">Automática (según la clase)</option><option value="debito">Débito</option><option value="credito">Crédito</option></select></div>
+            <div><label class="lbl">Categorías que van aquí por defecto</label><input id="pc-categorias" class="inp" placeholder="Ej: vivienda, servicios-publicos">
+              <p class="lb-mini mt-1">Usa las categorías del formulario de movimientos, separadas por coma.</p></div>
+            <div class="flex gap-2">
+              <button id="pc-guardar" class="btn btn-orange flex-1 justify-center"><i class="fas fa-save"></i> Guardar</button>
+              <button id="pc-cancelar" class="btn btn-gray hidden">Cancelar</button>
+            </div>
+          </div>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-bold mb-3" style="color:var(--text)">Catálogo</h3>
+          <div class="space-y-2">
+            <button id="pc-puc" class="btn btn-gray w-full justify-center"><i class="fas fa-download"></i> Cargar PUC base</button>
+            <label class="btn btn-gray w-full justify-center cursor-pointer"><i class="fas fa-file-import"></i> Importar CSV (codigo;nombre)
+              <input id="pc-csv-file" type="file" accept=".csv,.txt" class="hidden"></label>
+            <button id="pc-export" class="btn btn-gray w-full justify-center"><i class="fas fa-file-csv"></i> Exportar plan (CSV)</button>
+          </div>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-bold mb-3" style="color:var(--text)">Cuentas bancarias → cuenta contable</h3>
+          <div id="pc-bancos"></div>
+        </div>
+      </div>
+      <div class="lg:col-span-2 card p-5">
+        <h3 class="font-bold mb-3" style="color:var(--text)">Plan de cuentas</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead style="border-bottom:1px solid var(--line)"><tr><th>Código</th><th>Nombre</th><th>Naturaleza</th><th>Categorías por defecto</th><th></th></tr></thead>
+            <tbody id="pc-tbody"></tbody>
+          </table>
+          <div id="pc-vacio" class="text-center py-10 hidden" style="color:var(--gray-lt)"><i class="fas fa-list-ol text-3xl mb-2 block"></i> Sin cuentas. Pulsa “Cargar PUC base”.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR ASIENTO MANUAL -->
+  <div id="modal-asiento" class="lb-modal hidden">
+    <div class="lb-modal-box">
+      <h3 class="font-bold mb-4" style="color:var(--text)">Registrar asiento</h3>
+      <div class="grid grid-cols-3 gap-3 mb-3">
+        <div><label class="lbl">Fecha *</label><input id="as-fecha" type="date" class="inp"></div>
+        <div class="col-span-2"><label class="lbl">Descripción *</label><input id="as-desc" class="inp" placeholder="Ej: Aporte de capital" spellcheck="true" lang="es"></div>
+      </div>
+      <div class="lb-mini mb-1 lb-linea" style="margin-bottom:2px"><span>Cuenta</span><span>Debe</span><span>Haber</span><span></span></div>
+      <div id="as-lineas"></div>
+      <button id="as-add" type="button" class="btn btn-gray btn-sm mt-1"><i class="fas fa-plus"></i> Agregar línea</button>
+      <p id="as-totales" class="text-sm mt-3"></p>
+      <div class="flex gap-2 mt-4 justify-end">
+        <button id="as-cancelar" class="btn btn-gray">Cancelar</button>
+        <button id="as-guardar" class="btn btn-orange"><i class="fas fa-save"></i> Guardar asiento</button>
       </div>
     </div>
   </div>
@@ -522,6 +659,6 @@
 <script src="js/security.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/contabilidad.js"></script>
+<script src="js/contabilidad-libro.js"></script>
 </body>
 </html>
-
