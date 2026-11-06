@@ -535,8 +535,8 @@ window.eliminarMovimiento = async function(id) {
   if (!confirm(msg)) return;
 
   try {
-    // Libro contable: los asientos no se borran, se crea el contra-asiento (si falla, no se elimina nada)
-    if (window.Libro) await window.Libro.revertirMovimiento(mov);
+    // Libro contable: el asiento del movimiento se elimina también (no deja rastro ni reversiones)
+    if (window.Libro) await window.Libro.quitarMovimiento(mov);
 
     // Revertir el saldo de la cuenta si el movimiento estaba "realizado" y tenía cuenta asociada
     if (afectaSaldo) {
