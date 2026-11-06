@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -123,26 +123,133 @@
     ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--green); }
   
-    /* ── LIBRO: CUENTAS T / BALANCE / PLAN ───────────────────── */
-    .lb-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
-    .lb-t { background:var(--white); border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
-    .lb-t-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding:10px 12px; background:var(--green-lt); border-bottom:1px solid var(--line); }
-    .lb-cod { font-family:monospace; font-weight:700; color:var(--green-dk); margin-right:6px; }
-    .lb-t-body { display:grid; grid-template-columns:1fr 1fr; min-height:70px; }
-    .lb-col { padding:6px 8px; max-height:170px; overflow-y:auto; }
-    .lb-col + .lb-col { border-left:2px solid var(--text); }
-    .lb-colh { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--gray-lt); border-bottom:2px solid var(--text); padding-bottom:3px; margin-bottom:4px; }
-    .lb-row { display:flex; justify-content:space-between; gap:6px; font-size:.74rem; padding:2px 0; color:var(--text); }
-    .lb-row small { color:var(--gray-lt); }
-    .lb-t-foot { border-top:2px solid var(--text); padding:8px 12px; font-size:.78rem; background:#fafaf7; }
-    .lb-saldo { font-weight:700; }
+    /* ═══ LIBRO CONTABLE (pestaña "Libro contable") ═══════════════════════ */
+    /* Barra superior */
+    .lb-bar { display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .lb-seg { display:inline-flex; gap:3px; background:var(--bg-alt); border:1px solid var(--line); border-radius:10px; padding:3px; }
+    .lb-seg button { border:0; background:transparent; padding:7px 14px; border-radius:8px; font-size:.82rem; font-weight:600; color:var(--gray); cursor:pointer; }
+    .lb-seg button.on { background:var(--white); color:var(--green-dk); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+    .lb-bar-r { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .lb-bar-r .inp { width:auto; padding:7px 10px; font-size:.82rem; }
+    .lb-menu { position:relative; }
+    .lb-menu summary { list-style:none; cursor:pointer; }
+    .lb-menu summary::-webkit-details-marker { display:none; }
+    .lb-menu-box { position:absolute; right:0; top:calc(100% + 6px); background:var(--white); border:1px solid var(--line); border-radius:10px; padding:6px; min-width:220px; z-index:30; box-shadow:0 8px 24px rgba(0,0,0,.12); display:flex; flex-direction:column; }
+    .lb-menu-box button { text-align:left; background:none; border:0; padding:8px 10px; border-radius:6px; font-size:.82rem; cursor:pointer; color:var(--text); }
+    .lb-menu-box button:hover { background:var(--green-lt); }
+    /* Totales */
+    .lb-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; }
+    .lb-kpi { background:var(--white); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+    .lb-kpi-t { font-size:.74rem; color:var(--gray); }
+    .lb-kpi-v { font-size:1.35rem; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; }
+    .lb-kpi-s { font-size:.7rem; color:var(--gray-lt); }
+    .lb-kpi.ok { background:var(--green-lt); border-color:var(--green); }
+    .lb-kpi.ok .lb-kpi-t, .lb-kpi.ok .lb-kpi-v, .lb-kpi.ok .lb-kpi-s { color:var(--green-dk); }
+    .lb-kpi.bad { background:#fef2f2; border-color:#fca5a5; }
+    .lb-kpi.bad .lb-kpi-t, .lb-kpi.bad .lb-kpi-v, .lb-kpi.bad .lb-kpi-s { color:#b91c1c; }
+    /* Avisos */
+    .lb-aviso { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; border-radius:12px; font-size:.84rem; margin-bottom:12px; }
+    .lb-aviso-w { background:#fffbeb; border:1px solid #fcd34d; }
+    .lb-det-aviso { background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-bottom:14px; }
+    .lb-det-aviso summary { cursor:pointer; font-size:.86rem; font-weight:600; color:var(--gray); }
+    .lb-warn-t { color:#b45309 !important; }
+    .lb-pend-top { margin:10px 0 4px; }
+    .lb-pend { display:grid; grid-template-columns:1fr auto; gap:6px 12px; align-items:center; padding:10px 0; border-top:1px solid var(--line-lt); font-size:.84rem; }
+    .lb-pend-m { font-weight:700; font-variant-numeric:tabular-nums; } .lb-pend-m.pos { color:#15803d; } .lb-pend-m.neg { color:#dc2626; }
+    .lb-pend-a { grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .lb-fix { width:auto !important; max-width:230px; padding:5px 8px !important; font-size:.76rem !important; }
+    /* Cuentas T: lista + detalle */
+    .lb-md { display:grid; grid-template-columns:270px minmax(0,1fr); gap:14px; align-items:start; }
+    .lb-side { background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px; }
+    .lb-grp { font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--gray-lt); padding:12px 8px 4px; }
+    .lb-item { display:flex; justify-content:space-between; align-items:center; gap:8px; width:100%; text-align:left; border:0; background:transparent; padding:8px; border-radius:8px; font-size:.84rem; cursor:pointer; color:var(--text); font-variant-numeric:tabular-nums; }
+    .lb-item:hover { background:var(--bg-alt); }
+    .lb-item.on { background:var(--green-lt); color:var(--green-dk); font-weight:600; }
+    .lb-item-n small { display:block; font-size:.68rem; font-weight:400; color:var(--gray-lt); }
+    .lb-pad { padding:8px; }
+    .lb-link { background:none; border:0; color:var(--green-dk); font-size:.8rem; font-weight:600; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px; }
+    .lb-det { background:var(--white); border:1px solid var(--line); border-radius:12px; padding:16px 18px; min-height:240px; }
+    .lb-det-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+    .lb-det-t { font-size:1.05rem; font-weight:700; color:var(--text); }
+    .lb-cod { font-family:monospace; font-size:.78rem; font-weight:700; color:var(--green-dk); margin-right:6px; }
+    .lb-det-t .lb-cod { margin:0 0 0 6px; }
+    .lb-det-s { text-align:right; }
+    .lb-det-v { font-size:1.5rem; font-weight:700; font-variant-numeric:tabular-nums; }
+    .lb-t { display:grid; grid-template-columns:1fr 1fr; max-height:420px; overflow-y:auto; border-bottom:2px solid var(--text); }
+    .lb-tc { padding:0 12px 8px 0; min-height:90px; }
+    .lb-tc + .lb-tc { padding:0 0 8px 12px; border-left:2px solid var(--text); }
+    .lb-tc-h { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--gray); border-bottom:2px solid var(--text); padding-bottom:6px; margin-bottom:6px; display:flex; justify-content:space-between; }
+    .lb-tc-h small { font-weight:500; text-transform:none; letter-spacing:0; color:var(--gray-lt); }
+    .lb-e { display:flex; gap:8px; align-items:baseline; padding:5px 0; font-size:.82rem; border-bottom:1px dashed var(--line-lt); font-variant-numeric:tabular-nums; }
+    .lb-e-f { color:var(--gray-lt); font-size:.72rem; min-width:34px; }
+    .lb-e-d { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lb-e-ant { color:var(--gray); font-style:italic; }
+    .lb-x { background:none; border:0; color:#9ca3af; cursor:pointer; font-size:.78rem; padding:0 2px; }
+    .lb-x:hover { color:#dc2626; }
+    .lb-t-foot { display:flex; justify-content:space-between; padding:8px 0; font-size:.8rem; color:var(--gray); }
+    .lb-t-foot b { color:var(--text); font-variant-numeric:tabular-nums; }
+    .lb-det-act { margin-top:6px; }
+    .lb-vacio { text-align:center; color:var(--gray-lt); padding:40px 10px; }
+    .lb-vacio i { font-size:1.8rem; margin-bottom:8px; display:block; }
+    /* Balance */
+    .lb-nota { margin-bottom:10px; }
+    .lb-bal { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+    .lb-card { background:var(--white); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+    .lb-card h3 { font-size:.92rem; font-weight:700; color:var(--green-dk); margin-bottom:8px; }
+    .lb-card h3 small { font-weight:500; color:var(--gray-lt); font-size:.72rem; margin-left:4px; }
+    .lb-h3-2 { margin-top:18px; }
+    .lb-bal-row { display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed var(--line-lt); font-size:.84rem; font-variant-numeric:tabular-nums; }
+    .lb-bal-tot { display:flex; justify-content:space-between; padding:8px 0 0; margin-top:6px; font-weight:700; border-top:2px solid var(--text); font-variant-numeric:tabular-nums; }
+    .lb-bal-sum { border-top:1px solid var(--line); margin-top:10px; color:var(--gray); }
+    .lb-chk { margin-top:14px; font-size:.86rem; }
+    .lb-chk.ok { background:var(--green-lt); border-color:var(--green); color:var(--green-dk); }
+    .lb-chk.bad { background:#fef2f2; border-color:#fca5a5; color:#b91c1c; }
+    /* Configuración inicial */
+    .lb-setup { text-align:center; background:var(--white); border:1px dashed var(--green); border-radius:14px; padding:36px 20px; max-width:560px; margin:20px auto; }
+    .lb-setup > i { font-size:2rem; color:var(--green); margin-bottom:10px; }
+    .lb-setup h3 { font-size:1.1rem; font-weight:700; margin-bottom:6px; }
+    .lb-setup p { color:var(--gray); font-size:.86rem; margin-bottom:14px; }
+    /* Plan de cuentas */
+    .lb-plan-bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+    .lb-plan-bar .inp { flex:1; min-width:160px; }
+    .lb-file { cursor:pointer; }
+    .lb-form { margin-bottom:12px; }
+    .lb-form-g { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-bottom:10px; }
+    .lb-span2 { grid-column:span 2; }
+    .lb-form-b { display:flex; gap:8px; }
+    .lb-tabla { padding:6px 10px; overflow-x:auto; margin-bottom:12px; }
+    .lb-tabla table { width:100%; border-collapse:collapse; }
+    .lb-tabla th { font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--gray-lt); text-align:left; padding:8px; border-bottom:1px solid var(--line); }
+    .lb-tabla td { padding:8px; font-size:.84rem; border-bottom:1px solid var(--line-lt); }
+    .lb-off { opacity:.45; }
+    .lb-acc { white-space:nowrap; } .lb-acc .lb-link { margin-right:10px; }
+    .lb-bancos summary { cursor:pointer; font-weight:700; font-size:.9rem; }
+    .lb-banco { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:10px; }
+    .lb-banco > span { min-width:160px; font-size:.84rem; font-weight:600; }
+    .lb-banco .inp { max-width:340px; }
+    /* Modal de asiento */
+    .lb-modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:80; padding:16px; }
+    .lb-modal-box { background:var(--white); border-radius:14px; width:100%; max-width:640px; max-height:92vh; overflow:auto; padding:22px; }
+    .lb-modal-t { font-size:1.05rem; font-weight:700; margin-bottom:14px; }
+    .lb-modal-f { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:16px; }
+    .lb-linea { display:grid; grid-template-columns:1fr 100px 100px 24px; gap:6px; margin-bottom:6px; align-items:center; }
+    .lb-linea-h { font-size:.7rem; color:var(--gray-lt); margin-bottom:2px; }
+    .lb-tot { font-size:.84rem; margin-top:10px; }
+    .lb-err { color:#b91c1c; font-size:.82rem; margin-top:10px; font-weight:600; }
+    .lb-ok-t { color:var(--green-dk); font-weight:700; }
+    /* Utilidades y formulario de movimientos */
     .lb-warn { color:#b91c1c; }
     .lb-mini { font-size:.72rem; color:var(--gray-lt); }
-    .lb-bal-row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed var(--line-lt); font-size:.84rem; }
-    .lb-bal-tot { display:flex; justify-content:space-between; padding:8px 0; font-weight:700; border-top:2px solid var(--text); margin-top:6px; }
-    .lb-modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:80; padding:16px; }
-    .lb-modal-box { background:var(--white); border-radius:14px; width:100%; max-width:720px; max-height:92vh; overflow:auto; padding:20px; }
-    .lb-linea { display:grid; grid-template-columns:1fr 110px 110px 28px; gap:6px; margin-bottom:6px; align-items:center; }
+    .lb-dest { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:.84rem; min-height:36px; }
+    .lb-dest-txt small { color:var(--gray-lt); margin-left:4px; }
+    .lb-dest-ok { color:var(--green-dk); } .lb-dest-warn { color:#b45309; } .lb-dest-info { color:var(--gray-lt); }
+    @media (max-width:768px) {
+      .lb-md { grid-template-columns:1fr; }
+      .lb-span2 { grid-column:auto; }
+      .lb-t { grid-template-columns:1fr; }
+      .lb-tc + .lb-tc { padding:0 0 8px 0; border-left:0; }
+      .lb-linea { grid-template-columns:1fr 80px 80px 24px; }
+    }
   </style>
 </head>
 <body>
@@ -251,9 +358,7 @@
   <div class="flex gap-2 mb-5 flex-wrap">
     <button class="tab-btn active" data-tab="cuentas">Mis Cuentas</button>
     <button class="tab-btn" data-tab="movimientos">Movimientos</button>
-    <button class="tab-btn" data-tab="cuentas-t">Cuentas T</button>
-    <button class="tab-btn" data-tab="balance">Balance</button>
-    <button class="tab-btn" data-tab="plan">Plan de cuentas</button>
+    <button class="tab-btn" data-tab="libro">Libro contable</button>
     <button class="tab-btn" data-tab="graficos">Graficos</button>
     <button class="tab-btn" data-tab="transacciones">Transacciones</button>
     <button class="tab-btn" data-tab="logs">Logs</button>
@@ -410,9 +515,9 @@
             </select>
           </div>
           <div>
-            <label class="lbl">Cuenta contable (a dónde va)</label>
-            <select id="mov-cuenta-contable" class="inp"><option value="">Automática (según categoría)</option></select>
-            <p id="mov-asiento-preview" class="lb-mini mt-1"></p>
+            <label class="lbl">Se registra en</label>
+            <div class="lb-dest"><span id="mov-destino" class="lb-dest-txt"></span> <button type="button" id="mov-cambiar" class="lb-link">cambiar</button></div>
+            <select id="mov-cuenta-contable" class="inp hidden" style="margin-top:6px"><option value="">Automática (según categoría)</option></select>
           </div>
           <div>
             <label class="lbl">Estado</label>
@@ -463,109 +568,66 @@
     </div>
   </div>
 
-  <!-- TAB: CUENTAS T (LIBRO) -->
-  <div class="tab-panel" id="tab-cuentas-t">
-    <div class="card p-4 mb-4">
-      <div class="flex flex-wrap gap-3 items-end">
-        <div><label class="lbl">Desde</label><input id="lt-desde" type="date" class="inp"></div>
-        <div><label class="lbl">Hasta</label><input id="lt-hasta" type="date" class="inp"></div>
-        <div><label class="lbl">Clase</label>
-          <select id="lt-clase" class="inp">
-            <option value="">Todas</option><option value="1">1 · Activo</option><option value="2">2 · Pasivo</option>
-            <option value="3">3 · Patrimonio</option><option value="4">4 · Ingresos</option><option value="5">5 · Gastos</option>
-            <option value="6">6 · Costos de ventas</option><option value="7">7 · Costos de obra</option>
-          </select></div>
-        <div class="flex-1" style="min-width:160px"><label class="lbl">Buscar</label><input id="lt-q" class="inp" placeholder="Código o nombre..."></div>
-        <label class="flex items-center gap-2 text-sm pb-2"><input type="checkbox" id="lt-solo" checked> Solo con movimiento</label>
+  <!-- TAB: LIBRO CONTABLE (js/contabilidad-libro.js) -->
+  <div class="tab-panel" id="tab-libro">
+    <div class="lb-bar">
+      <div class="lb-seg" id="lb-seg">
+        <button type="button" data-lb="sub" data-sub="cuentas" class="on">Cuentas T</button>
+        <button type="button" data-lb="sub" data-sub="balance">Balance</button>
+        <button type="button" data-lb="sub" data-sub="plan">Plan de cuentas</button>
       </div>
-      <div class="flex flex-wrap gap-2 mt-3">
-        <button id="lt-nuevo" class="btn btn-orange btn-sm"><i class="fas fa-plus"></i> Registrar asiento</button>
-        <button id="lt-historico" class="btn btn-gray btn-sm"><i class="fas fa-rotate"></i> Generar histórico</button>
-        <button id="lt-xlsx" class="btn btn-gray btn-sm"><i class="fas fa-file-excel"></i> Excel</button>
-        <button id="lt-csv" class="btn btn-gray btn-sm"><i class="fas fa-file-csv"></i> CSV libro diario</button>
-      </div>
-    </div>
-    <div id="lt-alertas"></div>
-    <div id="lt-totales"></div>
-    <div id="lt-grid" class="lb-grid"></div>
-    <div id="lt-vacio" class="text-center py-10 hidden" style="color:var(--gray-lt)">
-      <i class="fas fa-book text-3xl mb-2 block"></i> Sin cuentas con movimiento. Carga el plan de cuentas y genera el histórico, o registra un asiento.
-    </div>
-  </div>
-
-  <!-- TAB: BALANCE -->
-  <div class="tab-panel" id="tab-balance">
-    <div class="card p-4 mb-4 flex flex-wrap gap-3 items-end">
-      <div><label class="lbl">Corte a</label><input id="bl-corte" type="date" class="inp"></div>
-      <button id="bl-xlsx" class="btn btn-gray btn-sm"><i class="fas fa-file-excel"></i> Excel</button>
-      <button id="bl-csv" class="btn btn-gray btn-sm"><i class="fas fa-file-csv"></i> CSV</button>
-      <button id="bl-pdf" class="btn btn-gray btn-sm"><i class="fas fa-file-pdf"></i> PDF</button>
-    </div>
-    <div id="bl-contenido"></div>
-  </div>
-
-  <!-- TAB: PLAN DE CUENTAS -->
-  <div class="tab-panel" id="tab-plan">
-    <div class="card p-5 mb-4"><h3 class="font-bold mb-2" style="color:var(--text)">Puesta en marcha</h3><div id="pc-setup"></div></div>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="space-y-6">
-        <div class="card p-5">
-          <h3 class="font-bold mb-3" id="pc-titulo" style="color:var(--text)">Agregar cuenta</h3>
-          <div class="space-y-3">
-            <div><label class="lbl">Código *</label><input id="pc-codigo" class="inp" placeholder="Ej: 1110" inputmode="numeric"></div>
-            <div><label class="lbl">Nombre *</label><input id="pc-nombre" class="inp" placeholder="Ej: Bancos" spellcheck="true" lang="es"></div>
-            <div><label class="lbl">Naturaleza</label>
-              <select id="pc-naturaleza" class="inp"><option value="auto">Automática (según la clase)</option><option value="debito">Débito</option><option value="credito">Crédito</option></select></div>
-            <div><label class="lbl">Categorías que van aquí por defecto</label><input id="pc-categorias" class="inp" placeholder="Ej: vivienda, servicios-publicos">
-              <p class="lb-mini mt-1">Usa las categorías del formulario de movimientos, separadas por coma.</p></div>
-            <div class="flex gap-2">
-              <button id="pc-guardar" class="btn btn-orange flex-1 justify-center"><i class="fas fa-save"></i> Guardar</button>
-              <button id="pc-cancelar" class="btn btn-gray hidden">Cancelar</button>
-            </div>
+      <div class="lb-bar-r">
+        <select id="lb-periodo" class="inp" aria-label="Período">
+          <option value="todo">Todo el tiempo</option><option value="mes">Este mes</option>
+          <option value="anio">Este año</option><option value="rango">Elegir fechas</option>
+        </select>
+        <span id="lb-rango" class="hidden"><input type="date" id="lb-desde" class="inp" aria-label="Desde"> <input type="date" id="lb-hasta" class="inp" aria-label="Hasta"></span>
+        <details class="lb-menu" id="lb-export">
+          <summary class="btn btn-gray btn-sm"><i class="fas fa-download"></i> Exportar</summary>
+          <div class="lb-menu-box">
+            <button type="button" data-lb="exp" data-exp="xlsx">Excel · todo el libro</button>
+            <button type="button" data-lb="exp" data-exp="pdf">PDF · balance</button>
+            <button type="button" data-lb="exp" data-exp="csv-diario">CSV · libro diario</button>
+            <button type="button" data-lb="exp" data-exp="csv-balance">CSV · balance</button>
+            <button type="button" data-lb="exp" data-exp="csv-plan">CSV · plan de cuentas</button>
           </div>
-        </div>
-        <div class="card p-5">
-          <h3 class="font-bold mb-3" style="color:var(--text)">Catálogo</h3>
-          <div class="space-y-2">
-            <button id="pc-puc" class="btn btn-gray w-full justify-center"><i class="fas fa-download"></i> Cargar PUC base</button>
-            <label class="btn btn-gray w-full justify-center cursor-pointer"><i class="fas fa-file-import"></i> Importar CSV (codigo;nombre)
-              <input id="pc-csv-file" type="file" accept=".csv,.txt" class="hidden"></label>
-            <button id="pc-export" class="btn btn-gray w-full justify-center"><i class="fas fa-file-csv"></i> Exportar plan (CSV)</button>
-          </div>
-        </div>
-        <div class="card p-5">
-          <h3 class="font-bold mb-3" style="color:var(--text)">Cuentas bancarias → cuenta contable</h3>
-          <div id="pc-bancos"></div>
-        </div>
-      </div>
-      <div class="lg:col-span-2 card p-5">
-        <h3 class="font-bold mb-3" style="color:var(--text)">Plan de cuentas</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead style="border-bottom:1px solid var(--line)"><tr><th>Código</th><th>Nombre</th><th>Naturaleza</th><th>Categorías por defecto</th><th></th></tr></thead>
-            <tbody id="pc-tbody"></tbody>
-          </table>
-          <div id="pc-vacio" class="text-center py-10 hidden" style="color:var(--gray-lt)"><i class="fas fa-list-ol text-3xl mb-2 block"></i> Sin cuentas. Pulsa “Cargar PUC base”.</div>
-        </div>
+        </details>
+        <button type="button" class="btn btn-orange btn-sm" data-lb="nuevo-asiento"><i class="fas fa-plus"></i> Registrar asiento</button>
       </div>
     </div>
+    <div id="lb-kpis" class="lb-kpis"></div>
+    <div id="lb-aviso"></div>
+    <section id="lb-sec-cuentas"></section>
+    <section id="lb-sec-balance" class="hidden"></section>
+    <section id="lb-sec-plan" class="hidden"></section>
   </div>
 
-  <!-- MODAL: REGISTRAR ASIENTO MANUAL -->
-  <div id="modal-asiento" class="lb-modal hidden">
+  <!-- MODAL: REGISTRAR ASIENTO -->
+  <div id="lb-modal" class="lb-modal hidden">
     <div class="lb-modal-box">
-      <h3 class="font-bold mb-4" style="color:var(--text)">Registrar asiento</h3>
-      <div class="grid grid-cols-3 gap-3 mb-3">
-        <div><label class="lbl">Fecha *</label><input id="as-fecha" type="date" class="inp"></div>
-        <div class="col-span-2"><label class="lbl">Descripción *</label><input id="as-desc" class="inp" placeholder="Ej: Aporte de capital" spellcheck="true" lang="es"></div>
+      <h3 class="lb-modal-t">Registrar asiento</h3>
+      <div class="lb-form-g">
+        <div><label class="lbl">Fecha *</label><input id="lb-as-fecha" type="date" class="inp"></div>
+        <div class="lb-span2"><label class="lbl">Descripción *</label><input id="lb-as-desc" class="inp" placeholder="Ej: Aporte de capital" spellcheck="true" lang="es"></div>
       </div>
-      <div class="lb-mini mb-1 lb-linea" style="margin-bottom:2px"><span>Cuenta</span><span>Debe</span><span>Haber</span><span></span></div>
-      <div id="as-lineas"></div>
-      <button id="as-add" type="button" class="btn btn-gray btn-sm mt-1"><i class="fas fa-plus"></i> Agregar línea</button>
-      <p id="as-totales" class="text-sm mt-3"></p>
-      <div class="flex gap-2 mt-4 justify-end">
-        <button id="as-cancelar" class="btn btn-gray">Cancelar</button>
-        <button id="as-guardar" class="btn btn-orange"><i class="fas fa-save"></i> Guardar asiento</button>
+      <div id="lb-as-simple">
+        <div class="lb-form-g">
+          <div><label class="lbl">Cuenta que recibe (Debe) *</label><select id="lb-as-debe" class="inp"></select></div>
+          <div><label class="lbl">Cuenta que da (Haber) *</label><select id="lb-as-haber" class="inp"></select></div>
+          <div><label class="lbl">Monto *</label><input id="lb-as-monto" type="number" min="0" step="any" class="inp" placeholder="0"></div>
+        </div>
+      </div>
+      <div id="lb-as-avanzado" class="hidden">
+        <div class="lb-linea lb-linea-h"><span>Cuenta</span><span>Debe</span><span>Haber</span><span></span></div>
+        <div id="lb-as-lineas"></div>
+        <button type="button" class="btn btn-gray btn-sm" data-lb="as-agregar"><i class="fas fa-plus"></i> Agregar línea</button>
+        <p id="lb-as-totales" class="lb-tot"></p>
+      </div>
+      <p id="lb-as-error" class="lb-err hidden"></p>
+      <div class="lb-modal-f">
+        <button type="button" class="lb-link" id="lb-as-modo" data-lb="as-modo">Avanzado: varias líneas</button>
+        <span><button type="button" class="btn btn-gray" data-lb="as-cancelar">Cancelar</button>
+          <button type="button" class="btn btn-orange" data-lb="as-guardar"><i class="fas fa-save"></i> Guardar</button></span>
       </div>
     </div>
   </div>
