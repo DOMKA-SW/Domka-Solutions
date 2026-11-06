@@ -493,15 +493,15 @@ document.getElementById("btn-guardar-mov").addEventListener("click", async () =>
     } catch (e) { console.warn("No se pudo actualizar saldo:", e); }
   }
 
-  // Libro contable: si el movimiento está "realizado" genera su asiento; si no, queda sin asiento
+  // Libro contable: si el movimiento está "realizado" pasa solo al libro; si no, queda fuera y se avisa por qué
   let libroMsg = "";
-  if (window.Libro) {
+  if (window.Libro && window.Libro.registrarMovimiento) {
     try {
       const r = await window.Libro.registrarMovimiento(movRef.id, movData);
       if (!r.ok) libroMsg = "\nℹ️ No pasó al libro: " + r.motivo;
     } catch (e) {
       console.warn("Libro:", e);
-      libroMsg = "\n⚠️ No se pudo registrar en el libro (reintenta desde Cuentas T).";
+      libroMsg = "\n⚠️ No se pudo registrar en el libro (reintenta desde Libro contable).";
     }
   }
 
@@ -515,7 +515,7 @@ document.getElementById("btn-guardar-mov").addEventListener("click", async () =>
   document.getElementById("mov-estado").value = "realizado";
   document.querySelector('input[name="tipo-mov"][value="ingreso"]').checked = true;
   actualizarEstilosTipoMov();
-  if (window.Libro) window.Libro.resetFormMov();
+  if (window.Libro && window.Libro.resetFormMov) window.Libro.resetFormMov();
 
   await fetchAll();
   renderMovimientos();
@@ -536,7 +536,7 @@ window.eliminarMovimiento = async function(id) {
 
   try {
     // Libro contable: el asiento del movimiento se elimina también (no deja rastro ni reversiones)
-    if (window.Libro) await window.Libro.quitarMovimiento(mov);
+    if (window.Libro && window.Libro.quitarMovimiento) await window.Libro.quitarMovimiento(mov);
 
     // Revertir el saldo de la cuenta si el movimiento estaba "realizado" y tenía cuenta asociada
     if (afectaSaldo) {
