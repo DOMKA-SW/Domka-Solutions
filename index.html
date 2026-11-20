@@ -239,6 +239,7 @@
     .lb-thumb { width: 72px; height: 52px; border-radius: 7px; overflow: hidden; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s, transform 0.2s; }
     .lb-thumb.active { border-color: var(--orange-light); transform: scale(1.06); }
     .lb-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .pcard-cell img, .lb-main-img, .lb-thumb img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
     .lb-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); border-radius: 50%; color: #fff; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; z-index: 2; }
     .lb-arrow:hover { background: rgba(255,255,255,0.22); }
     .lb-arrow.lb-prev { left: 12px; }
@@ -1151,6 +1152,72 @@
     },
   ];
 
+  // ── MARCA DE AGUA ─────────────────────────────────────────
+  // Cada foto se redibuja en un <canvas> con el logo repetido en diagonal y
+  // lo que se muestra en pantalla es esa imagen ya marcada (no la original).
+  // Para cambiar el logo, el tamaño o qué tan visible es, edita estos 4 valores:
+  const WM = { logo: 'img/Logo.png', tamano: 0.11, opacidad: 0.28, angulo: 25 };
+
+  function _cargarImg(src) {
+    return new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; });
+  }
+  const _logoP = _cargarImg(WM.logo);
+  _logoP.catch(() => {});
+  const _wmCache = new Map();
+
+  function marcarSrc(src, maxW) {
+    const key = src + '|' + maxW;
+    if (_wmCache.has(key)) return _wmCache.get(key);
+    const p = Promise.all([_cargarImg(src), _logoP]).then(([img, logo]) => {
+      const esc = Math.min(1, maxW / img.naturalWidth);
+      const w = Math.round(img.naturalWidth * esc), h = Math.round(img.naturalHeight * esc);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0, w, h);
+
+      const lw = Math.max(30, Math.round(w * WM.tamano));
+      const lh = Math.round(logo.naturalHeight * lw / logo.naturalWidth);
+      const a = WM.angulo * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a);
+      const bw = Math.ceil(lw * cos + lh * sin), bh = Math.ceil(lw * sin + lh * cos);
+      const tile = document.createElement('canvas'); tile.width = bw; tile.height = bh;
+      const t = tile.getContext('2d');
+      t.translate(bw / 2, bh / 2); t.rotate(-a); t.drawImage(logo, -lw / 2, -lh / 2, lw, lh);
+
+      g.globalAlpha = WM.opacidad;
+      const px = Math.round(bw * 1.5), py = Math.round(bh * 1.5);
+      for (let y = -bh, fila = 0; y < h + bh; y += py, fila++) {
+        const d = fila % 2 ? Math.round(px / 2) : 0;
+        for (let x = -bw + d; x < w + bw; x += px) g.drawImage(tile, x, y);
+      }
+      return new Promise(ok => c.toBlob(b => ok(URL.createObjectURL(b)), 'image/jpeg', 0.9));
+    });
+    _wmCache.set(key, p);
+    p.catch(() => _wmCache.delete(key));
+    return p;
+  }
+
+  // Muestra en <img> la versión marcada. Si algo falla (logo o foto no encontrados), muestra la original.
+  function marcarEn(el, src, maxW) {
+    el._wmSrc = src; el._wmW = maxW; el._wmFallback = false;
+    marcarSrc(src, maxW)
+      .then(url => { if (el._wmSrc === src) el.src = url; })
+      .catch(() => { if (el._wmSrc === src) { el._wmFallback = true; el.src = src; } });
+  }
+
+  // Si alguien cambia el src de la foto desde las herramientas del navegador, se vuelve a marcar.
+  const _guardia = new MutationObserver(muts => muts.forEach(m => {
+    const el = m.target;
+    if (el._wmSrc && !el._wmFallback && !String(el.getAttribute('src') || '').startsWith('blob:')) {
+      marcarEn(el, el._wmSrc, el._wmW);
+    }
+  }));
+  function vigilar(el) { _guardia.observe(el, { attributes: true, attributeFilter: ['src', 'srcset'] }); }
+
+  // Sin clic derecho ni arrastrar sobre las fotos de proyectos
+  ['contextmenu', 'dragstart'].forEach(ev => document.addEventListener(ev, e => {
+    if (e.target.closest && e.target.closest('.pcard-cell, .lb-main, .lb-thumb')) e.preventDefault();
+  }));
+
   // ── TARJETAS DE PROYECTOS ──────────────────────────────────
   function _renderProyectos() {
     const grid = document.getElementById('projectsGrid');
@@ -1158,7 +1225,7 @@
       const n = p.imgs.length;
       const cell = (k, extra = '') =>
         `<div class="pcard-cell" data-i="${k}">
-          <img src="${p.imgs[k]}" alt="${p.nombre}, foto ${k + 1}" loading="lazy" onerror="this.parentNode.classList.add('is-missing')">
+          <img data-src="${p.imgs[k]}" alt="${p.nombre}, foto ${k + 1}" draggable="false" onerror="this.parentNode.classList.add('is-missing')">
           ${extra}
         </div>`;
       const sideCount = Math.min(n - 1, 2);
@@ -1183,6 +1250,17 @@
           </div>
         </article>`;
     }).join('');
+
+    // Marca de agua en las fotos de las tarjetas (se procesan al acercarse a la pantalla)
+    const _io = new IntersectionObserver((entradas) => {
+      entradas.forEach(en => {
+        if (!en.isIntersecting) return;
+        _io.unobserve(en.target);
+        vigilar(en.target);
+        marcarEn(en.target, en.target.dataset.src, 900);
+      });
+    }, { rootMargin: '300px' });
+    grid.querySelectorAll('.pcard-cell img').forEach(el => _io.observe(el));
 
     grid.querySelectorAll('.pcard').forEach(card => {
       const pi = +card.dataset.p;
@@ -1236,9 +1314,10 @@
     const thumbsEl = document.getElementById('lbThumbs');
     thumbsEl.innerHTML = proj.imgs.map((src, i) =>
       `<div class="lb-thumb${i===_lbIdx?' active':''}" onclick="lbGoTo(${i})">
-        <img src="${src.replace('w=1200','w=200')}" alt="foto ${i+1}" loading="lazy">
+        <img data-src="${src}" alt="foto ${i+1}" draggable="false">
       </div>`
     ).join('');
+    thumbsEl.querySelectorAll('img').forEach(el => { vigilar(el); marcarEn(el, el.dataset.src, 240); });
 
     // Flechas (ocultar si solo 1 imagen)
     const one = proj.imgs.length <= 1;
@@ -1261,11 +1340,12 @@
     if (!instant) {
       imgEl.classList.add('lb-fade');
       setTimeout(() => {
-        imgEl.src = proj.imgs[idx];
-        imgEl.classList.remove('lb-fade');
+        imgEl.onload = imgEl.onerror = () => imgEl.classList.remove('lb-fade');
+        marcarEn(imgEl, proj.imgs[idx], 1800);
       }, 220);
     } else {
-      imgEl.src = proj.imgs[idx];
+      imgEl.removeAttribute('src');
+      marcarEn(imgEl, proj.imgs[idx], 1800);
     }
 
     counter.textContent = `${idx+1} / ${proj.imgs.length}`;
@@ -1274,6 +1354,8 @@
     );
     _lbIdx = idx;
   }
+
+  vigilar(document.getElementById('lbImg'));
 
   // Deslizar con el dedo en móvil
   (function () {
@@ -1484,7 +1566,7 @@
               <input type="tel" id="lead-telefono" class="form-control" placeholder="+57 300 000 0000">
             </div>
             <div class="form-group">
-              <label class="form-label">Correo electrónico</label>
+              <label class="form-label">Correo electrónico (opcional)</label>
               <input type="email" id="lead-email" class="form-control" placeholder="tu@correo.com">
             </div>
           </div>
@@ -1661,7 +1743,6 @@
       const required = [
         { id:'lead-nombre',   val: nombre },
         { id:'lead-telefono', val: telefono },
-        { id:'lead-email',    val: email },
         { id:'lead-servicio', val: servicio },
       ];
       let valid = true;
