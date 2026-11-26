@@ -1,447 +1,125 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D'Amour | Antojos que enamoran</title>
-    <!-- Fuentes de Google para mantener el estilo artesanal y elegante -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --rojo-marca: #8B151B;
-            --rojo-oscuro: #630D12;
-            --crema-fondo: #FDF6EC;
-            --crema-tarjeta: #FFFFFF;
-            --verde-detalle: #5C8D3E;
-            --texto-oscuro: #2D1A1B;
-            --texto-suave: #6E5658;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>D’Amour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lobster+Two:ital,wght@1,700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#3A0B16; --bg2:#5A1220; --vino:#8E2236; --crema:#FBE9EE; --suave:#D9AEB9; --salvia:#A9B275; --rosa:#E8709A;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#26060E;--bg2:#430E1A}}
+:root[data-theme="dark"]{--bg:#26060E;--bg2:#430E1A}
+html,body{height:100%}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--crema);font-family:'Cormorant Garamond',Georgia,serif;overflow:hidden;position:relative}
+.script{font-family:'Lobster Two','Brush Script MT',cursive;font-style:italic;font-weight:700}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* atmósfera */
+.glow{position:fixed;inset:0;background:radial-gradient(520px circle at var(--mx,50%) var(--my,40%),rgba(232,112,154,.20),transparent 60%),radial-gradient(900px circle at 50% 38%,var(--bg2),var(--bg) 70%);z-index:0;transition:background .2s}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.12;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.ring{position:fixed;left:50%;top:38%;border:1px solid rgba(169,178,117,.25);border-radius:50%;transform:translate(-50%,-50%);z-index:0;animation:ring 9s ease-in-out infinite}
+.r1{width:min(88vmin,640px);height:min(88vmin,640px)}
+.r2{width:min(116vmin,860px);height:min(116vmin,860px);animation-delay:-3s;border-color:rgba(232,112,154,.15)}
+@keyframes ring{50%{transform:translate(-50%,-50%) scale(1.04)}}
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--crema-fondo);
-            color: var(--texto-oscuro);
-            line-height: 1.6;
-        }
+/* escena */
+main{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.5rem;gap:0}
+.top{position:fixed;top:calc(1.4rem + env(safe-area-inset-top,0px));left:0;right:0;display:flex;justify-content:space-between;padding:0 1.8rem;z-index:3;font-size:.8rem;letter-spacing:.4em;text-transform:uppercase;color:var(--suave);opacity:0;animation:fade 1.6s 2.2s forwards}
 
-        /* Header / Navbar */
-        header {
-            background-color: var(--rojo-marca);
-            color: white;
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-        }
+.flor{width:min(40vmin,300px);height:auto;transition:transform .3s ease-out;filter:drop-shadow(0 30px 40px rgba(0,0,0,.45))}
+.pt{transform-origin:120px 120px;transform-box:view-box;opacity:0;animation:bloom 1.6s cubic-bezier(.2,.9,.25,1.1) forwards;animation-delay:calc(var(--i)*.18s + .2s)}
+@keyframes bloom{from{opacity:0;transform:rotate(calc(var(--r) - 70deg)) scale(.05)}to{opacity:1;transform:rotate(var(--r)) scale(1)}}
+.spin{transform-origin:120px 120px;transform-box:view-box;animation:spin 60s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gota{opacity:0;animation:fade 1.2s 2s forwards}
 
-        .logo {
-            font-family: 'Pacifico', cursive;
-            font-size: 1.8rem;
-            color: #FFF;
-            text-decoration: none;
-        }
+h1{font-size:clamp(3.6rem,15vw,7.5rem);line-height:1;margin-top:1.2rem;letter-spacing:.01em;
+  background:linear-gradient(180deg,#FFF4F6 20%,#E9AEBB);-webkit-background-clip:text;background-clip:text;color:transparent;
+  opacity:0;transform:translateY(18px);animation:rise 1.6s 1.4s cubic-bezier(.2,.8,.2,1) forwards}
+.trazo{width:min(280px,56vw);height:8px;margin:.3rem auto 0;transform-origin:left;transform:scaleX(0);animation:draw 1.4s 2.2s ease-out forwards}
+.tag{margin-top:1.4rem;font-size:clamp(.82rem,2.6vw,1rem);letter-spacing:.5em;text-transform:uppercase;color:var(--suave);opacity:0;animation:fade 1.6s 2.6s forwards}
+@keyframes fade{to{opacity:1}}
+@keyframes rise{to{opacity:1;transform:none}}
+@keyframes draw{to{transform:scaleX(1)}}
 
-        .nav-cta {
-            background-color: #25D366;
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1.2rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: transform 0.2s, background-color 0.2s;
-        }
+/* enlaces */
+.links{margin-top:2.6rem;width:min(460px,100%);opacity:0;animation:fade 1.6s 3s forwards}
+.lk{position:relative;display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding:1.05rem .2rem;text-decoration:none;color:var(--crema);border-top:1px solid rgba(251,233,238,.18);overflow:hidden;transition:color .4s,padding .4s}
+.lk:last-child{border-bottom:1px solid rgba(251,233,238,.18)}
+.lk::before{content:"";position:absolute;inset:0;background:var(--crema);transform:translateY(101%);transition:transform .5s cubic-bezier(.7,0,.2,1);z-index:-1}
+.lk:hover,.lk:focus-visible{color:var(--bg);padding-left:1rem;padding-right:1rem;outline:none}
+.lk:hover::before,.lk:focus-visible::before{transform:none}
+.lk b{font-weight:500;font-size:clamp(1.5rem,5vw,1.9rem);font-style:italic}
+.lk span{font-size:.95rem;letter-spacing:.18em;color:var(--suave);transition:color .4s}
+.lk:hover span{color:var(--vino)}
+.lk i{font-style:normal;font-size:1.3rem;transition:transform .4s}
+.lk:hover i{transform:translate(4px,-4px)}
+.lk .r{display:flex;align-items:baseline;gap:.9rem}
 
-        .nav-cta:hover {
-            background-color: #1EBE5D;
-            transform: scale(1.03);
-        }
+.pie{position:fixed;bottom:calc(1.2rem + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font-size:.78rem;letter-spacing:.35em;text-transform:uppercase;color:rgba(217,174,185,.6);z-index:3;opacity:0;animation:fade 1.6s 3.4s forwards}
 
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, var(--rojo-marca) 0%, var(--rojo-oscuro) 100%);
-            color: white;
-            padding: 4rem 5%;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 2rem;
-        }
-
-        .hero-text {
-            flex: 1 1 400px;
-            max-width: 600px;
-        }
-
-        .hero-badge {
-            background-color: rgba(255, 255, 255, 0.15);
-            padding: 0.3rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            display: inline-block;
-            margin-bottom: 1rem;
-            letter-spacing: 0.5px;
-        }
-
-        .hero-text h1 {
-            font-family: 'Pacifico', cursive;
-            font-size: 3.2rem;
-            line-height: 1.2;
-            margin-bottom: 0.5rem;
-        }
-
-        .hero-text p.tagline {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #F8D7DA;
-            margin-bottom: 1rem;
-        }
-
-        .hero-text p.desc {
-            font-size: 1rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .btn-primary {
-            background-color: #25D366;
-            color: white;
-            padding: 0.9rem 1.8rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
-            transition: all 0.2s;
-        }
-
-        .btn-primary:hover {
-            background-color: #1EBE5D;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background-color: white;
-            color: var(--rojo-marca);
-            padding: 0.9rem 1.8rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--crema-fondo);
-            transform: translateY(-2px);
-        }
-
-        .hero-image {
-            flex: 1 1 400px;
-            max-width: 520px;
-            text-align: center;
-        }
-
-        .hero-image img {
-            width: 100%;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            border: 4px solid rgba(255,255,255,0.2);
-            object-fit: cover;
-        }
-
-        /* Sección de Productos */
-        .productos {
-            padding: 4.5rem 5%;
-            max-width: 1100px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .section-title {
-            font-family: 'Pacifico', cursive;
-            font-size: 2.5rem;
-            color: var(--rojo-marca);
-            margin-bottom: 0.5rem;
-        }
-
-        .section-subtitle {
-            color: var(--texto-suave);
-            margin-bottom: 3rem;
-            font-size: 1.05rem;
-        }
-
-        .grid-productos {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-        }
-
-        .card {
-            background: var(--crema-tarjeta);
-            border-radius: 20px;
-            padding: 2rem 1.5rem;
-            box-shadow: 0 8px 25px rgba(139, 21, 27, 0.08);
-            border-top: 5px solid var(--rojo-marca);
-            transition: transform 0.3s;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .card:hover {
-            transform: translateY(-6px);
-        }
-
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .card h3 {
-            color: var(--rojo-marca);
-            font-size: 1.4rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .card p {
-            color: var(--texto-suave);
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-btn {
-            display: inline-block;
-            padding: 0.6rem 1.2rem;
-            border: 2px solid var(--rojo-marca);
-            color: var(--rojo-marca);
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .card-btn:hover {
-            background-color: var(--rojo-marca);
-            color: white;
-        }
-
-        /* Sección Feria / Stand */
-        .stand-section {
-            background-color: white;
-            padding: 4rem 5%;
-            border-top: 1px solid rgba(139, 21, 27, 0.1);
-            border-bottom: 1px solid rgba(139, 21, 27, 0.1);
-        }
-
-        .stand-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 2.5rem;
-        }
-
-        .stand-img {
-            flex: 1 1 420px;
-        }
-
-        .stand-img img {
-            width: 100%;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-        }
-
-        .stand-info {
-            flex: 1 1 350px;
-        }
-
-        .stand-info h2 {
-            font-family: 'Pacifico', cursive;
-            color: var(--rojo-marca);
-            font-size: 2.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .stand-info p {
-            margin-bottom: 1.2rem;
-            color: var(--texto-suave);
-        }
-
-        .pagos-box {
-            background-color: var(--crema-fondo);
-            padding: 1.2rem;
-            border-radius: 12px;
-            border-left: 4px solid var(--verde-detalle);
-            margin-top: 1.5rem;
-        }
-
-        .pagos-box strong {
-            color: var(--texto-oscuro);
-            display: block;
-            margin-bottom: 0.3rem;
-        }
-
-        /* Footer */
-        footer {
-            background-color: var(--rojo-oscuro);
-            color: white;
-            text-align: center;
-            padding: 3rem 5% 2rem;
-        }
-
-        .footer-logo {
-            font-family: 'Pacifico', cursive;
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin: 1.5rem 0;
-            flex-wrap: wrap;
-        }
-
-        .social-links a {
-            color: white;
-            text-decoration: none;
-            background: rgba(255,255,255,0.12);
-            padding: 0.7rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-
-        .social-links a:hover {
-            background: rgba(255,255,255,0.25);
-        }
-
-        .copyright {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            margin-top: 2rem;
-        }
-
-        /* Botón flotante de WhatsApp */
-        .whatsapp-float {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background-color: #25D366;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-            text-decoration: none;
-            z-index: 1000;
-            transition: transform 0.2s;
-        }
-
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-            .hero-text h1 {
-                font-size: 2.5rem;
-            }
-            .hero {
-                padding: 3rem 5%;
-            }
-        }
-    </style>
+@media (max-height:700px){.flor{width:30vmin}.links{margin-top:1.4rem}.lk{padding:.7rem .2rem}h1{margin-top:.6rem}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-delay:0s!important}}
+</style>
 </head>
 <body>
+<div class="glow" id="glow"></div>
+<div class="ring r1"></div><div class="ring r2"></div>
+<div class="grain"></div>
 
-    <!-- Barra Superior -->
-    <header>
-        <a href="#" class="logo">D'Amour</a>
-        <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20quiero%20hacer%20un%20pedido%20%F0%9F%8D%B0" target="_blank" class="nav-cta">
-            <span>Pedir por WhatsApp</span>
-        </a>
-    </header>
+<div class="top"><span>Postres</span><span>Antojos que enamoran</span></div>
 
-    <!-- Sección Principal -->
-    <section class="hero">
-        <div class="hero-text">
-            <span class="hero-badge">✨ Un detalle dulce para cada ocasión</span>
-            <h1>Antojos que enamoran</h1>
-            <p class="tagline">Dulces momentos, siempre con D'Amour.</p>
-            <p class="desc">Preparamos postres artesanales con el toque casero perfecto para endulzar tu día, compartir en familia o sorprender a alguien especial.</p>
-            
-            <div class="btn-group">
-                <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20me%20gustar%C3%ADa%20conocer%20los%20precios%20y%20hacer%20un%20pedido" target="_blank" class="btn-primary">
-                    💬 Hacer mi pedido
-                </a>
-                <a href="https://www.instagram.com/damour.food" target="_blank" class="btn-secondary">
-                    📸 @damour.food
-                </a>
-            </div>
-        </div>
+<main>
+  <svg class="flor" id="flor" viewBox="0 0 240 240" role="img" aria-label="Flor D’Amour">
+    <defs>
+      <radialGradient id="pet" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#B83A52"/><stop offset=".55" stop-color="#8A1F33"/><stop offset="1" stop-color="#5A1020"/></radialGradient>
+      <path id="p" d="M120 120 C70 112 50 70 72 46 C96 22 132 42 128 88 C127 102 124 112 120 120Z"/>
+    </defs>
+    <g class="spin">
+      <g class="pt" style="--r:0deg;--i:0"><use href="#p" fill="none" stroke="#A9B275" stroke-width="14"/><use href="#p" fill="url(#pet)" stroke="#FBE9EE" stroke-width="3.5"/><ellipse cx="82" cy="60" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-35 82 60)"/></g>
+      <g class="pt" style="--r:72deg;--i:1"><use href="#p" fill="none" stroke="#A9B275" stroke-width="14"/><use href="#p" fill="url(#pet)" stroke="#FBE9EE" stroke-width="3.5"/><ellipse cx="82" cy="60" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-35 82 60)"/></g>
+      <g class="pt" style="--r:144deg;--i:2"><use href="#p" fill="none" stroke="#A9B275" stroke-width="14"/><use href="#p" fill="url(#pet)" stroke="#FBE9EE" stroke-width="3.5"/><ellipse cx="82" cy="60" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-35 82 60)"/></g>
+      <g class="pt" style="--r:216deg;--i:3"><use href="#p" fill="none" stroke="#A9B275" stroke-width="14"/><use href="#p" fill="url(#pet)" stroke="#FBE9EE" stroke-width="3.5"/><ellipse cx="82" cy="60" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-35 82 60)"/></g>
+      <g class="pt" style="--r:288deg;--i:4"><use href="#p" fill="none" stroke="#A9B275" stroke-width="14"/><use href="#p" fill="url(#pet)" stroke="#FBE9EE" stroke-width="3.5"/><ellipse cx="82" cy="60" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-35 82 60)"/></g>
+    </g>
+    <path class="gota" d="M184 38 q10 -14 22 -8 q-4 14 -22 8Z" fill="#E8709A"/>
+    <path class="gota" d="M194 62 q18 -8 30 2 q-16 10 -30 -2Z" fill="#A9B275"/>
+  </svg>
 
-        <div class="hero-image">
-            <!-- REEMPLAZA 'pendon-damour.jpg' con la ruta de tu imagen horizontal de productos -->
-            <img src="pendon-damour.jpg" alt="Postres D'Amour: Bizcochos, Postre de Limón y Obleas" onerror="this.src='https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=800&q=80'">
-        </div>
-    </section>
+  <h1 class="script">D’Amour</h1>
+  <svg class="trazo" viewBox="0 0 260 8" preserveAspectRatio="none" aria-hidden="true"><path d="M2 6 C60 1 160 1 258 3 C170 5 80 6 2 6Z" fill="#A9B275"/></svg>
+  <p class="tag">Un detalle dulce para cada ocasión</p>
 
-    <!-- Catálogo de Productos -->
-    <section class="productos" id="menu">
-        <h2 class="section-title">Nuestros Favoritos</h2>
-        <p class="section-subtitle">Elige tu antojo y pídelo directo a nuestro WhatsApp</p>
+  <nav class="links">
+    <a class="lk" href="https://wa.me/573133553703?text=Hola%20D%E2%80%99Amour%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">
+      <b>WhatsApp</b><div class="r"><span>313 355 3703</span><i>↗</i></div>
+    </a>
+    <a class="lk" href="https://www.instagram.com/damour.food" target="_blank" rel="noopener">
+      <b>Instagram</b><div class="r"><span>@damour.food</span><i>↗</i></div>
+    </a>
+  </nav>
+</main>
 
-        <div class="grid-productos">
-            <!-- Producto 1 -->
-            <div class="card">
-                <div>
-                    <div class="card-icon">🍪</div>
-                    <h3>Bizcochos de Maíz</h3>
-                    <p>Suaves, doraditos y con ese sabor tradicional irresistible. Ideales para acompañar con café o disfrutar solos.</p>
-                </div>
-                <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20quiero%20pedir%20Bizcochos%20de%20Ma%C3%ADz" target="_blank" class="card-btn">Pedir este antojo</a>
-            </div>
+<div class="pie">Dulces momentos, siempre con D’Amour</div>
 
-            <!-- Producto 2 -->
-            <div class="card">
-                <div>
-                    <div class="card-icon">🍋</div>
-                    <h3>Postre de Limón</h3>
-                    <p>Cremoso, fresco y con el equilibrio exacto entre dulce y cítrico sobre una base crujiente de galleta.</p>
-                </div>
-                <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20quiero%20pedir%20Postre%20de%20Lim%C3%B3n" target="_blank" class="card
+<script>
+(function(){
+  var g=document.getElementById('glow'),f=document.getElementById('flor');
+  function move(x,y){
+    var w=window.innerWidth,h=window.innerHeight;
+    g.style.setProperty('--mx',(x/w*100)+'%');g.style.setProperty('--my',(y/h*100)+'%');
+    var dx=(x/w-.5),dy=(y/h-.5);
+    f.style.transform='perspective(800px) rotateY('+(dx*16)+'deg) rotateX('+(-dy*16)+'deg)';
+  }
+  window.addEventListener('pointermove',function(e){move(e.clientX,e.clientY)});
+  window.addEventListener('pointerleave',function(){f.style.transform='';});
+})();
+</script>
+</body>
+</html>
