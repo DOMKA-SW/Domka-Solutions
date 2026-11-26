@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D'Amour | Antojos que enamoran</title>
+    <!-- Fuentes de Google para mantener el estilo artesanal y elegante -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --rojo-marca: #8B151B;
+            --rojo-oscuro: #630D12;
+            --crema-fondo: #FDF6EC;
+            --crema-tarjeta: #FFFFFF;
+            --verde-detalle: #5C8D3E;
+            --texto-oscuro: #2D1A1B;
+            --texto-suave: #6E5658;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--crema-fondo);
+            color: var(--texto-oscuro);
+            line-height: 1.6;
+        }
+
+        /* Header / Navbar */
+        header {
+            background-color: var(--rojo-marca);
+            color: white;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        .logo {
+            font-family: 'Pacifico', cursive;
+            font-size: 1.8rem;
+            color: #FFF;
+            text-decoration: none;
+        }
+
+        .nav-cta {
+            background-color: #25D366;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .nav-cta:hover {
+            background-color: #1EBE5D;
+            transform: scale(1.03);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--rojo-marca) 0%, var(--rojo-oscuro) 100%);
+            color: white;
+            padding: 4rem 5%;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .hero-text {
+            flex: 1 1 400px;
+            max-width: 600px;
+        }
+
+        .hero-badge {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-text h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 3.2rem;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-text p.tagline {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #F8D7DA;
+            margin-bottom: 1rem;
+        }
+
+        .hero-text p.desc {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .btn-primary {
+            background-color: #25D366;
+            color: white;
+            padding: 0.9rem 1.8rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #1EBE5D;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--rojo-marca);
+            padding: 0.9rem 1.8rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--crema-fondo);
+            transform: translateY(-2px);
+        }
+
+        .hero-image {
+            flex: 1 1 400px;
+            max-width: 520px;
+            text-align: center;
+        }
+
+        .hero-image img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border: 4px solid rgba(255,255,255,0.2);
+            object-fit: cover;
+        }
+
+        /* Sección de Productos */
+        .productos {
+            padding: 4.5rem 5%;
+            max-width: 1100px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+            color: var(--rojo-marca);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: var(--texto-suave);
+            margin-bottom: 3rem;
+            font-size: 1.05rem;
+        }
+
+        .grid-productos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--crema-tarjeta);
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 8px 25px rgba(139, 21, 27, 0.08);
+            border-top: 5px solid var(--rojo-marca);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            color: var(--rojo-marca);
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .card p {
+            color: var(--texto-suave);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--rojo-marca);
+            color: var(--rojo-marca);
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .card-btn:hover {
+            background-color: var(--rojo-marca);
+            color: white;
+        }
+
+        /* Sección Feria / Stand */
+        .stand-section {
+            background-color: white;
+            padding: 4rem 5%;
+            border-top: 1px solid rgba(139, 21, 27, 0.1);
+            border-bottom: 1px solid rgba(139, 21, 27, 0.1);
+        }
+
+        .stand-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
+        .stand-img {
+            flex: 1 1 420px;
+        }
+
+        .stand-img img {
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+
+        .stand-info {
+            flex: 1 1 350px;
+        }
+
+        .stand-info h2 {
+            font-family: 'Pacifico', cursive;
+            color: var(--rojo-marca);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .stand-info p {
+            margin-bottom: 1.2rem;
+            color: var(--texto-suave);
+        }
+
+        .pagos-box {
+            background-color: var(--crema-fondo);
+            padding: 1.2rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--verde-detalle);
+            margin-top: 1.5rem;
+        }
+
+        .pagos-box strong {
+            color: var(--texto-oscuro);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--rojo-oscuro);
+            color: white;
+            text-align: center;
+            padding: 3rem 5% 2rem;
+        }
+
+        .footer-logo {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.12);
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .social-links a:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .copyright {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 2rem;
+        }
+
+        /* Botón flotante de WhatsApp */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background-color: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            text-decoration: none;
+            z-index: 1000;
+            transition: transform 0.2s;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+            .hero {
+                padding: 3rem 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barra Superior -->
+    <header>
+        <a href="#" class="logo">D'Amour</a>
+        <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20quiero%20hacer%20un%20pedido%20%F0%9F%8D%B0" target="_blank" class="nav-cta">
+            <span>Pedir por WhatsApp</span>
+        </a>
+    </header>
+
+    <!-- Sección Principal -->
+    <section class="hero">
+        <div class="hero-text">
+            <span class="hero-badge">✨ Un detalle dulce para cada ocasión</span>
+            <h1>Antojos que enamoran</h1>
+            <p class="tagline">Dulces momentos, siempre con D'Amour.</p>
+            <p class="desc">Preparamos postres artesanales con el toque casero perfecto para endulzar tu día, compartir en familia o sorprender a alguien especial.</p>
+            
+            <div class="btn-group">
+                <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20me%20gustar%C3%ADa%20conocer%20los%20precios%20y%20hacer%20un%20pedido" target="_blank" class="btn-primary">
+                    💬 Hacer mi pedido
+                </a>
+                <a href="https://www.instagram.com/damour.food" target="_blank" class="btn-secondary">
+                    📸 @damour.food
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-image">
+            <!-- REEMPLAZA 'pendon-damour.jpg' con la ruta de tu imagen horizontal de productos -->
+            <img src="pendon-damour.jpg" alt="Postres D'Amour: Bizcochos, Postre de Limón y Obleas" onerror="this.src='https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=800&q=80'">
+        </div>
+    </section>
+
+    <!-- Catálogo de Productos -->
+    <section class="productos" id="menu">
+        <h2 class="section-title">Nuestros Favoritos</h2>
+        <p class="section-subtitle">Elige tu antojo y pídelo directo a nuestro WhatsApp</p>
+
+        <div class="grid-productos">
+            <!-- Producto 1 -->
+            <div class="card">
+                <div>
+                    <div class="card-icon">🍪</div>
+                    <h3>Bizcochos de Maíz</h3>
+                    <p>Suaves, doraditos y con ese sabor tradicional irresistible. Ideales para acompañar con café o disfrutar solos.</p>
+                </div>
+                <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20quiero%20pedir%20Bizcochos%20de%20Ma%C3%ADz" target="_blank" class="card-btn">Pedir este antojo</a>
+            </div>
+
+            <!-- Producto 2 -->
+            <div class="card">
+                <div>
+                    <div class="card-icon">🍋</div>
+                    <h3>Postre de Limón</h3>
+                    <p>Cremoso, fresco y con el equilibrio exacto entre dulce y cítrico sobre una base crujiente de galleta.</p>
+                </div>
+                <a href="https://wa.me/573133553703?text=Hola%20D'Amour,%20quiero%20pedir%20Postre%20de%20Lim%C3%B3n" target="_blank" class="card
